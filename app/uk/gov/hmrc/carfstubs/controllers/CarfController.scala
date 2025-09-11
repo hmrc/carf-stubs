@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.carfstubs
+package uk.gov.hmrc.carfstubs.controllers
 
-import play.api.{Configuration, Environment}
-import play.api.inject.{Binding, Module => AppModule}
+import play.api.mvc.ControllerComponents
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import java.time.Clock
+import javax.inject.Inject
 
-class Module extends AppModule:
+class CarfController @Inject() (
+    cc: ControllerComponents
+) extends BackendController(cc):
 
-  override def bindings(
-      environment: Environment,
-      configuration: Configuration
-  ): Seq[Binding[_]] =
-    bind[Clock].toInstance(Clock.systemDefaultZone) :: // inject if current time needs to be controlled in unit tests
-      Nil
+  def getDetails: Int = 5
