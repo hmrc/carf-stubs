@@ -1,3 +1,8 @@
+/*
+ * Copyright 2025 HM Revenue & Customs
+ *
+ */
+
 package uk.gov.hmrc.carfstubs
 
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
