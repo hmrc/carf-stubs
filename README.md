@@ -1,7 +1,7 @@
 
 # carf-stubs
 
-This is a placeholder README.md for a new repository
+This is the backend stubs repository for the Crypto Asset Reporting Framework (CARF) team's registration journey
 
 ### License
 
