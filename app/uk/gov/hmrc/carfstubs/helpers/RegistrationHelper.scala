@@ -23,7 +23,7 @@ trait RegistrationHelper {
       case _   => Ok(Json.toJson(createFullIndividualResponse(request)))
     }
 
-  def createFullIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
+  private def createFullIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
     RegisterWithIDResponse(
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,
@@ -59,7 +59,7 @@ trait RegistrationHelper {
       )
     )
 
-  def createEmptyIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
+  private def createEmptyIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
     RegisterWithIDResponse(
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,
