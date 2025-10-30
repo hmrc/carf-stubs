@@ -71,7 +71,7 @@ trait RegistrationHelper {
         ResponseDetail(
           ARN = "Test-ARN",
           SAFEID = "Test-SafeId",
-          address = fullAddress,
+          address = emptyAddress,
           contactDetails = ContactDetails(
             emailAddress = None,
             faxNumber = None,
