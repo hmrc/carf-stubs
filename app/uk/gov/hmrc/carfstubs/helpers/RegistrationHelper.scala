@@ -82,7 +82,7 @@ trait RegistrationHelper {
             IndividualResponse(
               dateOfBirth = None,
               firstName = request.requestDetail.individual.firstName,
-              lastName = request.requestDetail.individual.firstName,
+              lastName = request.requestDetail.individual.lastName,
               middleName = None
             )
           ),
