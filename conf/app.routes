@@ -1,1 +1,3 @@
 # microservice specific routes
+
+POST         /dac6/dct102b/v1                uk.gov.hmrc.carfstubs.controllers.RegistrationController.registerIndividualWithId()
