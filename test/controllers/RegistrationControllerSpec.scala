@@ -1,6 +1,17 @@
 /*
  * Copyright 2025 HM Revenue & Customs
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package controllers
@@ -56,6 +67,43 @@ class RegistrationControllerSpec extends SpecBase {
     )
   )
 
+  private val testFullOrganisationResponse: JsValue = Json.toJson(
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = Some(List(ReturnParameters(paramName = "Test-ParamName", paramValue = "Test-ParamValue"))),
+        status = "200",
+        statusText = Some("Test-StatusText")
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "Test-ARN-ARN",
+          SAFEID = "Test-SafeId",
+          address = fullOrganisationAddress,
+          contactDetails = ContactDetails(
+            emailAddress = Some("tester@arealexample.com"),
+            faxNumber = Some("Test-FaxNo"),
+            mobileNumber = Some("Test-MobileNo"),
+            phoneNumber = Some("TestPhoneNo")
+          ),
+          individual = None,
+          isAnASAgent = Some(false),
+          isAnAgent = false,
+          isAnIndividual = true,
+          isEditable = false,
+          organisation = Some(
+            OrganisationResponse(
+              code = Some("Test-Code"),
+              isAGroup = false,
+              organisationName = "The secret lab ltd",
+              organisationType = Some("Test-OrgType")
+            )
+          )
+        )
+      )
+    )
+  )
+
   private val testEmptyResponse: JsValue = Json.toJson(
     RegisterWithIDResponse(
       responseCommon = ResponseCommon(
@@ -99,6 +147,15 @@ class RegistrationControllerSpec extends SpecBase {
     addressLine3 = Some("Nowhereshire"),
     addressLine4 = Some("Down the road"),
     postalCode = Some("B23 2AZ"),
+    countryCode = "GB"
+  )
+
+  private def fullOrganisationAddress = AddressResponse(
+    addressLine1 = "1 High Street",
+    addressLine2 = Some("Leeds"),
+    addressLine3 = Some("Nowhereshire"),
+    addressLine4 = Some("Down the road"),
+    postalCode = Some("L25 2AZ"),
     countryCode = "GB"
   )
 
@@ -170,6 +227,15 @@ class RegistrationControllerSpec extends SpecBase {
 
         status(result)               mustBe BAD_REQUEST
         contentAsJson(result).toString must include("Invalid RegisterWithIDRequest payload")
+      }
+    }
+
+    "registerOrganisationWithId" - {
+      "must return a full response" in {
+        val result = testController.registerOrganisationWithId()(fakeRequestWithJsonBody(Json.toJson(testRequestModel)))
+
+        status(result)        mustBe OK
+        contentAsJson(result) mustBe testFullOrganisationResponse
       }
     }
   }

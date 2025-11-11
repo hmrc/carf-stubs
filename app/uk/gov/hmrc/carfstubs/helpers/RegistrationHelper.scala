@@ -1,6 +1,17 @@
 /*
  * Copyright 2025 HM Revenue & Customs
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package uk.gov.hmrc.carfstubs.helpers
@@ -8,8 +19,8 @@ package uk.gov.hmrc.carfstubs.helpers
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.{InternalServerError, NotFound, Ok}
-import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RequestCommon, RequestDetail}
-import uk.gov.hmrc.carfstubs.models.response.{AddressResponse, ContactDetails, IndividualResponse, RegisterWithIDResponse, ResponseCommon, ResponseDetail, ReturnParameters}
+import uk.gov.hmrc.carfstubs.models.request.RegisterWithIDRequest
+import uk.gov.hmrc.carfstubs.models.response.*
 
 import java.time.LocalDate
 
@@ -21,6 +32,14 @@ trait RegistrationHelper {
       case "8" => NotFound("Individual user could not be matched")
       case "7" => Ok(Json.toJson(createEmptyIndividualResponse(request)))
       case _   => Ok(Json.toJson(createFullIndividualResponse(request)))
+    }
+
+  def returnResponseOrganisation(request: RegisterWithIDRequest): Result =
+    request.requestDetail.IDNumber.take(1) match {
+      case "9" => InternalServerError("An unexpected error occurred")
+      case "8" => NotFound("The match was unsuccessful")
+      case "7" => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
+      case _   => Ok(Json.toJson(createFullOrganisationResponse(request)))
     }
 
   private def createFullIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
@@ -113,4 +132,6 @@ trait RegistrationHelper {
     countryCode = "GB"
   )
 
+  private def createEmptyOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIDResponse = ???
+  private def createFullOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIDResponse  = ???
 }
