@@ -16,16 +16,69 @@
 
 package uk.gov.hmrc.carfstubs.models.request
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.*
 
 case class RequestDetail(
     requiresNameMatch: Boolean,
     IDNumber: String,
     IDType: String,
     individual: IndividualDetails,
-    isAnAgent: Boolean
+    isAnAgent: Boolean,
+    organisation: Option[OrganisationDetails]
 )
 
 object RequestDetail {
   implicit val format: OFormat[RequestDetail] = Json.format[RequestDetail]
+}
+
+case class OrganisationDetails(organisationName: String, organisationType: String)
+
+object OrganisationDetails {
+  implicit val format: OFormat[OrganisationDetails] = Json.format[OrganisationDetails]
+}
+
+sealed trait OrganisationType {
+  def code: String
+}
+
+object OrganisationType {
+  case object LimitedCompany extends OrganisationType {
+    val code = "0000"
+  }
+
+  case object SoleTrader extends OrganisationType {
+    val code = "0001"
+  }
+
+  case object Partnership extends OrganisationType {
+    val code = "0002"
+  }
+
+  case object LimitedLiabilityPartnership extends OrganisationType {
+    val code = "0003"
+  }
+
+  case object UnincorporatedBody extends OrganisationType {
+    val code = "0004"
+  }
+
+  val values: Seq[OrganisationType] = Seq(
+    LimitedCompany,
+    SoleTrader,
+    Partnership,
+    LimitedLiabilityPartnership,
+    UnincorporatedBody
+  )
+
+  def fromCode(code: String): Option[OrganisationType] =
+    values.find(_.code == code)
+
+  implicit val format: Format[OrganisationType] = new Format[OrganisationType] {
+    def reads(json: JsValue): JsResult[OrganisationType] =
+      json.validate[String].flatMap { code =>
+        fromCode(code).map(JsSuccess(_)).getOrElse(JsError(s"Invalid organisation type code: $code"))
+      }
+
+    def writes(orgType: OrganisationType): JsValue = JsString(orgType.code)
+  }
 }

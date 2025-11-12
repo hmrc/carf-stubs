@@ -32,19 +32,16 @@ class RegistrationController @Inject() (
     with Logging
     with RegistrationHelper:
 
-  def registerIndividualWithId: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[RegisterWithIDRequest] { request =>
-      logger.info(s"%%% LOOK HERE (Stub Request) %%% \n-> $request")
-      val response = returnResponse(request)
-      logger.info(s"%%% LOOK HERE (Stub Response) %%% \n-> $response")
-      Future.successful(response)
-    }
-  }
+  def register: Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[RegisterWithIDRequest] { payload =>
+      val registerWithIDRequest = payload
+      val requestDetail         = registerWithIDRequest.requestDetail
+      val idNumber              = requestDetail.IDNumber
+      val idType                = requestDetail.IDType
+      val idPrefix              = idNumber.take(3)
 
-  def registerOrganisationWithId: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[RegisterWithIDRequest] { request =>
-      logger.info(s"%%% DO NOT LOOK HERE (Stub Request) %%% \n-> $request")
-      val response = returnResponseOrganisation(request)
+      logger.info(s"%%% LOOK HERE (Stub Request) %%% \n-> $request")
+      val response = returnResponse(payload)
       logger.info(s"%%% LOOK HERE (Stub Response) %%% \n-> $response")
       Future.successful(response)
     }

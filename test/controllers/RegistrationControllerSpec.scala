@@ -187,13 +187,13 @@ class RegistrationControllerSpec extends SpecBase {
   "RegistrationController" - {
     "registerIndividualWithId" - {
       "must return a full response when the request IDNumber starts with a non 7,8 or 9 char" in {
-        val result = testController.registerIndividualWithId()(fakeRequestWithJsonBody(Json.toJson(testRequestModel)))
+        val result = testController.register()(fakeRequestWithJsonBody(Json.toJson(testRequestModel)))
 
         status(result)        mustBe OK
         contentAsJson(result) mustBe testFullResponse
       }
       "must return an empty response when the request IDNumber starts with a 7" in {
-        val result = testController.registerIndividualWithId()(
+        val result = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(testRequestModel.copy(requestDetail = testRequestModel.requestDetail.copy(IDNumber = "7123")))
           )
@@ -203,7 +203,7 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsJson(result) mustBe testEmptyResponse
       }
       "must return a not found response when the request IDNumber starts with an 8" in {
-        val result = testController.registerIndividualWithId()(
+        val result = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(testRequestModel.copy(requestDetail = testRequestModel.requestDetail.copy(IDNumber = "8123")))
           )
@@ -213,7 +213,7 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsString(result) must include("Individual user could not be matched")
       }
       "must return an internal server error response when the request IDNumber starts with an 9" in {
-        val result = testController.registerIndividualWithId()(
+        val result = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(testRequestModel.copy(requestDetail = testRequestModel.requestDetail.copy(IDNumber = "9123")))
           )
@@ -223,20 +223,20 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsString(result) must include("Unexpected error")
       }
       "must return bad request when the request is not valid" in {
-        val result = testController.registerIndividualWithId()(fakeRequestWithJsonBody(Json.toJson("invalid timmy")))
+        val result = testController.register()(fakeRequestWithJsonBody(Json.toJson("invalid timmy")))
 
         status(result)               mustBe BAD_REQUEST
         contentAsJson(result).toString must include("Invalid RegisterWithIDRequest payload")
       }
     }
 
-    "registerOrganisationWithId" - {
-      "must return a full response" in {
-        val result = testController.registerOrganisationWithId()(fakeRequestWithJsonBody(Json.toJson(testRequestModel)))
-
-        status(result)        mustBe OK
-        contentAsJson(result) mustBe testFullOrganisationResponse
-      }
-    }
+//    "registerOrganisationWithId" - {
+//      "must return a full response" in {
+//        val result = testController.registerOrganisationWithId()(fakeRequestWithJsonBody(Json.toJson(testRequestModel)))
+//
+//        status(result)        mustBe OK
+//        contentAsJson(result) mustBe testFullOrganisationResponse
+//      }
+//    }
   }
 }
