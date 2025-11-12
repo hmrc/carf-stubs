@@ -18,46 +18,128 @@ package uk.gov.hmrc.carfstubs.helpers
 
 import play.api.libs.json.Json
 import play.api.mvc.Result
-import play.api.mvc.Results.{InternalServerError, NotFound, Ok}
-import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RequestDetail, RegisterOrganisationWithIdResponse}
+import play.api.mvc.Results.{BadRequest, InternalServerError, NotFound, Ok}
+import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RequestDetail}
 import uk.gov.hmrc.carfstubs.models.response.*
 
 import java.time.LocalDate
 
 trait RegistrationHelper {
 
-  def returnResponse(request: RegisterWithIDRequest): Result =
-    request.requestDetail.IDNumber.take(1) match {
-      case "9" => InternalServerError("Unexpected error")
-      case "8" => NotFound("Individual user could not be matched")
-      case "7" => Ok(Json.toJson(createEmptyIndividualResponse(request)))
-      case _   => Ok(Json.toJson(createFullIndividualResponse(request)))
-    }
+  def returnResponse(request: RegisterWithIDRequest): Result = {
 
-  def returnResponseOrganisation(request: RequestDetail): Result =
-    request.IDNumber.take(1) match {
-      case "9" => InternalServerError("An unexpected error occurred")
-      case "8" => NotFound("The match was unsuccessful")
-      //        case "7" => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
-      case "1" => Ok(Json.toJson(RegisterOrganisationWithIdResponse))
-      case _   => Ok(Json.toJson(createFullOrganisationResponse(request)))
-    }
+    val idNumber = request.requestDetail.IDNumber
+    val idType   = request.requestDetail.IDType
 
-    def createFullOrganisationResponse(request: RequestDetail): RegisterOrganisationWithIdResponse =
-      RegisterOrganisationWithIdResponse(
-        safeId = "test-safe-id",
-        code = Some("0000"),
-        organisationName = ("Timmy Ltd"),
-        address = AddressResponse(
-          addressLine1 = "6 High Street",
-          addressLine2 = Some("Birmingham"),
-          addressLine3 = Some("Nowhereshire"),
-          addressLine4 = Some("Down the road"),
-          postalCode = Some("B23 2AZ"),
-          countryCode = "GB"
+    (idType, idNumber.take(1)) match {
+      case (_, "9") => InternalServerError("Unexpected error")
+      case (_, "8") => NotFound("User could not be matched")
+
+      case ("UTR", "6") => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
+      case ("UTR", "7") => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
+      case ("UTR", _)   => Ok(Json.toJson(createFullOrganisationResponse(request)))
+
+      case ("NINO", "7") => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+      case ("NINO", _)   => Ok(Json.toJson(createFullIndividualResponse(request)))
+
+      case _ => BadRequest(s"Invalid IDType: $idType")
+
+    }
+  }
+
+  private def createFullOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "",
+          SAFEID = "Test-SafeId",
+          address = fullAddress,
+          contactDetails = ContactDetails(None, None, None, None),
+          individual = None,
+          isAnASAgent = Some(false),
+          isAnAgent = false,
+          isAnIndividual = false,
+          isEditable = false,
+          organisation = Some(
+            OrganisationResponse(
+              organisationName =
+                request.requestDetail.organisation.map(_.organisationName).getOrElse("AutoMatched Org Ltd"),
+              code = request.requestDetail.organisation.map(_.organisationType),
+              isAGroup = false,
+              organisationType = request.requestDetail.organisation.map(_.organisationType)
+            )
+          )
         )
       )
+    )
 
+  private def createEmptyOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "",
+          SAFEID = "Test-SafeId",
+          address = emptyAddress,
+          contactDetails = ContactDetails(None, None, None, None),
+          individual = None,
+          isAnASAgent = Some(false),
+          isAnAgent = false,
+          isAnIndividual = false,
+          isEditable = false,
+          organisation = Some(
+            OrganisationResponse(
+              organisationName = "Empty Org Ltd",
+              code = Some("0000"),
+              isAGroup = false,
+              organisationType = Some("0000")
+            )
+          )
+        )
+      )
+    )
+
+  private def createNonUkOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "",
+          SAFEID = "Test-SafeId",
+          address = nonUkAddress,
+          contactDetails = ContactDetails(None, None, None, None),
+          individual = None,
+          isAnASAgent = Some(false),
+          isAnAgent = false,
+          isAnIndividual = false,
+          isEditable = false,
+          organisation = Some(
+            OrganisationResponse(
+              organisationName = "Outside UK Org",
+              code = Some("0000"),
+              isAGroup = false,
+              organisationType = Some("0000")
+            )
+          )
+        )
+      )
+    )
 
   private def createFullIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
     RegisterWithIDResponse(
@@ -147,5 +229,14 @@ trait RegistrationHelper {
     addressLine4 = None,
     postalCode = None,
     countryCode = "GB"
+  )
+
+  private def nonUkAddress = AddressResponse(
+    addressLine1 = "123 Big Apple",
+    addressLine2 = Some("New York"),
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = Some("BNY 2AZ"),
+    countryCode = "US"
   )
 }
