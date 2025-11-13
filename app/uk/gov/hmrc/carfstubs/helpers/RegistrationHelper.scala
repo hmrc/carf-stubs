@@ -60,7 +60,12 @@ trait RegistrationHelper {
           ARN = "",
           SAFEID = "Test-SafeId",
           address = fullAddress,
-          contactDetails = ContactDetails(None, None, None, None),
+          contactDetails = ContactDetails(
+            emailAddress = Some("test@anemail.com"),
+            phoneNumber = Some("01111111111"),
+            mobileNumber = Some("07777777777"),
+            faxNumber = Some("01111111111")
+          ),
           individual = None,
           isAnASAgent = Some(false),
           isAnAgent = false,
@@ -123,7 +128,12 @@ trait RegistrationHelper {
           ARN = "",
           SAFEID = "Test-SafeId",
           address = nonUkAddress,
-          contactDetails = ContactDetails(None, None, None, None),
+          contactDetails = ContactDetails(
+            emailAddress = Some("test@anemail.com"),
+            phoneNumber = Some("111222333"),
+            mobileNumber = Some("+00000000000"),
+            faxNumber = Some("12345677890")
+          ),
           individual = None,
           isAnASAgent = Some(false),
           isAnAgent = false,
