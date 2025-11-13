@@ -34,6 +34,7 @@ trait RegistrationHelper {
       case _         => Ok(Json.toJson(createFullIndividualResponse(request)))
     }
 
+  //         SAFEID = "Test-SafeId",  for safeid
   private def createFullIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
     RegisterWithIDResponse(
       responseCommon = ResponseCommon(
@@ -81,7 +82,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "Test-ARN",
-          SAFEID = "Test-EmptySafeId",
+          SAFEID = "Test-SafeId",
           address = emptyAddress,
           contactDetails = ContactDetails(
             emailAddress = None,
