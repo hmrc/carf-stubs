@@ -20,7 +20,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.carfstubs.models.request.RegisterWithIDRequest
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.Logging
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import uk.gov.hmrc.carfstubs.helpers.RegistrationHelper
 
 import javax.inject.Inject
@@ -32,7 +32,7 @@ class RegistrationController @Inject() (
     with Logging
     with RegistrationHelper:
 
-  def register: Action[JsValue] = Action.async(parse.json) { implicit request =>
+  /* def register: Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[RegisterWithIDRequest] { payload =>
       val registerWithIDRequest = payload
       val requestDetail         = registerWithIDRequest.requestDetail
@@ -44,5 +44,20 @@ class RegistrationController @Inject() (
       val response = returnResponse(payload)
       logger.info(s"%%% LOOK HERE (Stub Response) %%% \n-> $response")
       Future.successful(response)
+    }
+  }*/
+
+  def register: Action[JsValue] = Action.async(parse.json) { implicit request =>
+    // manually validate json
+    request.body.validate[RegisterWithIDRequest] match {
+      case JsSuccess(payload, _) =>
+        logger.info(s"%%% LOOK HERE (Stub Request Body) %%% \n-> ${Json.prettyPrint(request.body)}")
+        val response = returnResponse(payload)
+        logger.info(s"%%% LOOK HERE (Stub Response) %%% \n-> $response")
+        Future.successful(response)
+
+      case JsError(errors) =>
+        logger.error(s"Invalid RegisterWithIDRequest payload: $errors")
+        Future.successful(BadRequest(s"Invalid RegisterWithIDRequest payload: $errors"))
     }
   }
