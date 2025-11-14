@@ -22,7 +22,7 @@ case class RequestDetail(
     requiresNameMatch: Boolean,
     IDNumber: String,
     IDType: String,
-    individual: IndividualDetails, // TODO Option?
+    individual: Option[IndividualDetails],
     isAnAgent: Boolean,
     organisation: Option[OrganisationDetails]
 )

@@ -60,12 +60,7 @@ trait RegistrationHelper {
           ARN = "",
           SAFEID = "Test-SafeId",
           address = fullAddress,
-          contactDetails = ContactDetails(
-            emailAddress = Some("test@anemail.com"),
-            phoneNumber = Some("01111111111"),
-            mobileNumber = Some("07777777777"),
-            faxNumber = Some("01111111111")
-          ),
+          contactDetails = ContactDetails(None, None, None, None),
           individual = None,
           isAnASAgent = Some(false),
           isAnAgent = false,
@@ -128,12 +123,7 @@ trait RegistrationHelper {
           ARN = "",
           SAFEID = "Test-SafeId",
           address = nonUkAddress,
-          contactDetails = ContactDetails(
-            emailAddress = Some("test@anemail.com"),
-            phoneNumber = Some("111222333"),
-            mobileNumber = Some("+00000000000"),
-            faxNumber = Some("12345677890")
-          ),
+          contactDetails = ContactDetails(None, None, None, None),
           individual = None,
           isAnASAgent = Some(false),
           isAnAgent = false,
@@ -172,9 +162,9 @@ trait RegistrationHelper {
           ),
           individual = Some(
             IndividualResponse(
-              dateOfBirth = Some(request.requestDetail.individual.dateOfBirth),
-              firstName = request.requestDetail.individual.firstName,
-              lastName = request.requestDetail.individual.lastName,
+              dateOfBirth = request.requestDetail.individual.map(_.dateOfBirth),
+              firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind First Name"),
+              lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Last Name"),
               middleName = Some("Bjorn")
             )
           ),
@@ -209,8 +199,8 @@ trait RegistrationHelper {
           individual = Some(
             IndividualResponse(
               dateOfBirth = None,
-              firstName = request.requestDetail.individual.firstName,
-              lastName = request.requestDetail.individual.lastName,
+              firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind First Name"),
+              lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Last Name"),
               middleName = None
             )
           ),

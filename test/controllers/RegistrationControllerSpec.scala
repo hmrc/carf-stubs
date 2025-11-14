@@ -41,10 +41,12 @@ class RegistrationControllerSpec extends SpecBase {
         requiresNameMatch = false,
         IDNumber = "AB123456C",
         IDType = "NINO",
-        individual = IndividualDetails(
-          firstName = "Professor",
-          lastName = "Oak",
-          dateOfBirth = "Test-DOB"
+        individual = Some(
+          IndividualDetails(
+            firstName = "Professor",
+            lastName = "Oak",
+            dateOfBirth = "Test-DOB"
+          )
         ),
         isAnAgent = false,
         organisation = None
@@ -62,13 +64,7 @@ class RegistrationControllerSpec extends SpecBase {
         requiresNameMatch = true,
         IDNumber = "1234567890",
         IDType = "UTR",
-        // SHOULD THIS BE AN OPTION - OPTION IN RESPONSE BUT NOT REQUEST
-        // BECUASE IT'S NOT AN OPTION I CANT PUT NONE HERE, I NEED TO GIVE IT EMPTY STRINGS - IS THIS CORRECT?
-        individual = IndividualDetails(
-          firstName = "",
-          lastName = "",
-          dateOfBirth = ""
-        ),
+        individual = None,
         isAnAgent = false,
         organisation = Some(OrganisationDetails("The Secret Lab Ltd", "0003"))
       )
