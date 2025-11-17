@@ -21,10 +21,7 @@ import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.Helpers.{contentAsJson, contentAsString, status}
 import uk.gov.hmrc.carfstubs.controllers.RegistrationController
-import uk.gov.hmrc.carfstubs.models.request.{IndividualDetails, OrganisationDetails, RegisterWithIDRequest, RequestCommon, RequestDetail}
-import uk.gov.hmrc.carfstubs.models.response.*
-
-import java.time.LocalDate
+import uk.gov.hmrc.carfstubs.models.request.*
 
 class RegistrationControllerSpec extends SpecBase {
 
@@ -127,6 +124,13 @@ class RegistrationControllerSpec extends SpecBase {
           contentAsString(result) must include("Test-SafeId")
           contentAsString(result) must include("The Secret Lab Ltd")
           contentAsString(result) must include("0003")
+          val responseJson = contentAsJson(result)
+          (responseJson \ "responseCommon" \ "status").as[String] mustBe "OK"
+          (responseJson \ "responseDetail" \ "SAFEID").as[String] mustBe "Test-SafeId"
+          (responseJson \ "responseDetail" \ "organisation" \ "organisationName")
+            .as[String]                                           mustBe "The Secret Lab Ltd"
+          (responseJson \ "responseDetail" \ "organisation" \ "organisationType")
+            .as[String]                                           mustBe "0003"
         }
 
         "must return a 200 OK with a non-UK organisation response when the UTR starts with a 6" in {
@@ -138,6 +142,16 @@ class RegistrationControllerSpec extends SpecBase {
           status(result)        mustBe OK
           contentAsString(result) must include("The Secret Lab Ltd")
           contentAsString(result) must include("US")
+
+          val responseJson = contentAsJson(result)
+          (responseJson \ "responseCommon" \ "status").as[String] mustBe "OK"
+          (responseJson \ "responseDetail" \ "SAFEID").as[String] mustBe "Test-SafeId"
+          (responseJson \ "responseDetail" \ "organisation" \ "organisationName")
+            .as[String]                                           mustBe "The Secret Lab Ltd"
+          (responseJson \ "responseDetail" \ "organisation" \ "organisationType")
+            .as[String]                                           mustBe "0003"
+          (responseJson \ "responseDetail" \ "address" \ "countryCode")
+            .as[String]                                           mustBe "US"
         }
 
         "must return a 200 OK with an empty organisation response when the UTR starts with a 7" in {

@@ -19,7 +19,7 @@ package uk.gov.hmrc.carfstubs.helpers
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.{BadRequest, InternalServerError, NotFound, Ok}
-import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RequestDetail}
+import uk.gov.hmrc.carfstubs.models.request.RegisterWithIDRequest
 import uk.gov.hmrc.carfstubs.models.response.*
 
 import java.time.LocalDate

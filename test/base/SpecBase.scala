@@ -26,7 +26,6 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsValue
 import play.api.mvc.{AnyContentAsEmpty, ControllerComponents, PlayBodyParsers}
-import play.api.test.Helpers.stubControllerComponents
 import play.api.test.{DefaultAwaitTimeout, FakeHeaders, FakeRequest}
 import uk.gov.hmrc.http.HeaderCarrier
 import play.api.test.Helpers._
