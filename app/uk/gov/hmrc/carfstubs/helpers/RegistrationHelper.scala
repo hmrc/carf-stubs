@@ -33,10 +33,10 @@ trait RegistrationHelper {
 
     (idType, idNumber.take(1)) match {
       case (_, "9") => InternalServerError("Unexpected error")
-      case (_, "8") => NotFound("User could not be matched")
+      case (_, "8") => NotFound("The match was unsuccessful")
 
-      case ("UTR", "6") => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
       case ("UTR", "7") => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
+      case ("UTR", "6") => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
       case ("UTR", _)   => Ok(Json.toJson(createFullOrganisationResponse(request)))
 
       case ("NINO", "7") => Ok(Json.toJson(createEmptyIndividualResponse(request)))
@@ -100,10 +100,10 @@ trait RegistrationHelper {
           isEditable = false,
           organisation = Some(
             OrganisationResponse(
-              organisationName = "Empty Org Ltd",
+              organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Empty Org Ltd"),
               code = Some("0000"),
               isAGroup = false,
-              organisationType = Some("0000")
+              organisationType = request.requestDetail.organisation.map(_.organisationType)
             )
           )
         )
@@ -131,10 +131,10 @@ trait RegistrationHelper {
           isEditable = false,
           organisation = Some(
             OrganisationResponse(
-              organisationName = "Outside UK Org",
+              organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
               code = Some("0000"),
               isAGroup = false,
-              organisationType = Some("0000")
+              organisationType = request.requestDetail.organisation.map(_.organisationType)
             )
           )
         )

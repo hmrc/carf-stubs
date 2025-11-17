@@ -41,12 +41,10 @@ class RegistrationControllerSpec extends SpecBase {
         requiresNameMatch = false,
         IDNumber = "AB123456C",
         IDType = "NINO",
-        individual = Some(
-          IndividualDetails(
-            firstName = "Professor",
-            lastName = "Oak",
-            dateOfBirth = "Test-DOB"
-          )
+        individual = IndividualDetails(
+          firstName = "Professor",
+          lastName = "Oak",
+          dateOfBirth = "Test-DOB"
         ),
         isAnAgent = false,
         organisation = None
@@ -64,7 +62,11 @@ class RegistrationControllerSpec extends SpecBase {
         requiresNameMatch = true,
         IDNumber = "1234567890",
         IDType = "UTR",
-        individual = None,
+        individual = IndividualDetails(
+          firstName = "",
+          lastName = "",
+          dateOfBirth = ""
+        ),
         isAnAgent = false,
         organisation = Some(OrganisationDetails("The Secret Lab Ltd", "0003"))
       )

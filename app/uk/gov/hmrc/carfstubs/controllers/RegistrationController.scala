@@ -49,6 +49,7 @@ class RegistrationController @Inject() (
 
   def register: Action[JsValue] = Action.async(parse.json) { implicit request =>
     // manually validate json
+    logger.error("___________________" + Json.prettyPrint(request.body))
     request.body.validate[RegisterWithIDRequest] match {
       case JsSuccess(payload, _) =>
         logger.info(s"%%% LOOK HERE (Stub Request Body) %%% \n-> ${Json.prettyPrint(request.body)}")
