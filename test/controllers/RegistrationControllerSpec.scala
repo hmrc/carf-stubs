@@ -1,6 +1,17 @@
 /*
  * Copyright 2025 HM Revenue & Customs
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package controllers
@@ -135,6 +146,20 @@ class RegistrationControllerSpec extends SpecBase {
         status(result)        mustBe OK
         contentAsJson(result) mustBe testFullResponse
       }
+
+      "must return a full response when the request IDNumber[NINO] starts with a J char" in {
+        val result = testController.registerIndividualWithId()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testRequestModel.copy(requestDetail = testRequestModel.requestDetail.copy(IDNumber = "JX123456D"))
+            )
+          )
+        )
+
+        status(result)        mustBe OK
+        contentAsJson(result) mustBe testFullResponse
+      }
+
       "must return an empty response when the request IDNumber starts with a 7" in {
         val result = testController.registerIndividualWithId()(
           fakeRequestWithJsonBody(
@@ -145,6 +170,33 @@ class RegistrationControllerSpec extends SpecBase {
         status(result)        mustBe OK
         contentAsJson(result) mustBe testEmptyResponse
       }
+
+      "must return an empty response when the request IDNumber[NINO] starts with a W char" in {
+        val result = testController.registerIndividualWithId()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testRequestModel.copy(requestDetail = testRequestModel.requestDetail.copy(IDNumber = "WX123456D"))
+            )
+          )
+        )
+
+        status(result)        mustBe OK
+        contentAsJson(result) mustBe testEmptyResponse
+      }
+
+      "must return a not found response when the request IDNumber[NINO] starts with a X char" in {
+        val result = testController.registerIndividualWithId()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testRequestModel.copy(requestDetail = testRequestModel.requestDetail.copy(IDNumber = "XX123456D"))
+            )
+          )
+        )
+
+        status(result)        mustBe NOT_FOUND
+        contentAsString(result) must include("Individual user could not be matched")
+      }
+
       "must return a not found response when the request IDNumber starts with an 8" in {
         val result = testController.registerIndividualWithId()(
           fakeRequestWithJsonBody(
@@ -155,6 +207,7 @@ class RegistrationControllerSpec extends SpecBase {
         status(result)        mustBe NOT_FOUND
         contentAsString(result) must include("Individual user could not be matched")
       }
+
       "must return an internal server error response when the request IDNumber starts with an 9" in {
         val result = testController.registerIndividualWithId()(
           fakeRequestWithJsonBody(
@@ -165,6 +218,20 @@ class RegistrationControllerSpec extends SpecBase {
         status(result)        mustBe INTERNAL_SERVER_ERROR
         contentAsString(result) must include("Unexpected error")
       }
+
+      "must return an internal server error response when the request IDNumber[NINO] starts with an Y char" in {
+        val result = testController.registerIndividualWithId()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testRequestModel.copy(requestDetail = testRequestModel.requestDetail.copy(IDNumber = "YX123456D"))
+            )
+          )
+        )
+
+        status(result)        mustBe INTERNAL_SERVER_ERROR
+        contentAsString(result) must include("Unexpected error")
+      }
+
       "must return bad request when the request is not valid" in {
         val result = testController.registerIndividualWithId()(fakeRequestWithJsonBody(Json.toJson("invalid timmy")))
 
