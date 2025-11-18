@@ -94,7 +94,6 @@ class RegistrationControllerSpec extends SpecBase {
         )
         val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
 
-
         status(result) mustBe OK
 
         val responseJson = contentAsJson(result)
@@ -104,7 +103,7 @@ class RegistrationControllerSpec extends SpecBase {
         (responseJson \ "responseDetail" \ "address" \ "addressLine1").as[String] mustBe "2 High Street"
         (responseJson \ "responseDetail" \ "address" \ "addressLine2").as[String] mustBe "Birmingham"
       }
-      
+
       "must return a 200 with an empty response when the request NINO (IDNumber) starts with a 7" in {
         val requestWith7 =
           testIndividualRequestModel.copy(requestDetail =
