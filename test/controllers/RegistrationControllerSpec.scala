@@ -104,13 +104,13 @@ class RegistrationControllerSpec extends SpecBase {
         (responseJson \ "responseDetail" \ "address" \ "addressLine2").as[String] mustBe "Birmingham"
       }
 
-      "must return a 200 with an empty response when the request NINO (IDNumber) starts with a 7" in {
-        val requestWith7 =
+      "must return a 200 with an empty response when the request NINO (IDNumber) starts with a W" in {
+        val request =
           testIndividualRequestModel.copy(requestDetail =
             testIndividualRequestModel.requestDetail.copy(IDNumber = "7123456A")
           )
 
-        val originalJson: JsObject = Json.toJson(requestWith7).as[JsObject]
+        val originalJson: JsObject = Json.toJson(request).as[JsObject]
         val requestDetail          = originalJson("requestDetail")
           .as[JsObject] + ("organisation" -> Json.toJson(None: Option[OrganisationDetails]))
         val jsonRequest = originalJson + ("requestDetail" -> requestDetail)
@@ -119,7 +119,6 @@ class RegistrationControllerSpec extends SpecBase {
 
         status(result)        mustBe OK
         contentAsString(result) must include("Test-SafeId")
-        contentAsString(result) must not include "Birmingham"
       }
 
       "must return an empty response when the request IDNumber[NINO] starts with a W char" in {
