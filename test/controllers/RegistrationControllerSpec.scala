@@ -22,6 +22,9 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.Helpers.{contentAsJson, contentAsString, status}
 import uk.gov.hmrc.carfstubs.controllers.RegistrationController
 import uk.gov.hmrc.carfstubs.models.request.*
+import uk.gov.hmrc.carfstubs.models.response.*
+
+import java.time.LocalDate
 
 class RegistrationControllerSpec extends SpecBase {
 
@@ -84,12 +87,32 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsString(result) must include("Professor")
       }
 
-      "must return a 200 OK with an empty individual response when the NINO starts with a 7" in {
-        val requestWith7  = testIndividualRequestModel.copy(requestDetail =
-          testIndividualRequestModel.requestDetail.copy(IDNumber = "7123456A")
+      "must return a full response when the request IDNumber[NINO] starts with a J char" in {
+
+        val request = testIndividualRequestModel.copy(requestDetail =
+          testIndividualRequestModel.requestDetail.copy(IDNumber = "JX123456D")
         )
-        val originalJson  = Json.toJson(requestWith7).as[JsObject]
-        val requestDetail = originalJson("requestDetail")
+        val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
+
+
+        status(result) mustBe OK
+
+        val responseJson = contentAsJson(result)
+        (responseJson \ "responseDetail" \ "SAFEID").as[String]                   mustBe "Test-SafeId"
+        (responseJson \ "responseDetail" \ "individual" \ "firstName").as[String] mustBe "Professor"
+        (responseJson \ "responseDetail" \ "individual" \ "lastName").as[String]  mustBe "Oak"
+        (responseJson \ "responseDetail" \ "address" \ "addressLine1").as[String] mustBe "2 High Street"
+        (responseJson \ "responseDetail" \ "address" \ "addressLine2").as[String] mustBe "Birmingham"
+      }
+      
+      "must return a 200 with an empty response when the request NINO (IDNumber) starts with a 7" in {
+        val requestWith7 =
+          testIndividualRequestModel.copy(requestDetail =
+            testIndividualRequestModel.requestDetail.copy(IDNumber = "7123456A")
+          )
+
+        val originalJson: JsObject = Json.toJson(requestWith7).as[JsObject]
+        val requestDetail          = originalJson("requestDetail")
           .as[JsObject] + ("organisation" -> Json.toJson(None: Option[OrganisationDetails]))
         val jsonRequest = originalJson + ("requestDetail" -> requestDetail)
 
@@ -98,6 +121,36 @@ class RegistrationControllerSpec extends SpecBase {
         status(result)        mustBe OK
         contentAsString(result) must include("Test-SafeId")
         contentAsString(result) must not include "Birmingham"
+      }
+
+      "must return an empty response when the request IDNumber[NINO] starts with a W char" in {
+
+        val result = testController.register()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testIndividualRequestModel.copy(requestDetail =
+                testIndividualRequestModel.requestDetail.copy(IDNumber = "WX123456D")
+              )
+            )
+          )
+        )
+        status(result)        mustBe OK
+        contentAsJson(result) mustBe testEmptyResponse
+      }
+
+      "must return a not found response when the request IDNumber[NINO] starts with a X char" in {
+        val result = testController.register()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testIndividualRequestModel.copy(requestDetail =
+                testIndividualRequestModel.requestDetail.copy(IDNumber = "XX123456D")
+              )
+            )
+          )
+        )
+
+        status(result)        mustBe NOT_FOUND
+        contentAsString(result) must include("The match was unsuccessful")
       }
 
       "must return a not found response when the request IDNumber starts with an 8" in {
@@ -113,6 +166,20 @@ class RegistrationControllerSpec extends SpecBase {
 
         status(result)          mustBe NOT_FOUND
         contentAsString(result) mustBe "The match was unsuccessful"
+      }
+
+      "must return an internal server error response when the request IDNumber starts with an 9" in {
+        val result = testController.register()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testIndividualRequestModel.copy(requestDetail =
+                testIndividualRequestModel.requestDetail.copy(IDNumber = "9123")
+              )
+            )
+          )
+        )
+        status(result)        mustBe INTERNAL_SERVER_ERROR
+        contentAsString(result) must include("Unexpected error")
       }
 
       "register Organisation" - {
@@ -204,8 +271,23 @@ class RegistrationControllerSpec extends SpecBase {
           )
           val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
 
-          status(result)          mustBe INTERNAL_SERVER_ERROR
-          contentAsString(result) mustBe "Unexpected error"
+          status(result)        mustBe INTERNAL_SERVER_ERROR
+          contentAsString(result) must include("Unexpected error")
+        }
+
+        "must return an internal server error response when the request IDNumber[NINO] starts with an Y char" in {
+          val result = testController.register()(
+            fakeRequestWithJsonBody(
+              Json.toJson(
+                testIndividualRequestModel.copy(requestDetail =
+                  testIndividualRequestModel.requestDetail.copy(IDNumber = "YX123456D")
+                )
+              )
+            )
+          )
+
+          status(result)        mustBe INTERNAL_SERVER_ERROR
+          contentAsString(result) must include("Unexpected error")
         }
 
         "must return 400 Bad Request when the request JSON is invalid" in {
@@ -227,4 +309,51 @@ class RegistrationControllerSpec extends SpecBase {
       }
     }
   }
+
+  private val testEmptyResponse: JsValue = Json.toJson(
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "200",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "Test-ARN",
+          SAFEID = "Test-SafeId",
+          address = emptyAddress,
+          contactDetails = ContactDetails(
+            emailAddress = None,
+            faxNumber = None,
+            mobileNumber = None,
+            phoneNumber = None
+          ),
+          individual = Some(
+            IndividualResponse(
+              dateOfBirth = None,
+              firstName = "Professor",
+              lastName = "Oak",
+              middleName = None
+            )
+          ),
+          isAnASAgent = None,
+          isAnAgent = false,
+          isAnIndividual = true,
+          isEditable = false,
+          organisation = None
+        )
+      )
+    )
+  )
+
+  private def emptyAddress = AddressResponse(
+    addressLine1 = "2 Newarre Road",
+    addressLine2 = None,
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = None,
+    countryCode = "GB"
+  )
+
 }

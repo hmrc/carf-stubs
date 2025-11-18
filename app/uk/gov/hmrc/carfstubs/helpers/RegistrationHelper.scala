@@ -32,18 +32,17 @@ trait RegistrationHelper {
     val idType   = request.requestDetail.IDType
 
     (idType, idNumber.take(1)) match {
-      case (_, "9") => InternalServerError("Unexpected error")
-      case (_, "8") => NotFound("The match was unsuccessful")
+      case (_, "9" | "Y") => InternalServerError("Unexpected error")
+      case (_, "8" | "X") => NotFound("The match was unsuccessful")
 
-      case ("UTR", "7") => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
-      case ("UTR", "6") => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
-      case ("UTR", _)   => Ok(Json.toJson(createFullOrganisationResponse(request)))
+      case ("UTR", "7" | "W") => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
+      case ("UTR", "6")       => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
+      case ("UTR", _)         => Ok(Json.toJson(createFullOrganisationResponse(request)))
 
-      case ("NINO", "7") => Ok(Json.toJson(createEmptyIndividualResponse(request)))
-      case ("NINO", _)   => Ok(Json.toJson(createFullIndividualResponse(request)))
+      case ("NINO", "7" | "W") => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+      case ("NINO", _)         => Ok(Json.toJson(createFullIndividualResponse(request)))
 
       case _ => BadRequest(s"Invalid IDType: $idType")
-
     }
   }
 
@@ -141,6 +140,7 @@ trait RegistrationHelper {
       )
     )
 
+  //         SAFEID = "Test-SafeId",  for safeid
   private def createFullIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
     RegisterWithIDResponse(
       responseCommon = ResponseCommon(
