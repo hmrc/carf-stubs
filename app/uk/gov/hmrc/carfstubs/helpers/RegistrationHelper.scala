@@ -18,21 +18,127 @@ package uk.gov.hmrc.carfstubs.helpers
 
 import play.api.libs.json.Json
 import play.api.mvc.Result
-import play.api.mvc.Results.{InternalServerError, NotFound, Ok}
-import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RequestCommon, RequestDetail}
-import uk.gov.hmrc.carfstubs.models.response.{AddressResponse, ContactDetails, IndividualResponse, RegisterWithIDResponse, ResponseCommon, ResponseDetail, ReturnParameters}
+import play.api.mvc.Results.{BadRequest, InternalServerError, NotFound, Ok}
+import uk.gov.hmrc.carfstubs.models.request.RegisterWithIDRequest
+import uk.gov.hmrc.carfstubs.models.response.*
 
 import java.time.LocalDate
 
 trait RegistrationHelper {
 
-  def returnResponse(request: RegisterWithIDRequest): Result =
-    request.requestDetail.IDNumber.take(1) match {
-      case "9" | "Y" => InternalServerError("Unexpected error")
-      case "8" | "X" => NotFound("Individual user could not be matched")
-      case "7" | "W" => Ok(Json.toJson(createEmptyIndividualResponse(request)))
-      case _         => Ok(Json.toJson(createFullIndividualResponse(request)))
+  def returnResponse(request: RegisterWithIDRequest): Result = {
+
+    val idNumber = request.requestDetail.IDNumber
+    val idType   = request.requestDetail.IDType
+
+    (idType, idNumber.take(1)) match {
+      case (_, "9" | "Y") => InternalServerError("Unexpected error")
+      case (_, "8" | "X") => NotFound("The match was unsuccessful")
+
+      case ("UTR", "7") => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
+      case ("UTR", "6") => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
+      case ("UTR", _)   => Ok(Json.toJson(createFullOrganisationResponse(request)))
+
+      case ("NINO", "W") => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+      case ("NINO", _)   => Ok(Json.toJson(createFullIndividualResponse(request)))
+
+      case _ => BadRequest(s"Invalid IDType: $idType")
     }
+  }
+
+  private def createFullOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "",
+          SAFEID = "Test-SafeId",
+          address = fullAddress,
+          contactDetails = ContactDetails(None, None, None, None),
+          individual = None,
+          isAnASAgent = Some(false),
+          isAnAgent = false,
+          isAnIndividual = false,
+          isEditable = false,
+          organisation = Some(
+            OrganisationResponse(
+              organisationName =
+                request.requestDetail.organisation.map(_.organisationName).getOrElse("AutoMatched Org Ltd"),
+              code = request.requestDetail.organisation.map(_.organisationType),
+              isAGroup = false,
+              organisationType = request.requestDetail.organisation.map(_.organisationType)
+            )
+          )
+        )
+      )
+    )
+
+  private def createEmptyOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "",
+          SAFEID = "Test-SafeId",
+          address = emptyAddress,
+          contactDetails = ContactDetails(None, None, None, None),
+          individual = None,
+          isAnASAgent = Some(false),
+          isAnAgent = false,
+          isAnIndividual = false,
+          isEditable = false,
+          organisation = Some(
+            OrganisationResponse(
+              organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Empty Org Ltd"),
+              code = Some("0000"),
+              isAGroup = false,
+              organisationType = request.requestDetail.organisation.map(_.organisationType)
+            )
+          )
+        )
+      )
+    )
+
+  private def createNonUkOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "",
+          SAFEID = "Test-SafeId",
+          address = nonUkAddress,
+          contactDetails = ContactDetails(None, None, None, None),
+          individual = None,
+          isAnASAgent = Some(false),
+          isAnAgent = false,
+          isAnIndividual = false,
+          isEditable = false,
+          organisation = Some(
+            OrganisationResponse(
+              organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
+              code = Some("0000"),
+              isAGroup = false,
+              organisationType = request.requestDetail.organisation.map(_.organisationType)
+            )
+          )
+        )
+      )
+    )
 
   //         SAFEID = "Test-SafeId",  for safeid
   private def createFullIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
@@ -56,9 +162,9 @@ trait RegistrationHelper {
           ),
           individual = Some(
             IndividualResponse(
-              dateOfBirth = Some(request.requestDetail.individual.dateOfBirth),
-              firstName = request.requestDetail.individual.firstName,
-              lastName = request.requestDetail.individual.lastName,
+              dateOfBirth = request.requestDetail.individual.map(_.dateOfBirth),
+              firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind First Name"),
+              lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Last Name"),
               middleName = Some("Bjorn")
             )
           ),
@@ -93,8 +199,8 @@ trait RegistrationHelper {
           individual = Some(
             IndividualResponse(
               dateOfBirth = None,
-              firstName = request.requestDetail.individual.firstName,
-              lastName = request.requestDetail.individual.lastName,
+              firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind First Name"),
+              lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Last Name"),
               middleName = None
             )
           ),
@@ -125,4 +231,12 @@ trait RegistrationHelper {
     countryCode = "GB"
   )
 
+  private def nonUkAddress = AddressResponse(
+    addressLine1 = "123 Big Apple",
+    addressLine2 = Some("New York"),
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = Some("BNY 2AZ"),
+    countryCode = "US"
+  )
 }

@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.carfstubs.models.request
+package uk.gov.hmrc.carfstubs.models.response
 
-import play.api.libs.json.*
+import play.api.libs.json.{Json, OFormat}
 
-case class RequestDetail(
-    requiresNameMatch: Boolean,
-    IDNumber: String,
-    IDType: String,
-    individual: Option[IndividualDetails],
-    isAnAgent: Boolean,
-    organisation: Option[OrganisationDetails]
+case class RegisterOrganisationWithIdResponse(
+    safeId: String,
+    code: Option[String],
+    organisationName: String,
+    address: AddressResponse
 )
 
-object RequestDetail {
-  implicit val format: OFormat[RequestDetail] = Json.format[RequestDetail]
+object RegisterOrganisationWithIdResponse {
+  implicit val format: OFormat[RegisterOrganisationWithIdResponse] = Json.format[RegisterOrganisationWithIdResponse]
 }
