@@ -37,6 +37,10 @@ trait RegistrationHelper {
 
       case ("UTR", "7") => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
       case ("UTR", "6") => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
+
+      case ("UTR", "5") => Ok(Json.toJson(createFullIndividualResponse(request)))
+      case ("UTR", "4") => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+
       case ("UTR", _)   => Ok(Json.toJson(createFullOrganisationResponse(request)))
 
       case ("NINO", "W") => Ok(Json.toJson(createEmptyIndividualResponse(request)))

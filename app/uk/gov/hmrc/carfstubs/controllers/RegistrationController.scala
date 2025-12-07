@@ -33,14 +33,17 @@ class RegistrationController @Inject() (
     with RegistrationHelper:
 
   def register: Action[JsValue] = Action.async(parse.json) { implicit request =>
+    println(s"zxc STUBS RegistrationController  ========= register. req.body=${request.body} ")
     request.body.validate[RegisterWithIDRequest] match {
       case JsSuccess(payload, _) =>
-        logger.debug(s" Stub Request Body \n-> ${Json.prettyPrint(request.body)}")
+        println(s"zxc ======== STUBS JsSuccess(payload, _) ")
+        logger.info(s" Stub Request Body \n-> ${Json.prettyPrint(request.body)}")
         val response = returnResponse(payload)
-        logger.debug(s" Stub Response \n-> $response")
+        logger.info(s" Stub Response \n-> $response")
         Future.successful(response)
 
       case JsError(errors) =>
+        println(s"zxc ======== STUBS JsError(errors)")
         logger.error(s"Invalid RegisterWithIDRequest payload: $errors")
         Future.successful(BadRequest(s"Invalid RegisterWithIDRequest payload: $errors"))
     }
