@@ -28,23 +28,25 @@ trait RegistrationHelper {
 
   def returnResponse(request: RegisterWithIDRequest): Result = {
 
-    val idNumber = request.requestDetail.IDNumber
-    val idType   = request.requestDetail.IDType
+    val idNumber              = request.requestDetail.IDNumber
+    val idType                = request.requestDetail.IDType
+    val isSoleTrader: Boolean = request.requestDetail.individual.isDefined && (idType == "UTR")
 
-    (idType, idNumber.take(1)) match {
-      case (_, "9" | "Y") => InternalServerError("Unexpected error")
-      case (_, "8" | "X") => NotFound("The match was unsuccessful")
+    (idType, idNumber.take(1), isSoleTrader) match {
+      case (_, "9" | "Y", _) => InternalServerError("Unexpected error")
+      case (_, "8" | "X", _) => NotFound("The match was unsuccessful")
 
-      case ("UTR", "7") => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
-      case ("UTR", "6") => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
+      case ("UTR", "7", false) => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
+      case ("UTR", "6", false) => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
 
-      case ("UTR", "5") => Ok(Json.toJson(createFullIndividualResponse(request)))
-      case ("UTR", "4") => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+      case ("UTR", "5", true) => Ok(Json.toJson(createFullIndividualResponse(request)))
+      case ("UTR", "4", true) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
 
-      case ("UTR", _)   => Ok(Json.toJson(createFullOrganisationResponse(request)))
+      case ("UTR", _, false) => Ok(Json.toJson(createFullOrganisationResponse(request)))
+      case ("UTR", _, true)  => NotFound("The match was unsuccessful")
 
-      case ("NINO", "W") => Ok(Json.toJson(createEmptyIndividualResponse(request)))
-      case ("NINO", _)   => Ok(Json.toJson(createFullIndividualResponse(request)))
+      case ("NINO", "W", any) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+      case ("NINO", _, any)   => Ok(Json.toJson(createFullIndividualResponse(request)))
 
       case _ => BadRequest(s"Invalid IDType: $idType")
     }
@@ -144,7 +146,6 @@ trait RegistrationHelper {
       )
     )
 
-  //         SAFEID = "Test-SafeId",  for safeid
   private def createFullIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
     RegisterWithIDResponse(
       responseCommon = ResponseCommon(
@@ -203,8 +204,8 @@ trait RegistrationHelper {
           individual = Some(
             IndividualResponse(
               dateOfBirth = None,
-              firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind First Name"),
-              lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Last Name"),
+              firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind Empty First Name"),
+              lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Empty Last Name"),
               middleName = None
             )
           ),
