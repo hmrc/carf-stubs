@@ -85,7 +85,7 @@ class RegistrationControllerSpec extends SpecBase {
       ),
       requestDetail = RequestDetail(
         requiresNameMatch = true,
-        IDNumber = "4234567890",
+        IDNumber = "7234567890",
         IDType = "UTR",
         individual = Some(
           IndividualDetails(
@@ -110,6 +110,23 @@ class RegistrationControllerSpec extends SpecBase {
         requiresNameMatch = true,
         IDNumber = "1234567890",
         IDType = "UTR",
+        individual = None,
+        isAnAgent = false,
+        organisation = Some(OrganisationDetails("The Secret Lab Ltd", "0003"))
+      )
+    )
+
+  val invalidOrganisationRequestWithNino: RegisterWithIDRequest =
+    RegisterWithIDRequest(
+      requestCommon = RequestCommon(
+        acknowledgementReference = "Test-Ref-Org",
+        receiptDate = "Test-ProcessingDate-Org",
+        regime = "Test-Regime"
+      ),
+      requestDetail = RequestDetail(
+        requiresNameMatch = true,
+        IDNumber = "AB123456C",
+        IDType = "NINO",
         individual = None,
         isAnAgent = false,
         organisation = Some(OrganisationDetails("The Secret Lab Ltd", "0003"))
@@ -227,7 +244,7 @@ class RegistrationControllerSpec extends SpecBase {
         (responseJson \ "responseDetail" \ "address" \ "addressLine2").as[String] mustBe "Birmingham"
       }
 
-      "must return a 200 OK with an empty response when request IDNumber[UTR] starts with '4'" in {
+      "must return a 200 OK with an empty response when request IDNumber[UTR] starts with '7'" in {
         val request = Json.toJson(testIndividualUtrEmptyResponseRequestModel).as[JsObject]
         val result  = testController.register()(fakeRequestWithJsonBody(request))
         status(result)        mustBe OK
@@ -389,7 +406,14 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsString(result) mustBe "Invalid IDType: INVALID_TYPE"
       }
     }
-    // } ///  rmv this
+  }
+
+  "throw an exception when an Organisation which is not a Sole Trader has a NINO" in {
+    val exception = intercept[Exception] {
+      val result = testController.register()(fakeRequestWithJsonBody(Json.toJson(invalidOrganisationRequestWithNino)))
+      result.futureValue
+    }
+    exception.getMessage must include("An Org which is not a Sole Trader cannot have a NINO.")
   }
 
   private def testEmptyResponse(firstNameIn: String, lastNameIn: String): JsValue = Json.toJson(

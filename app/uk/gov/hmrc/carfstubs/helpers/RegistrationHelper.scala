@@ -28,25 +28,28 @@ trait RegistrationHelper {
 
   def returnResponse(request: RegisterWithIDRequest): Result = {
 
-    val idNumber              = request.requestDetail.IDNumber
-    val idType                = request.requestDetail.IDType
-    val isSoleTrader: Boolean = request.requestDetail.individual.isDefined && (idType == "UTR")
+    val idNumber                = request.requestDetail.IDNumber
+    val idType                  = request.requestDetail.IDType
+    val isSoleTrader: Boolean   = request.requestDetail.individual.isDefined && (idType == "UTR")
+    val isOrganisation: Boolean = request.requestDetail.organisation.isDefined
 
-    (idType, idNumber.take(1), isSoleTrader) match {
-      case (_, "9" | "Y", _) => InternalServerError("Unexpected error")
-      case (_, "8" | "X", _) => NotFound("The match was unsuccessful")
+    (idType, idNumber.take(1), isSoleTrader, isOrganisation) match {
+      case (_, "9" | "Y", _, any) => InternalServerError("Unexpected error")
+      case (_, "8" | "X", _, any) => NotFound("The match was unsuccessful")
 
-      case ("UTR", "7", false) => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
-      case ("UTR", "6", false) => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
+      case ("UTR", "7", false, true) => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
+      case ("UTR", "7", any, false)  => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+      case ("UTR", "6", false, true) => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
 
-      case ("UTR", "5", true) => Ok(Json.toJson(createFullIndividualResponse(request)))
-      case ("UTR", "4", true) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+      case ("UTR", _, false, true) => Ok(Json.toJson(createFullOrganisationResponse(request)))
+      case ("UTR", _, true, any)   => Ok(Json.toJson(createFullIndividualResponse(request)))
 
-      case ("UTR", _, false) => Ok(Json.toJson(createFullOrganisationResponse(request)))
-      case ("UTR", _, true)  => NotFound("The match was unsuccessful")
+      case ("NINO", "W", any, false) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+      case ("NINO", _, any, false)   => Ok(Json.toJson(createFullIndividualResponse(request)))
+      case ("NINO", _, true, any)    => Ok(Json.toJson(createFullIndividualResponse(request)))
 
-      case ("NINO", "W", any) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
-      case ("NINO", _, any)   => Ok(Json.toJson(createFullIndividualResponse(request)))
+      case ("NINO", _, false, true) =>
+        throw new IllegalArgumentException("An Org which is not a Sole Trader cannot have a NINO.")
 
       case _ => BadRequest(s"Invalid IDType: $idType")
     }
