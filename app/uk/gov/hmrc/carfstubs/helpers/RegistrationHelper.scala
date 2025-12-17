@@ -167,7 +167,7 @@ trait RegistrationHelper {
           ),
           individual = Some(
             IndividualResponse(
-              dateOfBirth = request.requestDetail.individual.map(_.dateOfBirth),
+              dateOfBirth = request.requestDetail.individual.map(_.dateOfBirth).getOrElse(None),
               firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind First Name"),
               lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Last Name"),
               middleName = Some("Bjorn")

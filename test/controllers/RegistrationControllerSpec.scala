@@ -45,7 +45,7 @@ class RegistrationControllerSpec extends SpecBase {
           IndividualDetails(
             firstName = "Professor",
             lastName = "Oak",
-            dateOfBirth = "Test-DOB"
+            dateOfBirth = Some("Test-DOB")
           )
         ),
         isAnAgent = false,
@@ -68,7 +68,7 @@ class RegistrationControllerSpec extends SpecBase {
           IndividualDetails(
             firstName = "indiv firstName",
             lastName = "indiv lastName",
-            dateOfBirth = "2000-01-01"
+            dateOfBirth = Some("2000-01-01")
           )
         ),
         isAnAgent = false,
@@ -91,7 +91,7 @@ class RegistrationControllerSpec extends SpecBase {
           IndividualDetails(
             firstName = "indiv Empty firstName",
             lastName = "indiv Empty lastName",
-            dateOfBirth = ""
+            dateOfBirth = None
           )
         ),
         isAnAgent = false,
