@@ -62,7 +62,7 @@ class RegistrationControllerSpec extends SpecBase {
       ),
       requestDetail = RequestDetail(
         requiresNameMatch = true,
-        IDNumber = "5234567890",
+        IDNumber = "1234567890",
         IDType = "UTR",
         individual = Some(
           IndividualDetails(
@@ -133,45 +133,68 @@ class RegistrationControllerSpec extends SpecBase {
       )
     )
 
+  private def testEmptyResponseInd(firstName: String, lastName: String): JsValue = Json.toJson(
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "200",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "Test-ARN",
+          SAFEID = "Test-SafeId",
+          address = emptyAddress,
+          contactDetails = ContactDetails(
+            emailAddress = None,
+            faxNumber = None,
+            mobileNumber = None,
+            phoneNumber = None
+          ),
+          individual = Some(
+            IndividualResponse(
+              dateOfBirth = None,
+              firstName = firstName,
+              lastName = lastName,
+              middleName = None
+            )
+          ),
+          isAnASAgent = None,
+          isAnAgent = false,
+          isAnIndividual = true,
+          isEditable = false,
+          organisation = None
+        )
+      )
+    )
+  )
+
+  private def emptyAddress = AddressResponse(
+    addressLine1 = "2 Newarre Road",
+    addressLine2 = None,
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = None,
+    countryCode = "GB"
+  )
+
   "RegistrationController" - {
     "register Individual - IDNumber[NINO]" - {
-      "must return a 200 OK with a full individual response for a valid IDNumber[NINO] " in {
+      "must return a 200 OK with a full individual response for a valid NINO (starting with A) " in {
         val originalJson  = Json.toJson(testIndividualNinoRequestModel).as[JsObject]
         val requestDetail = originalJson("requestDetail")
           .as[JsObject] + ("organisation" -> Json.toJson(None: Option[OrganisationDetails]))
         val jsonRequest = originalJson + ("requestDetail" -> requestDetail)
         val result      = testController.register()(fakeRequestWithJsonBody(jsonRequest))
-        status(result)        mustBe OK
-        contentAsString(result) must include("Test-SafeId")
-        contentAsString(result) must include("Professor")
-      }
+        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
 
-      "must return a full response when the request IDNumber[NINO] starts with a J char" in {
-        val request = testIndividualNinoRequestModel.copy(requestDetail =
-          testIndividualNinoRequestModel.requestDetail.copy(IDNumber = "JX123456D")
-        )
-        val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
-        status(result) mustBe OK
-        val responseJson = contentAsJson(result)
-        (responseJson \ "responseDetail" \ "SAFEID").as[String]                   mustBe "Test-SafeId"
-        (responseJson \ "responseDetail" \ "individual" \ "firstName").as[String] mustBe "Professor"
-        (responseJson \ "responseDetail" \ "individual" \ "lastName").as[String]  mustBe "Oak"
-        (responseJson \ "responseDetail" \ "address" \ "addressLine1").as[String] mustBe "2 High Street"
-        (responseJson \ "responseDetail" \ "address" \ "addressLine2").as[String] mustBe "Birmingham"
-      }
-
-      "must return a 200 with an empty response when the request IDNumber[NINO]  starts with a W" in {
-        val request                =
-          testIndividualNinoRequestModel.copy(requestDetail =
-            testIndividualNinoRequestModel.requestDetail.copy(IDNumber = "7123456A")
-          )
-        val originalJson: JsObject = Json.toJson(request).as[JsObject]
-        val requestDetail          = originalJson("requestDetail")
-          .as[JsObject] + ("organisation" -> Json.toJson(None: Option[OrganisationDetails]))
-        val jsonRequest = originalJson + ("requestDetail" -> requestDetail)
-        val result      = testController.register()(fakeRequestWithJsonBody(jsonRequest))
-        status(result)        mustBe OK
-        contentAsString(result) must include("Test-SafeId")
+        status(result)                                          mustBe OK
+        resultModel.responseDetail.get.SAFEID                   mustBe "Test-SafeId"
+        resultModel.responseDetail.get.individual.get.firstName mustBe "Professor"
+        resultModel.responseDetail.get.individual.get.lastName  mustBe "Oak"
+        resultModel.responseDetail.get.address.addressLine1     mustBe "2 High Street"
+        resultModel.responseDetail.get.address.addressLine2.get mustBe "Birmingham"
       }
 
       "must return an empty response when the request IDNumber[NINO] starts with a W char" in {
@@ -185,7 +208,7 @@ class RegistrationControllerSpec extends SpecBase {
           )
         )
         status(result)        mustBe OK
-        contentAsJson(result) mustBe testEmptyResponse("Professor", "Oak")
+        contentAsJson(result) mustBe testEmptyResponseInd("Professor", "Oak")
       }
 
       "must return a not found response when the request IDNumber[NINO] starts with a X char" in {
@@ -202,26 +225,12 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsString(result) must include("The match was unsuccessful")
       }
 
-      "must return a not found response when the request IDNumber[NINO] starts with an 8" in {
+      "must return an internal server error response when the request IDNumber[NINO] starts with a Y" in {
         val result = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(
               testIndividualNinoRequestModel.copy(requestDetail =
-                testIndividualNinoRequestModel.requestDetail.copy(IDNumber = "8X123456D")
-              )
-            )
-          )
-        )
-        status(result)          mustBe NOT_FOUND
-        contentAsString(result) mustBe "The match was unsuccessful"
-      }
-
-      "must return an internal server error response when the request IDNumber[NINO] starts with an 9" in {
-        val result = testController.register()(
-          fakeRequestWithJsonBody(
-            Json.toJson(
-              testIndividualNinoRequestModel.copy(requestDetail =
-                testIndividualNinoRequestModel.requestDetail.copy(IDNumber = "9X123456D")
+                testIndividualNinoRequestModel.requestDetail.copy(IDNumber = "YX123456D")
               )
             )
           )
@@ -232,25 +241,27 @@ class RegistrationControllerSpec extends SpecBase {
     }
 
     "register Individual - IDNumber[UTR]" - {
-      "must return 200 OK with full individual response when request IDNumber[UTR] starts with '5'" in {
+      "must return 200 OK with full individual response when request IDNumber[UTR] starts with '1'" in {
         val request = Json.toJson(testIndividualUtrRequestModel).as[JsObject]
         val result  = testController.register()(fakeRequestWithJsonBody(request))
         status(result) mustBe OK
-        val responseJson = contentAsJson(result)
-        (responseJson \ "responseDetail" \ "SAFEID").as[String]                   mustBe "Test-SafeId"
-        (responseJson \ "responseDetail" \ "individual" \ "firstName").as[String] mustBe "indiv firstName"
-        (responseJson \ "responseDetail" \ "individual" \ "lastName").as[String]  mustBe "indiv lastName"
-        (responseJson \ "responseDetail" \ "address" \ "addressLine1").as[String] mustBe "2 High Street"
-        (responseJson \ "responseDetail" \ "address" \ "addressLine2").as[String] mustBe "Birmingham"
+
+        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+
+        resultModel.responseDetail.get.SAFEID                   mustBe "Test-SafeId"
+        resultModel.responseDetail.get.individual.get.firstName mustBe "indiv firstName"
+        resultModel.responseDetail.get.individual.get.lastName  mustBe "indiv lastName"
+        resultModel.responseDetail.get.address.addressLine1     mustBe "2 High Street"
+        resultModel.responseDetail.get.address.addressLine2.get mustBe "Birmingham"
       }
 
       "must return a 200 OK with an empty response when request IDNumber[UTR] starts with '7'" in {
         val request = Json.toJson(testIndividualUtrEmptyResponseRequestModel).as[JsObject]
         val result  = testController.register()(fakeRequestWithJsonBody(request))
+
         status(result)        mustBe OK
         contentAsString(result) must include("Test-SafeId")
-        val responseJson = contentAsJson(result)
-        contentAsJson(result) mustBe testEmptyResponse("indiv Empty firstName", "indiv Empty lastName")
+        contentAsJson(result) mustBe testEmptyResponseInd("indiv Empty firstName", "indiv Empty lastName")
       }
 
       "must return a not found response when the request IDNumber[UTR] starts with '8'" in {
@@ -284,74 +295,36 @@ class RegistrationControllerSpec extends SpecBase {
 
     "register Organisation" - {
       "must return a 200 OK with a full organisation response for a valid UTR" in {
-        val result = testController.register()(fakeRequestWithJsonBody(Json.toJson(testOrganisationRequestModel)))
+        val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(testOrganisationRequestModel)))
+        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
 
-        status(result)        mustBe OK
-        contentAsString(result) must include("Test-SafeId")
-        contentAsString(result) must include("The Secret Lab Ltd")
-        contentAsString(result) must include("0003")
-        val responseJson = contentAsJson(result)
-        (responseJson \ "responseCommon" \ "status").as[String] mustBe "OK"
-        (responseJson \ "responseDetail" \ "SAFEID").as[String] mustBe "Test-SafeId"
-        (responseJson \ "responseDetail" \ "organisation" \ "organisationName")
-          .as[String]                                           mustBe "The Secret Lab Ltd"
-        (responseJson \ "responseDetail" \ "organisation" \ "organisationType")
-          .as[String]                                           mustBe "0003"
+        resultModel.responseDetail.get.SAFEID                                mustBe "Test-SafeId"
+        resultModel.responseDetail.get.organisation.get.organisationName     mustBe "The Secret Lab Ltd"
+        resultModel.responseDetail.get.organisation.get.organisationType.get mustBe "0003"
+        resultModel.responseDetail.get.address.countryCode                   mustBe "GB"
       }
 
       "must return a 200 OK with a non-UK organisation response when the UTR starts with a 6" in {
-        val request = testOrganisationRequestModel.copy(requestDetail =
+        val request     = testOrganisationRequestModel.copy(requestDetail =
           testOrganisationRequestModel.requestDetail.copy(IDNumber = "6123456789")
         )
-        val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
+        val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
+        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
 
-        status(result)        mustBe OK
-        contentAsString(result) must include("The Secret Lab Ltd")
-        contentAsString(result) must include("US")
-
-        val responseJson = contentAsJson(result)
-        (responseJson \ "responseCommon" \ "status").as[String] mustBe "OK"
-        (responseJson \ "responseDetail" \ "SAFEID").as[String] mustBe "Test-SafeId"
-        (responseJson \ "responseDetail" \ "organisation" \ "organisationName")
-          .as[String]                                           mustBe "The Secret Lab Ltd"
-        (responseJson \ "responseDetail" \ "organisation" \ "organisationType")
-          .as[String]                                           mustBe "0003"
-        (responseJson \ "responseDetail" \ "address" \ "countryCode")
-          .as[String]                                           mustBe "US"
+        resultModel.responseDetail.get.address.countryCode mustBe "US"
       }
 
       "must return a 200 OK with an empty organisation response when the UTR starts with a 7" in {
-        val request = testOrganisationRequestModel.copy(requestDetail =
+        val request     = testOrganisationRequestModel.copy(requestDetail =
           testOrganisationRequestModel.requestDetail.copy(IDNumber = "7123456789")
         )
-        val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
+        val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
+        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
 
-        status(result)        mustBe OK
-        contentAsString(result) must include("The Secret Lab Ltd")
-        contentAsString(result) must not include "Birmingham"
-      }
-    }
-
-    "register Errors" - {
-
-      "must return 404 Not Found for an Individual when the NINO starts with an 8" in {
-        val request = testIndividualNinoRequestModel.copy(requestDetail =
-          testIndividualNinoRequestModel.requestDetail.copy(IDNumber = "8123456A")
-        )
-        val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
-
-        status(result)          mustBe NOT_FOUND
-        contentAsString(result) mustBe "The match was unsuccessful"
-      }
-
-      "must return 500 Internal Server Error for an Individual when the NINO starts with a 9" in {
-        val request = testIndividualNinoRequestModel.copy(requestDetail =
-          testIndividualNinoRequestModel.requestDetail.copy(IDNumber = "9123456A")
-        )
-        val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
-
-        status(result)          mustBe INTERNAL_SERVER_ERROR
-        contentAsString(result) mustBe "Unexpected error"
+        status(result)                                                   mustBe OK
+        resultModel.responseDetail.get.isAnASAgent                       mustBe None
+        resultModel.responseDetail.get.organisation.get.organisationType mustBe None
+        resultModel.responseDetail.get.organisation.get.code             mustBe None
       }
 
       "must return 404 Not Found for an Organisation when the UTR starts with an 8" in {
@@ -373,21 +346,9 @@ class RegistrationControllerSpec extends SpecBase {
         status(result)        mustBe INTERNAL_SERVER_ERROR
         contentAsString(result) must include("Unexpected error")
       }
+    }
 
-      "must return an internal server error response when the request IDNumber[NINO] starts with an Y char" in {
-        val result = testController.register()(
-          fakeRequestWithJsonBody(
-            Json.toJson(
-              testIndividualNinoRequestModel.copy(requestDetail =
-                testIndividualNinoRequestModel.requestDetail.copy(IDNumber = "YX123456D")
-              )
-            )
-          )
-        )
-
-        status(result)        mustBe INTERNAL_SERVER_ERROR
-        contentAsString(result) must include("Unexpected error")
-      }
+    "Other errors" - {
 
       "must return 400 Bad Request when the request JSON is invalid" in {
         val result = testController.register()(fakeRequestWithJsonBody(Json.obj("invalid" -> "payload")))
@@ -395,71 +356,7 @@ class RegistrationControllerSpec extends SpecBase {
         status(result)        mustBe BAD_REQUEST
         contentAsString(result) must include("Invalid RegisterWithIDRequest payload")
       }
-
-      "must return 400 Bad Request when the IDType is invalid" in {
-        val request = testIndividualNinoRequestModel.copy(requestDetail =
-          testIndividualNinoRequestModel.requestDetail.copy(IDType = "INVALID_TYPE")
-        )
-        val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
-
-        status(result)          mustBe BAD_REQUEST
-        contentAsString(result) mustBe "Invalid IDType: INVALID_TYPE"
-      }
     }
   }
-
-  "throw an exception when an Organisation which is not a Sole Trader has a NINO" in {
-    val exception = intercept[Exception] {
-      val result = testController.register()(fakeRequestWithJsonBody(Json.toJson(invalidOrganisationRequestWithNino)))
-      result.futureValue
-    }
-    exception.getMessage must include("An Org which is not a Sole Trader cannot have a NINO.")
-  }
-
-  private def testEmptyResponse(firstNameIn: String, lastNameIn: String): JsValue = Json.toJson(
-    RegisterWithIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "200",
-        statusText = None
-      ),
-      responseDetail = Some(
-        ResponseDetail(
-          ARN = "Test-ARN",
-          SAFEID = "Test-SafeId",
-          address = emptyAddress,
-          contactDetails = ContactDetails(
-            emailAddress = None,
-            faxNumber = None,
-            mobileNumber = None,
-            phoneNumber = None
-          ),
-          individual = Some(
-            IndividualResponse(
-              dateOfBirth = None,
-              firstName = firstNameIn,
-              lastName = lastNameIn,
-              middleName = None
-            )
-          ),
-          isAnASAgent = None,
-          isAnAgent = false,
-          isAnIndividual = true,
-          isEditable = false,
-          organisation = None
-        )
-      )
-    )
-  )
-
-  private def emptyAddress = AddressResponse(
-    addressLine1 = "2 Newarre Road",
-    addressLine2 = None,
-    addressLine3 = None,
-    addressLine4 = None,
-    postalCode = None,
-    countryCode = "GB"
-  )
 
 }

@@ -26,32 +26,33 @@ import java.time.LocalDate
 
 trait RegistrationHelper {
 
+  sealed trait JourneyType
+
+  case object Org extends JourneyType
+  case object IndWithNino extends JourneyType
+  case object IndWithUtr extends JourneyType
+
   def returnResponse(request: RegisterWithIDRequest): Result = {
+    val idNumber = request.requestDetail.IDNumber
+    val idType   = request.requestDetail.IDType
 
-    val idNumber                = request.requestDetail.IDNumber
-    val idType                  = request.requestDetail.IDType
-    val isSoleTrader: Boolean   = request.requestDetail.individual.isDefined && (idType == "UTR")
-    val isOrganisation: Boolean = request.requestDetail.organisation.isDefined
+    val journeyType: JourneyType = request.requestDetail.individual match {
+      case Some(value) => if (idType == "UTR") IndWithUtr else IndWithNino
+      case None        => Org
+    }
 
-    (idType, idNumber.take(1), isSoleTrader, isOrganisation) match {
-      case (_, "9" | "Y", _, any) => InternalServerError("Unexpected error")
-      case (_, "8" | "X", _, any) => NotFound("The match was unsuccessful")
+    (idNumber.take(1), journeyType) match {
+      case ("9" | "Y", _) => InternalServerError("Unexpected error")
+      case ("8" | "X", _) => NotFound("The match was unsuccessful")
 
-      case ("UTR", "7", false, true) => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
-      case ("UTR", "7", any, false)  => Ok(Json.toJson(createEmptyIndividualResponse(request)))
-      case ("UTR", "6", false, true) => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
+      case ("7", Org)                             => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
+      case ("7", IndWithUtr) | ("W", IndWithNino) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+      case ("6", Org)                             => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
 
-      case ("UTR", _, false, true) => Ok(Json.toJson(createFullOrganisationResponse(request)))
-      case ("UTR", _, true, any)   => Ok(Json.toJson(createFullIndividualResponse(request)))
+      case (_, Org)                      => Ok(Json.toJson(createFullOrganisationResponse(request)))
+      case (_, IndWithUtr | IndWithNino) => Ok(Json.toJson(createFullIndividualResponse(request)))
 
-      case ("NINO", "W", any, false) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
-      case ("NINO", _, any, false)   => Ok(Json.toJson(createFullIndividualResponse(request)))
-      case ("NINO", _, true, any)    => Ok(Json.toJson(createFullIndividualResponse(request)))
-
-      case ("NINO", _, false, true) =>
-        throw new IllegalArgumentException("An Org which is not a Sole Trader cannot have a NINO.")
-
-      case _ => BadRequest(s"Invalid IDType: $idType")
+      case _ => BadRequest(s"Unhandled or invalid scenario. <ID Type: $idType, ID Number: $idNumber>")
     }
   }
 
@@ -102,16 +103,16 @@ trait RegistrationHelper {
           address = emptyAddress,
           contactDetails = ContactDetails(None, None, None, None),
           individual = None,
-          isAnASAgent = Some(false),
+          isAnASAgent = None,
           isAnAgent = false,
           isAnIndividual = false,
           isEditable = false,
           organisation = Some(
             OrganisationResponse(
               organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Empty Org Ltd"),
-              code = Some("0000"),
+              code = None,
               isAGroup = false,
-              organisationType = request.requestDetail.organisation.map(_.organisationType)
+              organisationType = None
             )
           )
         )
