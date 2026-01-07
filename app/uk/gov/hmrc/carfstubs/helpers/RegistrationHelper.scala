@@ -26,23 +26,33 @@ import java.time.LocalDate
 
 trait RegistrationHelper {
 
-  def returnResponse(request: RegisterWithIDRequest): Result = {
+  sealed trait JourneyType
 
+  case object Org extends JourneyType
+  case object IndWithNino extends JourneyType
+  case object IndWithUtr extends JourneyType
+
+  def returnResponse(request: RegisterWithIDRequest): Result = {
     val idNumber = request.requestDetail.IDNumber
     val idType   = request.requestDetail.IDType
 
-    (idType, idNumber.take(1)) match {
-      case (_, "9" | "Y") => InternalServerError("Unexpected error")
-      case (_, "8" | "X") => NotFound("The match was unsuccessful")
+    val journeyType: JourneyType = request.requestDetail.individual match {
+      case Some(value) => if (idType == "UTR") IndWithUtr else IndWithNino
+      case None        => Org
+    }
 
-      case ("UTR", "7") => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
-      case ("UTR", "6") => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
-      case ("UTR", _)   => Ok(Json.toJson(createFullOrganisationResponse(request)))
+    (idNumber.take(1), journeyType) match {
+      case ("9" | "Y", _) => InternalServerError("Unexpected error")
+      case ("8" | "X", _) => NotFound("The match was unsuccessful")
 
-      case ("NINO", "W") => Ok(Json.toJson(createEmptyIndividualResponse(request)))
-      case ("NINO", _)   => Ok(Json.toJson(createFullIndividualResponse(request)))
+      case ("7", Org)                             => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
+      case ("7", IndWithUtr) | ("W", IndWithNino) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+      case ("6", Org)                             => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
 
-      case _ => BadRequest(s"Invalid IDType: $idType")
+      case (_, Org)                      => Ok(Json.toJson(createFullOrganisationResponse(request)))
+      case (_, IndWithUtr | IndWithNino) => Ok(Json.toJson(createFullIndividualResponse(request)))
+
+      case _ => BadRequest(s"Unhandled or invalid scenario. <ID Type: $idType, ID Number: $idNumber>")
     }
   }
 
@@ -93,16 +103,16 @@ trait RegistrationHelper {
           address = emptyAddress,
           contactDetails = ContactDetails(None, None, None, None),
           individual = None,
-          isAnASAgent = Some(false),
+          isAnASAgent = None,
           isAnAgent = false,
           isAnIndividual = false,
           isEditable = false,
           organisation = Some(
             OrganisationResponse(
               organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Empty Org Ltd"),
-              code = Some("0000"),
+              code = None,
               isAGroup = false,
-              organisationType = request.requestDetail.organisation.map(_.organisationType)
+              organisationType = None
             )
           )
         )
@@ -140,7 +150,6 @@ trait RegistrationHelper {
       )
     )
 
-  //         SAFEID = "Test-SafeId",  for safeid
   private def createFullIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
     RegisterWithIDResponse(
       responseCommon = ResponseCommon(
@@ -162,7 +171,7 @@ trait RegistrationHelper {
           ),
           individual = Some(
             IndividualResponse(
-              dateOfBirth = request.requestDetail.individual.map(_.dateOfBirth),
+              dateOfBirth = request.requestDetail.individual.map(_.dateOfBirth).getOrElse(None),
               firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind First Name"),
               lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Last Name"),
               middleName = Some("Bjorn")
@@ -199,8 +208,8 @@ trait RegistrationHelper {
           individual = Some(
             IndividualResponse(
               dateOfBirth = None,
-              firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind First Name"),
-              lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Last Name"),
+              firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind Empty First Name"),
+              lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Empty Last Name"),
               middleName = None
             )
           ),

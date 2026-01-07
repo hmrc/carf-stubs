@@ -35,9 +35,9 @@ class RegistrationController @Inject() (
   def register: Action[JsValue] = Action.async(parse.json) { implicit request =>
     request.body.validate[RegisterWithIDRequest] match {
       case JsSuccess(payload, _) =>
-        logger.debug(s" Stub Request Body \n-> ${Json.prettyPrint(request.body)}")
+        logger.info(s" Stub Request Body \n-> ${Json.prettyPrint(request.body)}")
         val response = returnResponse(payload)
-        logger.debug(s" Stub Response \n-> $response")
+        logger.info(s" Stub Response \n-> $response")
         Future.successful(response)
 
       case JsError(errors) =>
