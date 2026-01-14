@@ -109,7 +109,7 @@ trait RegistrationHelper {
           isEditable = false,
           organisation = Some(
             OrganisationResponse(
-              organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Empty Org Ltd"),
+              organisationName = "Apples and Pears LTD",
               code = None,
               isAGroup = false,
               organisationType = None
@@ -208,8 +208,8 @@ trait RegistrationHelper {
           individual = Some(
             IndividualResponse(
               dateOfBirth = None,
-              firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind Empty First Name"),
-              lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Empty Last Name"),
+              firstName = "Apple",
+              lastName = "Pear",
               middleName = None
             )
           ),
