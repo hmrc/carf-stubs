@@ -110,7 +110,7 @@ trait RegistrationHelper {
           organisation = Some(
             OrganisationResponse(
               organisationName = "Apples and Pears LTD",
-              code = None,
+              code = Some("0000"),
               isAGroup = false,
               organisationType = None
             )
