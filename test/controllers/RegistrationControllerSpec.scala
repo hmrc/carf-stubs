@@ -324,7 +324,7 @@ class RegistrationControllerSpec extends SpecBase {
         status(result)                                                   mustBe OK
         resultModel.responseDetail.get.isAnASAgent                       mustBe None
         resultModel.responseDetail.get.organisation.get.organisationType mustBe None
-        resultModel.responseDetail.get.organisation.get.code             mustBe None
+        resultModel.responseDetail.get.organisation.get.code             mustBe Some("0000")
       }
 
       "must return 404 Not Found for an Organisation when the UTR starts with an 8" in {
