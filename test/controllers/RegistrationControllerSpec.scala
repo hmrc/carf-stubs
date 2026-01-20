@@ -197,7 +197,7 @@ class RegistrationControllerSpec extends SpecBase {
         resultModel.responseDetail.get.address.addressLine2.get mustBe "Birmingham"
       }
 
-      "must return an empty response when the request IDNumber[NINO] starts with a W char" in {
+      "must return an empty response with the fixed name when the request IDNumber[NINO] starts with a W char" in {
         val result = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(
@@ -208,7 +208,7 @@ class RegistrationControllerSpec extends SpecBase {
           )
         )
         status(result)        mustBe OK
-        contentAsJson(result) mustBe testEmptyResponseInd("Professor", "Oak")
+        contentAsJson(result) mustBe testEmptyResponseInd("Apple", "Pear")
       }
 
       "must return a not found response when the request IDNumber[NINO] starts with a X char" in {
@@ -255,13 +255,13 @@ class RegistrationControllerSpec extends SpecBase {
         resultModel.responseDetail.get.address.addressLine2.get mustBe "Birmingham"
       }
 
-      "must return a 200 OK with an empty response when request IDNumber[UTR] starts with '7'" in {
+      "must return a 200 OK with an empty response when request IDNumber[UTR] starts with '7' and returns the fixed name" in {
         val request = Json.toJson(testIndividualUtrEmptyResponseRequestModel).as[JsObject]
         val result  = testController.register()(fakeRequestWithJsonBody(request))
 
         status(result)        mustBe OK
         contentAsString(result) must include("Test-SafeId")
-        contentAsJson(result) mustBe testEmptyResponseInd("indiv Empty firstName", "indiv Empty lastName")
+        contentAsJson(result) mustBe testEmptyResponseInd("Apple", "Pear")
       }
 
       "must return a not found response when the request IDNumber[UTR] starts with '8'" in {
@@ -324,7 +324,7 @@ class RegistrationControllerSpec extends SpecBase {
         status(result)                                                   mustBe OK
         resultModel.responseDetail.get.isAnASAgent                       mustBe None
         resultModel.responseDetail.get.organisation.get.organisationType mustBe None
-        resultModel.responseDetail.get.organisation.get.code             mustBe None
+        resultModel.responseDetail.get.organisation.get.code             mustBe Some("0000")
       }
 
       "must return 404 Not Found for an Organisation when the UTR starts with an 8" in {
