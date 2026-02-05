@@ -28,9 +28,10 @@ trait RegistrationHelper {
 
   sealed trait JourneyType
 
-  case object Org extends JourneyType
-  case object IndWithNino extends JourneyType
-  case object IndWithUtr extends JourneyType
+  private case object UserEntryOrg extends JourneyType
+  private case object AutoMatchOrg extends JourneyType
+  private case object IndWithNino extends JourneyType
+  private case object IndWithUtr extends JourneyType
 
   def returnResponse(request: RegisterWithIDRequest): Result = {
     val idNumber = request.requestDetail.IDNumber
@@ -38,19 +39,30 @@ trait RegistrationHelper {
 
     val journeyType: JourneyType = request.requestDetail.individual match {
       case Some(value) => if (idType == "UTR") IndWithUtr else IndWithNino
-      case None        => Org
+      case None        => request.requestDetail.organisation.fold(AutoMatchOrg)(_ => UserEntryOrg)
     }
+
+    def getCodeFromOrgType(journeyType: JourneyType): Option[String] =
+      journeyType match {
+        case UserEntryOrg => Some("0000")
+        case _            => None
+      }
 
     (idNumber.take(1), journeyType) match {
       case ("9" | "Y", _) => InternalServerError("Unexpected error")
       case ("8" | "X", _) => NotFound("The match was unsuccessful")
 
-      case ("7", Org)                             => Ok(Json.toJson(createEmptyOrganisationResponse(request)))
+      case ("7", UserEntryOrg | AutoMatchOrg)     =>
+        Ok(Json.toJson(createEmptyOrganisationResponse(request, getCodeFromOrgType(journeyType))))
       case ("7", IndWithUtr) | ("W", IndWithNino) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
-      case ("6", Org)                             => Ok(Json.toJson(createNonUkOrganisationResponse(request)))
+      case ("6", UserEntryOrg | AutoMatchOrg)     =>
+        Ok(Json.toJson(createNonUkOrganisationResponse(request, getCodeFromOrgType(journeyType))))
+      case ("6", IndWithUtr)                      =>
+        Ok(Json.toJson(createNonUkIndividualResponse(request, getCodeFromOrgType(journeyType))))
 
-      case (_, Org)                      => Ok(Json.toJson(createFullOrganisationResponse(request)))
-      case (_, IndWithUtr | IndWithNino) => Ok(Json.toJson(createFullIndividualResponse(request)))
+      case (_, UserEntryOrg | AutoMatchOrg) => Ok(Json.toJson(createFullOrganisationResponse(request)))
+      // TODO: in future, split out IndWithUtr and IndWithNino to remove getOrElse in createFullIndividualResponse
+      case (_, IndWithUtr | IndWithNino)    => Ok(Json.toJson(createFullIndividualResponse(request)))
 
       case _ => BadRequest(s"Unhandled or invalid scenario. <ID Type: $idType, ID Number: $idNumber>")
     }
@@ -88,7 +100,10 @@ trait RegistrationHelper {
       )
     )
 
-  private def createEmptyOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
+  private def createEmptyOrganisationResponse(
+      request: RegisterWithIDRequest,
+      code: Option[String]
+  ): RegisterWithIDResponse =
     RegisterWithIDResponse(
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,
@@ -110,7 +125,8 @@ trait RegistrationHelper {
           organisation = Some(
             OrganisationResponse(
               organisationName = "Apples and Pears LTD",
-              code = Some("0000"),
+              // For User Entry Org this should always be populated
+              code = code,
               isAGroup = false,
               organisationType = None
             )
@@ -119,7 +135,10 @@ trait RegistrationHelper {
       )
     )
 
-  private def createNonUkOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
+  private def createNonUkOrganisationResponse(
+      request: RegisterWithIDRequest,
+      code: Option[String]
+  ): RegisterWithIDResponse =
     RegisterWithIDResponse(
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,
@@ -141,7 +160,7 @@ trait RegistrationHelper {
           organisation = Some(
             OrganisationResponse(
               organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
-              code = Some("0000"),
+              code = code,
               isAGroup = false,
               organisationType = request.requestDetail.organisation.map(_.organisationType)
             )
@@ -155,7 +174,7 @@ trait RegistrationHelper {
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,
         returnParameters = Some(List(ReturnParameters(paramName = "Test-ParamName", paramValue = "Test-ParamValue"))),
-        status = "200",
+        status = "OK",
         statusText = Some("Test-StatusText")
       ),
       responseDetail = Some(
@@ -171,7 +190,7 @@ trait RegistrationHelper {
           ),
           individual = Some(
             IndividualResponse(
-              dateOfBirth = request.requestDetail.individual.map(_.dateOfBirth).getOrElse(None),
+              dateOfBirth = request.requestDetail.individual.flatMap(_.dateOfBirth),
               firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind First Name"),
               lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Last Name"),
               middleName = Some("Bjorn")
@@ -191,7 +210,7 @@ trait RegistrationHelper {
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,
         returnParameters = None,
-        status = "200",
+        status = "OK",
         statusText = None
       ),
       responseDetail = Some(
@@ -218,6 +237,47 @@ trait RegistrationHelper {
           isAnIndividual = true,
           isEditable = false,
           organisation = None
+        )
+      )
+    )
+
+  private def createNonUkIndividualResponse(
+      request: RegisterWithIDRequest,
+      code: Option[String]
+  ): RegisterWithIDResponse =
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "",
+          SAFEID = "Test-SafeId",
+          address = nonUkAddress,
+          contactDetails = ContactDetails(None, None, None, None),
+          individual = Some(
+            IndividualResponse(
+              dateOfBirth = request.requestDetail.individual.get.dateOfBirth,
+              firstName = request.requestDetail.individual.get.firstName,
+              lastName = request.requestDetail.individual.get.lastName,
+              middleName = None
+            )
+          ),
+          isAnASAgent = Some(false),
+          isAnAgent = false,
+          isAnIndividual = false,
+          isEditable = false,
+          organisation = Some(
+            OrganisationResponse(
+              organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
+              code = code,
+              isAGroup = false,
+              organisationType = request.requestDetail.organisation.map(_.organisationType)
+            )
+          )
         )
       )
     )
