@@ -57,6 +57,8 @@ trait RegistrationHelper {
       case ("7", IndWithUtr) | ("W", IndWithNino) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
       case ("6", UserEntryOrg | AutoMatchOrg)     =>
         Ok(Json.toJson(createNonUkOrganisationResponse(request, getCodeFromOrgType(journeyType))))
+      case ("6", IndWithUtr)                      =>
+        Ok(Json.toJson(createNonUkIndividualResponse(request, getCodeFromOrgType(journeyType))))
 
       case (_, UserEntryOrg | AutoMatchOrg) => Ok(Json.toJson(createFullOrganisationResponse(request)))
       // TODO: in future, split out IndWithUtr and IndWithNino to remove getOrElse in createFullIndividualResponse
@@ -172,7 +174,7 @@ trait RegistrationHelper {
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,
         returnParameters = Some(List(ReturnParameters(paramName = "Test-ParamName", paramValue = "Test-ParamValue"))),
-        status = "200",
+        status = "OK",
         statusText = Some("Test-StatusText")
       ),
       responseDetail = Some(
@@ -208,7 +210,7 @@ trait RegistrationHelper {
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,
         returnParameters = None,
-        status = "200",
+        status = "OK",
         statusText = None
       ),
       responseDetail = Some(
@@ -235,6 +237,47 @@ trait RegistrationHelper {
           isAnIndividual = true,
           isEditable = false,
           organisation = None
+        )
+      )
+    )
+
+  private def createNonUkIndividualResponse(
+      request: RegisterWithIDRequest,
+      code: Option[String]
+  ): RegisterWithIDResponse =
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "",
+          SAFEID = "Test-SafeId",
+          address = nonUkAddress,
+          contactDetails = ContactDetails(None, None, None, None),
+          individual = Some(
+            IndividualResponse(
+              dateOfBirth = request.requestDetail.individual.get.dateOfBirth,
+              firstName = request.requestDetail.individual.get.firstName,
+              lastName = request.requestDetail.individual.get.lastName,
+              middleName = None
+            )
+          ),
+          isAnASAgent = Some(false),
+          isAnAgent = false,
+          isAnIndividual = false,
+          isEditable = false,
+          organisation = Some(
+            OrganisationResponse(
+              organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
+              code = code,
+              isAGroup = false,
+              organisationType = request.requestDetail.organisation.map(_.organisationType)
+            )
+          )
         )
       )
     )
