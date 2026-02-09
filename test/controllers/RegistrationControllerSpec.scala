@@ -76,7 +76,7 @@ class RegistrationControllerSpec extends SpecBase {
       )
     )
 
-  val testIndividualUtrEmptyResponseRequestModel: RegisterWithIDRequest =
+  def testIndividualUtrEmptyResponseRequestModel(utrStartNumber: String): RegisterWithIDRequest =
     RegisterWithIDRequest(
       requestCommon = RequestCommon(
         acknowledgementReference = "Test-Ref",
@@ -85,7 +85,7 @@ class RegistrationControllerSpec extends SpecBase {
       ),
       requestDetail = RequestDetail(
         requiresNameMatch = true,
-        IDNumber = "7234567890",
+        IDNumber = utrStartNumber,
         IDType = "UTR",
         individual = Some(
           IndividualDetails(
@@ -138,7 +138,7 @@ class RegistrationControllerSpec extends SpecBase {
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,
         returnParameters = None,
-        status = "200",
+        status = "OK",
         statusText = None
       ),
       responseDetail = Some(
@@ -256,12 +256,23 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return a 200 OK with an empty response when request IDNumber[UTR] starts with '7' and returns the fixed name" in {
-        val request = Json.toJson(testIndividualUtrEmptyResponseRequestModel).as[JsObject]
+        val request = Json.toJson(testIndividualUtrEmptyResponseRequestModel("7")).as[JsObject]
         val result  = testController.register()(fakeRequestWithJsonBody(request))
 
         status(result)        mustBe OK
         contentAsString(result) must include("Test-SafeId")
         contentAsJson(result) mustBe testEmptyResponseInd("Apple", "Pear")
+      }
+
+      "must return a 200 OK with an non uk response when request IDNumber[UTR] starts with '6' and returns the fixed name" in {
+        val request = Json.toJson(testIndividualUtrEmptyResponseRequestModel("6")).as[JsObject]
+        val result  = testController.register()(fakeRequestWithJsonBody(request))
+
+        status(result) mustBe OK
+
+        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+
+        resultModel.responseDetail.get.address.countryCode mustBe "US"
       }
 
       "must return a not found response when the request IDNumber[UTR] starts with '8'" in {
