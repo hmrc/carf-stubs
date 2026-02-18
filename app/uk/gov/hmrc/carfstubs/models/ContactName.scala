@@ -21,16 +21,16 @@ import play.api.libs.json.{Json, OFormat}
 sealed trait ContactName
 
 case class Individual(
-  firstName: String,
-  lastName: String,
-  middleName: Option[String] = None
+    firstName: String,
+    lastName: String,
+    middleName: Option[String] = None
 ) extends ContactName
+
+case class Organisation(name: String) extends ContactName
 
 object Individual {
   implicit val reads: OFormat[Individual] = Json.format[Individual]
 }
-
-case class Organisation(name: String) extends ContactName
 
 object Organisation {
   implicit val reads: OFormat[Organisation] = Json.format[Organisation]

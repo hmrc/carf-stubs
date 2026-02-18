@@ -18,7 +18,7 @@ package uk.gov.hmrc.carfstubs.controllers
 
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
-import play.api.mvc.{Action, ControllerComponents}
+import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.carfstubs.helpers.SubscriptionHelper
 import uk.gov.hmrc.carfstubs.models.request.Subscription
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -37,9 +37,9 @@ class SubscriptionController @Inject() (cc: ControllerComponents)
 
     request.body.validate[Subscription] match {
       case JsSuccess(payload, _) =>
-        logger.info(s" createSubscription Stub Request Body \n-> ${Json.prettyPrint(request.body)}")
-        val response = returnResponse(payload)
-//        logger.info(s" createSubscription Stub Response \n-> ${Json.prettyPrint(response)}")
+        logger.info(s"createSubscription Stub Request Body \n-> ${Json.prettyPrint(request.body)}")
+        val response: Result = returnResponse(payload)
+        logger.info(s"createSubscription Stub Response Code \n-> ${response.header.status}")
         Future.successful(response)
 
       case JsError(errors) =>

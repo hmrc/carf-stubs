@@ -53,7 +53,7 @@ trait RegistrationHelper {
       case ("8" | "X", _) => NotFound("The match was unsuccessful")
 
       case ("7", UserEntryOrg | AutoMatchOrg)     =>
-        Ok(Json.toJson(createEmptyOrganisationResponse(request, getCodeFromOrgType(journeyType))))
+        Ok(Json.toJson(createEmptyOrganisationResponse(getCodeFromOrgType(journeyType))))
       case ("7", IndWithUtr) | ("W", IndWithNino) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
       case ("6", UserEntryOrg | AutoMatchOrg)     =>
         Ok(Json.toJson(createNonUkOrganisationResponse(request, getCodeFromOrgType(journeyType))))
@@ -101,7 +101,6 @@ trait RegistrationHelper {
     )
 
   private def createEmptyOrganisationResponse(
-      request: RegisterWithIDRequest,
       code: Option[String]
   ): RegisterWithIDResponse =
     RegisterWithIDResponse(

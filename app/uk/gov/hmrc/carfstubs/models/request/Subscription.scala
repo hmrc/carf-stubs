@@ -36,17 +36,9 @@ case class Subscription(
     tradingName: Option[String]
 )
 
-//object Contact {
-//  implicit val format: OFormat[Contact] = Json.format[Contact]
-//}
-
-//object Subscription {
-//  implicit val format: OFormat[Subscription] = Json.format[Subscription]
-//}
-
 object Subscription {
 
-  implicit lazy val reads: Reads[Subscription] = {
+  implicit lazy val reads: Reads[Subscription] =
     (
       (__ \ "gbUser").read[Boolean] and
         (__ \ "idNumber").read[String] and
@@ -55,7 +47,6 @@ object Subscription {
         (__ \ "secondaryContact").readNullable[Contact] and
         (__ \ "tradingName").readNullable[String]
     )(Subscription.apply _)
-  }
 
   implicit val writes: OWrites[Subscription] = Json.writes[Subscription]
 
@@ -77,5 +68,3 @@ object Contact {
 
   implicit val writes: OWrites[Contact] = Json.writes[Contact]
 }
-
-

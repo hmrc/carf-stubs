@@ -33,14 +33,15 @@ trait SubscriptionHelper extends Logging {
     val idNumber           = request.idNumber.take(3)
 
     (primaryContactName, idNumber) match {
-      case (_, "XE3")               => noBusinessPartnerResponse
-      case ("duplicate", _)         => duplicateSubmissionResponse
-      case ("alreadyRegistered", _) => alreadyRegisteredResponse
-      case (_, "XWG" | "XM0")       => createSubscriptionResponse(request)
-      case (_, "XID")               => invalidIdType
-      case ("invalid", _)           => requestCouldNotBeProcessedResponse
-
-      case _ => createSubscriptionResponse(request)
+      case ("duplicate004", _)         => duplicateSubmission004Response
+      case ("duplicate007", _)         => alreadyRegistered007Response
+      case ("alreadyRegistered400", _) => alreadyRegistered400Response
+      case ("invalid", _)              => requestCouldNotBeProcessed003Response
+      case ("internalServerError", _)  => internalServerError500Request
+      case (_, "XE3")                  => noBusinessPartnerResponse
+      case (_, "XWG" | "XM0")          => createSubscriptionResponse(request)
+      case (_, "XID")                  => invalidIdType015Response
+      case _                           => createSubscriptionResponse(request)
 
     }
   }
@@ -55,7 +56,7 @@ trait SubscriptionHelper extends Logging {
       )
     )
 
-  private def alreadyRegisteredResponse: Result =
+  private def alreadyRegistered400Response: Result =
     UnprocessableEntity(
       Json.obj(
         "errorDetail" -> Json.obj(
@@ -87,7 +88,7 @@ trait SubscriptionHelper extends Logging {
       )
     )
 
-  private def duplicateSubmissionResponse: Result =
+  private def duplicateSubmission004Response: Result =
     UnprocessableEntity(
       Json.obj(
         "errorDetail" -> Json.obj(
@@ -103,7 +104,7 @@ trait SubscriptionHelper extends Logging {
       )
     )
 
-  private def invalidIdType: Result =
+  private def invalidIdType015Response: Result =
     UnprocessableEntity(
       Json.obj(
         "errorDetail" -> Json.obj(
@@ -119,8 +120,8 @@ trait SubscriptionHelper extends Logging {
       )
     )
 
-  private def requestCouldNotBeProcessedResponse: Result =
-    UnprocessableEntity(
+  private def requestCouldNotBeProcessed003Response: Result =
+    InternalServerError(
       Json.obj(
         "errorDetail" -> Json.obj(
           "correlationId"     -> "f058ebd6-02f7-4d3f-942e-904344e8cde5",
@@ -129,6 +130,38 @@ trait SubscriptionHelper extends Logging {
           "source"            -> "Backend",
           "sourceFaultDetail" -> Json.obj(
             "detail" -> Json.arr("003 - Request could not be processed")
+          ),
+          "timestamp"         -> java.time.Instant.now().toString
+        )
+      )
+    )
+
+  private def alreadyRegistered007Response: Result =
+    UnprocessableEntity(
+      Json.obj(
+        "errorDetail" -> Json.obj(
+          "correlationId"     -> "f058ebd6-02f7-4d3f-942e-904344e8cde5",
+          "errorCode"         -> "007",
+          "errorMessage"      -> "Business Partner already has a Subscription for this regime ",
+          "source"            -> "Backend",
+          "sourceFaultDetail" -> Json.obj(
+            "detail" -> Json.arr("007 - Business Partner already has a Subscription for this regime ")
+          ),
+          "timestamp"         -> java.time.Instant.now().toString
+        )
+      )
+    )
+
+  private def internalServerError500Request: Result =
+    InternalServerError(
+      Json.obj(
+        "errorDetail" -> Json.obj(
+          "correlationId"     -> "d60de98c-f499-47f5-b2d6-e80966e8d19e",
+          "errorCode"         -> "500",
+          "errorMessage"      -> "Internal Server Error",
+          "source"            -> "carf-stubs",
+          "sourceFaultDetail" -> Json.obj(
+            "detail" -> Json.arr("500 - Simulated internal server error from stubs")
           ),
           "timestamp"         -> java.time.Instant.now().toString
         )

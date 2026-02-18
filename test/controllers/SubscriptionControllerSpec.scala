@@ -31,8 +31,16 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
   "SubscriptionController" - {
     "createSubscription" - {
 
-      s"must return Created - $CREATED response for the valid input request" in {
-        val json: JsValue = createSubscriptionJson("John", "XWG456789")
+      s"must return Created - $CREATED response for a valid json with secondary contact organisation" in {
+        val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792")
+        val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
+        val result        = route(app, request).value
+
+        status(result) shouldBe CREATED
+      }
+
+      s"must return Created - $CREATED response for a valid json with secondary contact individual" in {
+        val json: JsValue = createSubscriptionSecondaryContactIndJson("Walker", "XE000123456799")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
@@ -121,7 +129,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
             "phone": "1234567890"
           }
         }
-      """)
+        """)
 
         val request = FakeRequest(POST, routes.SubscriptionController.createSubscription().url)
           .withJsonBody(invalidJson)
@@ -179,8 +187,8 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "No Business Partner identified for ID provided"
       }
 
-      "return 422 with error code 004 when firstName is 'duplicate'" in {
-        val individual   = Individual("duplicate", "Doe")
+      "return 422 with error code 004 when firstName is 'duplicate004'" in {
+        val individual   = Individual("duplicate004", "Doe")
         val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
         val subscription = Subscription(
           gbUser = true,
@@ -202,8 +210,32 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "Duplicate submission acknowledgment reference"
       }
 
-      "return 422 with error code 422 when firstName is 'alreadyRegistered'" in {
-        val individual   = Individual("alreadyRegistered", "Doe")
+      "return 422 with error code 007 when firstName is 'duplicate007'" in {
+        val individual   = Individual("duplicate007", "Doe")
+        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
+        val subscription = Subscription(
+          gbUser = true,
+          idNumber = "SAFE123456",
+          idType = "SAFE",
+          primaryContact = contact,
+          secondaryContact = None,
+          tradingName = None
+        )
+
+        val request = FakeRequest(POST, routes.SubscriptionController.createSubscription().url)
+          .withJsonBody(Json.toJson(subscription))
+
+        val result = route(app, request).value
+
+        status(result) shouldBe UNPROCESSABLE_ENTITY
+        val json = contentAsJson(result)
+        (json \ "errorDetail" \ "errorCode").as[String] shouldBe "007"
+        (json \ "errorDetail" \ "errorMessage")
+          .as[String]                                   shouldBe "Business Partner already has a Subscription for this regime "
+      }
+
+      "return 422 with error code 422 when firstName is 'alreadyRegistered400'" in {
+        val individual   = Individual("alreadyRegistered400", "Doe")
         val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
         val subscription = Subscription(
           gbUser = true,
@@ -248,7 +280,30 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "Invalid ID type"
       }
 
-      "return 422 with error code 003 when firstName is 'invalid'" in {
+      "return 500 when firstName is 'internalServerError'" in {
+        val individual   = Individual("internalServerError", "Doe")
+        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
+        val subscription = Subscription(
+          gbUser = true,
+          idNumber = "SAFE123456",
+          idType = "SAFE",
+          primaryContact = contact,
+          secondaryContact = None,
+          tradingName = None
+        )
+
+        val request = FakeRequest(POST, routes.SubscriptionController.createSubscription().url)
+          .withJsonBody(Json.toJson(subscription))
+
+        val result = route(app, request).value
+
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+        val json = contentAsJson(result)
+        (json \ "errorDetail" \ "errorCode").as[String]    shouldBe "500"
+        (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "Internal Server Error"
+      }
+
+      "return 500 with error code 003 when firstName is 'invalid'" in {
         val individual   = Individual("invalid", "Doe")
         val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
         val subscription = Subscription(
@@ -265,7 +320,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe UNPROCESSABLE_ENTITY
+        status(result) shouldBe INTERNAL_SERVER_ERROR
         val json = contentAsJson(result)
         (json \ "errorDetail" \ "errorCode").as[String]    shouldBe "003"
         (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "Request could not be processed"
@@ -273,7 +328,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
     }
   }
 
-  private def createSubscriptionJson(firstName: String, idNumber: String): JsValue = Json.parse(
+  private def createSubscriptionSecondaryContactOrgJson(firstName: String, idNumber: String): JsValue = Json.parse(
     s"""
        |{
        | "idType": "SAFE",
@@ -296,6 +351,37 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
        |    "email": "contact@toolsfortraders.com",
        |    "phone": "+44 020 39898980"
        | }
+       |}
+       |""".stripMargin
+  )
+
+  private def createSubscriptionSecondaryContactIndJson(firstName: String, idNumber: String): JsValue = Json.parse(
+    s"""
+       |{
+       |  "gbUser": false,
+       |  "idNumber": "$idNumber",
+       |  "idType": "SAFE",
+       |  "primaryContact": {
+       |    "email": "mj@gmailqqq.com",
+       |    "individual": {
+       |      "firstName": "$firstName",
+       |      "lastName": "Lname1",
+       |      "middleName": "lxtt"
+       |    },
+       |    "mobile": 7834512345,
+       |    "phone": "+44-7865412345"
+       |  },
+       |  "secondaryContact": {
+       |    "email": "djwkxescl@gmail.com",
+       |    "individual": {
+       |      "firstName": "name2",
+       |      "lastName": "Lname2",
+       |      "middleName": "bp"
+       |    },
+       |    "mobile": 7834512345,
+       |    "phone": "+44-7865412345"
+       |  },
+       |  "tradingName": "ABC Trader"
        |}
        |""".stripMargin
   )
