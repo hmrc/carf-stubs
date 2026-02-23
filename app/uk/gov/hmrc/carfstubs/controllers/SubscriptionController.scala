@@ -37,13 +37,15 @@ class SubscriptionController @Inject() (cc: ControllerComponents)
 
     request.body.validate[Subscription] match {
       case JsSuccess(payload, _) =>
-        logger.info(s"createSubscription Stub Request Body \n-> ${Json.prettyPrint(request.body)}")
         val response: Result = returnResponse(payload)
-        logger.info(s"createSubscription Stub Response Code \n-> ${response.header.status}")
+        logger.info(
+          s"createSubscription Stub Request Body \n-> ${Json.prettyPrint(request.body)} \n " +
+            s"Response Code \n-> ${response.header.status}"
+        )
         Future.successful(response)
 
       case JsError(errors) =>
-        logger.error(s"Invalid createSubscription payload: $errors")
-        Future.successful(BadRequest(s"Invalid createSubscription payload: $errors"))
+        logger.error(s"Invalid createSubscription payload: ${errors.mkString(", ")}")
+        Future.successful(BadRequest(s"Invalid createSubscription payload: ${errors.mkString(", ")}"))
     }
   }

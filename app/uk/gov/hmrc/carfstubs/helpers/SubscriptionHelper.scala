@@ -39,7 +39,6 @@ trait SubscriptionHelper extends Logging {
       case ("invalid", _)                    => requestCouldNotBeProcessed003Response
       case ("internalServerError", _)        => internalServerError500Request
       case (_, "XE3")                        => noBusinessPartnerResponse
-      case (_, "XWG" | "XM0")                => createSubscriptionResponse(request)
       case (_, "XID")                        => invalidIdType015Response
       case _                                 => createSubscriptionResponse(request)
 
