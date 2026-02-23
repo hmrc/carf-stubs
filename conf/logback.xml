@@ -10,8 +10,8 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%date{ISO8601} level=[%highlight(%level)] logger=[%logger] thread=[%thread] rid=[%X{X-Request-ID}] user=[%X{Authorization}] message=[%message] %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
-        </encoder>
+            <pattern>%cyan(%date{HH:mm:ss.SSS}) %highlight([%-5level]) [%yellow(%logger{25})] [%magenta(%thread)] rid=[%X{X-Request-ID}] user=[%X{Authorization}] - message=[%message] %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
+    </encoder>
     </appender>
 
     <appender name="CONNECTOR_LOG_FILE" class="ch.qos.logback.core.FileAppender">

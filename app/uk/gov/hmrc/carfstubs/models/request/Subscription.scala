@@ -24,6 +24,7 @@ case class Contact(
     email: String,
     individual: Option[Individual],
     organisation: Option[Organisation],
+    mobile: Option[String],
     phone: Option[String]
 )
 
@@ -58,6 +59,7 @@ object Contact {
     (__ \ "email").read[String] and
       (__ \ "individual").readNullable[Individual] and
       (__ \ "organisation").readNullable[Organisation] and
+      (__ \ "mobile").readNullable[String] and
       (__ \ "phone").readNullable[String]
   )(Contact.apply _).flatMap { contact =>
     (contact.individual, contact.organisation) match {

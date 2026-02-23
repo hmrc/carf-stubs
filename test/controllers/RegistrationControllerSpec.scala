@@ -365,7 +365,7 @@ class RegistrationControllerSpec extends SpecBase {
         val result = testController.register()(fakeRequestWithJsonBody(Json.obj("invalid" -> "payload")))
 
         status(result)        mustBe BAD_REQUEST
-        contentAsString(result) must include("Invalid RegisterWithIDRequest payload")
+        contentAsString(result) must include("error.path.missing")
       }
     }
   }

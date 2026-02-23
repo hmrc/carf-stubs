@@ -49,7 +49,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
       "must return 201 with success response for valid individual subscription" in {
         val individual   = Individual("John", "Doe")
-        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
+        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), Some("1234567890"))
         val subscription = Subscription(
           gbUser = true,
           idNumber = "XWG456789",
@@ -73,9 +73,10 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
       "return 201 with success response for valid organisation subscription" in {
         val organisation     = Organisation("Test Org Ltd")
-        val primaryContact   = Contact("primary@example.com", None, Some(organisation), Some("1234567890"))
+        val primaryContact   =
+          Contact("primary@example.com", None, Some(organisation), Some("1234567890"), Some("1234567890"))
         val individual       = Individual("Jane", "Smith")
-        val secondaryContact = Contact("secondary@example.com", Some(individual), None, None)
+        val secondaryContact = Contact("secondary@example.com", Some(individual), None, None, None)
         val subscription     = Subscription(
           gbUser = false,
           idNumber = "XM0321456",
@@ -166,7 +167,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
       "return 422 with error code 008 when idNumber starts with XE3" in {
         val individual   = Individual("John", "Doe")
-        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
+        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), None)
         val subscription = Subscription(
           gbUser = true,
           idNumber = "XE3456789",
@@ -187,9 +188,9 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "No Business Partner identified for ID provided"
       }
 
-      "return 422 with error code 004 when firstName is 'duplicate004'" in {
-        val individual   = Individual("duplicate004", "Doe")
-        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
+      "return 422 with error code 004 when firstName is 'duplicateSubmission'" in {
+        val individual   = Individual("duplicateSubmission", "Doe")
+        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), None)
         val subscription = Subscription(
           gbUser = true,
           idNumber = "SAFE123456",
@@ -210,9 +211,9 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "Duplicate submission acknowledgment reference"
       }
 
-      "return 422 with error code 007 when firstName is 'duplicate007'" in {
-        val individual   = Individual("duplicate007", "Doe")
-        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
+      "return 422 with error code 007 when firstName is 'duplicateAlreadyRegistered'" in {
+        val individual   = Individual("duplicateAlreadyRegistered", "Doe")
+        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), None)
         val subscription = Subscription(
           gbUser = true,
           idNumber = "SAFE123456",
@@ -234,9 +235,9 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
           .as[String]                                   shouldBe "Business Partner already has a Subscription for this regime "
       }
 
-      "return 422 with error code 422 when firstName is 'alreadyRegistered400'" in {
-        val individual   = Individual("alreadyRegistered400", "Doe")
-        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
+      "return 422 with error code 422 when firstName is 'alreadyRegistered'" in {
+        val individual   = Individual("alreadyRegistered", "Doe")
+        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), Some("1234567890"))
         val subscription = Subscription(
           gbUser = true,
           idNumber = "SAFE123456",
@@ -259,7 +260,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
       "return 422 with error code 015 when idNumber starts with XID" in {
         val individual   = Individual("John", "Doe")
-        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
+        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), None)
         val subscription = Subscription(
           gbUser = true,
           idNumber = "XID456789",
@@ -282,7 +283,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
       "return 500 when firstName is 'internalServerError'" in {
         val individual   = Individual("internalServerError", "Doe")
-        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
+        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), None)
         val subscription = Subscription(
           gbUser = true,
           idNumber = "SAFE123456",
@@ -305,7 +306,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
       "return 500 with error code 003 when firstName is 'invalid'" in {
         val individual   = Individual("invalid", "Doe")
-        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"))
+        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), None)
         val subscription = Subscription(
           gbUser = true,
           idNumber = "SAFE123456",
@@ -368,7 +369,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
        |      "lastName": "Lname1",
        |      "middleName": "lxtt"
        |    },
-       |    "mobile": 7834512345,
+       |    "mobile": "7834512345",
        |    "phone": "+44-7865412345"
        |  },
        |  "secondaryContact": {
@@ -378,7 +379,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
        |      "lastName": "Lname2",
        |      "middleName": "bp"
        |    },
-       |    "mobile": 7834512345,
+       |    "mobile": "7834512345",
        |    "phone": "+44-7865412345"
        |  },
        |  "tradingName": "ABC Trader"

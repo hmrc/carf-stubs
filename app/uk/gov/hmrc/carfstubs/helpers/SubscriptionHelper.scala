@@ -33,15 +33,15 @@ trait SubscriptionHelper extends Logging {
     val idNumber           = request.idNumber.take(3)
 
     (primaryContactName, idNumber) match {
-      case ("duplicate004", _)         => duplicateSubmission004Response
-      case ("duplicate007", _)         => alreadyRegistered007Response
-      case ("alreadyRegistered400", _) => alreadyRegistered400Response
-      case ("invalid", _)              => requestCouldNotBeProcessed003Response
-      case ("internalServerError", _)  => internalServerError500Request
-      case (_, "XE3")                  => noBusinessPartnerResponse
-      case (_, "XWG" | "XM0")          => createSubscriptionResponse(request)
-      case (_, "XID")                  => invalidIdType015Response
-      case _                           => createSubscriptionResponse(request)
+      case ("duplicateSubmission", _)        => duplicateSubmission004Response
+      case ("duplicateAlreadyRegistered", _) => alreadyRegistered007Response
+      case ("alreadyRegistered", _)          => alreadyRegistered400Response
+      case ("invalid", _)                    => requestCouldNotBeProcessed003Response
+      case ("internalServerError", _)        => internalServerError500Request
+      case (_, "XE3")                        => noBusinessPartnerResponse
+      case (_, "XWG" | "XM0")                => createSubscriptionResponse(request)
+      case (_, "XID")                        => invalidIdType015Response
+      case _                                 => createSubscriptionResponse(request)
 
     }
   }
