@@ -37,7 +37,7 @@ trait SubscriptionHelper extends Logging {
       case ("duplicateAlreadyRegistered", _) => alreadyRegistered007Response
       case ("alreadyRegistered", _)          => alreadyRegistered400Response
       case ("invalid", _)                    => requestCouldNotBeProcessed003Response
-      case ("internalServerError", _)        => internalServerError500Request
+      case ("internalServerError", _)        => internalServerError500Response
       case (_, "XE3")                        => noBusinessPartnerResponse
       case (_, "XID")                        => invalidIdType015Response
       case _                                 => createSubscriptionResponse(request)
@@ -151,7 +151,7 @@ trait SubscriptionHelper extends Logging {
       )
     )
 
-  private def internalServerError500Request: Result =
+  private def internalServerError500Response: Result =
     InternalServerError(
       Json.obj(
         "errorDetail" -> Json.obj(

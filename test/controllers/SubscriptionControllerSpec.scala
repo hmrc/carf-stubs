@@ -165,6 +165,33 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         status(result) shouldBe BAD_REQUEST
       }
 
+      "return 400 for missing required fields (idNumber)" in {
+        val invalidJson: JsValue = Json.parse("""
+        {
+          "gbUser": true,
+          "idType": "SAFE",
+          "primaryContact": {
+            "email": "test@example.com",
+            "individual": {"firstName": "John", "lastName": "Doe"},
+            "phone": "1234567890"
+          },
+          "secondaryContact": {
+            "individual": {"firstName": "Jane", "lastName": "Smith"},
+            "phone": "0987654321"
+          },
+          "tradingName": "Some Trading Name"
+        }
+      """)
+
+        val request = FakeRequest(POST, routes.SubscriptionController.createSubscription().url)
+          .withJsonBody(invalidJson)
+
+        val result = route(app, request).value
+
+        status(result)        shouldBe BAD_REQUEST
+        contentAsString(result) should include("idNumber")
+      }
+
       "return 422 with error code 008 when idNumber starts with XE3" in {
         val individual   = Individual("John", "Doe")
         val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), None)

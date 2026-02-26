@@ -23,6 +23,7 @@ import uk.gov.hmrc.carfstubs.models.request.RegisterWithIDRequest
 import uk.gov.hmrc.carfstubs.models.response.*
 
 import java.time.LocalDate
+import scala.util.Random
 
 trait RegistrationHelper {
 
@@ -79,7 +80,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "",
-          SAFEID = "Test-SafeId",
+          SAFEID = generateSafeId,
           address = fullAddress,
           contactDetails = ContactDetails(None, None, None, None),
           individual = None,
@@ -113,7 +114,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "",
-          SAFEID = "Test-SafeId",
+          SAFEID = generateSafeId,
           address = emptyAddress,
           contactDetails = ContactDetails(None, None, None, None),
           individual = None,
@@ -148,7 +149,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "",
-          SAFEID = "Test-SafeId",
+          SAFEID = generateSafeId,
           address = nonUkAddress,
           contactDetails = ContactDetails(None, None, None, None),
           individual = None,
@@ -179,7 +180,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "Test-ARN",
-          SAFEID = "Test-SafeId",
+          SAFEID = generateSafeId,
           address = fullAddress,
           contactDetails = ContactDetails(
             emailAddress = Some("test@example.com"),
@@ -307,4 +308,11 @@ trait RegistrationHelper {
     postalCode = Some("BNY 2AZ"),
     countryCode = "US"
   )
+
+  private def generateSafeId: String = {
+    val random        = new Random()
+    val randomInteger = (0 to 9).map(_ => random.between(0, 9)).mkString
+
+    s"XE$randomInteger"
+  }
 }
