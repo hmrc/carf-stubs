@@ -133,6 +133,43 @@ class RegistrationControllerSpec extends SpecBase {
       )
     )
 
+  private def testEmptyResponseInd(firstName: String, lastName: String): JsValue = Json.toJson(
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "Test-ARN",
+          SAFEID = "Test-SafeId",
+          address = emptyAddress,
+          contactDetails = uk.gov.hmrc.carfstubs.models.response.ContactDetails(
+            emailAddress = None,
+            faxNumber = None,
+            mobileNumber = None,
+            phoneNumber = None
+          ),
+          individual = Some(
+            IndividualResponse(
+              dateOfBirth = None,
+              firstName = firstName,
+              lastName = lastName,
+              middleName = None
+            )
+          ),
+          isAnASAgent = None,
+          isAnAgent = false,
+          isAnIndividual = true,
+          isEditable = false,
+          organisation = None
+        )
+      )
+    )
+  )
+
   private def emptyAddress = AddressResponse(
     addressLine1 = "2 Newarre Road",
     addressLine2 = None,

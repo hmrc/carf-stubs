@@ -19,7 +19,7 @@ package uk.gov.hmrc.carfstubs.helpers
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.{BadRequest, InternalServerError, NotFound, Ok}
-import uk.gov.hmrc.carfstubs.models.request.RegisterWithIDRequest
+import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIDRequest}
 import uk.gov.hmrc.carfstubs.models.response.*
 
 import java.time.LocalDate
@@ -68,6 +68,18 @@ trait RegistrationHelper {
       case (_, IndWithUtr | IndWithNino)    => Ok(Json.toJson(createFullIndividualResponse(request)))
 
       case _ => BadRequest(s"Unhandled or invalid scenario. <ID Type: $idType, ID Number: $idNumber>")
+    }
+  }
+
+  def returnResponseWithoutId(request: RegisterWithoutIDRequest): Result = {
+    val firstName = request.requestDetail.individual.firstName
+
+    firstName.take(1).toUpperCase match {
+      case "Y" => InternalServerError("Unexpected error")
+      case "X" => NotFound("The match was unsuccessful")
+      case "W" => Ok(Json.toJson(createEmptyIndividualResponseWithoutId(request)))
+      case "Z" => Ok(Json.toJson(createNonUkIndividualResponseWithoutId(request)))
+      case _   => Ok(Json.toJson(createFullIndividualResponseWithoutId(request)))
     }
   }
 
@@ -316,6 +328,45 @@ trait RegistrationHelper {
             )
           )
         )
+      )
+    )
+
+  private def createFullIndividualResponseWithoutId(request: RegisterWithoutIDRequest): RegisterWithoutIDResponse =
+    RegisterWithoutIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = ResponseDetailWithoutId(
+        SAFEID = "Test-SafeId"
+      )
+    )
+
+  private def createEmptyIndividualResponseWithoutId(request: RegisterWithoutIDRequest): RegisterWithoutIDResponse =
+    RegisterWithoutIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = ResponseDetailWithoutId(
+        SAFEID = "Test-SafeId"
+      )
+    )
+
+  private def createNonUkIndividualResponseWithoutId(request: RegisterWithoutIDRequest): RegisterWithoutIDResponse =
+    RegisterWithoutIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = ResponseDetailWithoutId(
+        SAFEID = "Test-SafeId"
       )
     )
 

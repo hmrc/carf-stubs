@@ -4,3 +4,6 @@ POST        /dac6/dct102b/v1        uk.gov.hmrc.carfstubs.controllers.Registrati
 
 # Subscription
 POST        /dac6/dct102c/v1        uk.gov.hmrc.carfstubs.controllers.SubscriptionController.createSubscription()
+
+
+POST        /dac6/dprs0101/v1      uk.gov.hmrc.carfstubs.controllers.RegistrationWithoutIdStubController.register()
