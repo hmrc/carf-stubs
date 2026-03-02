@@ -53,12 +53,14 @@ trait RegistrationHelper {
       case ("9" | "Y", _) => InternalServerError("Unexpected error")
       case ("8" | "X", _) => NotFound("The match was unsuccessful")
 
-      case ("7", UserEntryOrg | AutoMatchOrg)     =>
+      case ("7", UserEntryOrg | AutoMatchOrg)                              =>
         Ok(Json.toJson(createEmptyOrganisationResponse(request, getCodeFromOrgType(journeyType))))
-      case ("7", IndWithUtr) | ("W", IndWithNino) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
-      case ("6", UserEntryOrg | AutoMatchOrg)     =>
+      case ("7", IndWithUtr) | ("W", IndWithNino)                          => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+      case ("6", UserEntryOrg | AutoMatchOrg) if idNumber.startsWith("68") =>
+        Ok(Json.toJson(createOrgResponseWithInvalidCode(request, getCodeFromOrgType(journeyType))))
+      case ("6", UserEntryOrg | AutoMatchOrg)                              =>
         Ok(Json.toJson(createNonUkOrganisationResponse(request, getCodeFromOrgType(journeyType))))
-      case ("6", IndWithUtr)                      =>
+      case ("6", IndWithUtr)                                               =>
         Ok(Json.toJson(createNonUkIndividualResponse(request, getCodeFromOrgType(journeyType))))
 
       case (_, UserEntryOrg | AutoMatchOrg) => Ok(Json.toJson(createFullOrganisationResponse(request)))
@@ -152,6 +154,40 @@ trait RegistrationHelper {
           ARN = "",
           SAFEID = "Test-SafeId",
           address = randomiseNonUkAddress,
+          contactDetails = ContactDetails(None, None, None, None),
+          individual = None,
+          isAnASAgent = Some(false),
+          isAnAgent = false,
+          isAnIndividual = false,
+          isEditable = false,
+          organisation = Some(
+            OrganisationResponse(
+              organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
+              code = code,
+              isAGroup = false,
+              organisationType = request.requestDetail.organisation.map(_.organisationType)
+            )
+          )
+        )
+      )
+    )
+
+  private def createOrgResponseWithInvalidCode(
+      request: RegisterWithIDRequest,
+      code: Option[String]
+  ): RegisterWithIDResponse =
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "",
+          SAFEID = "Test-SafeId",
+          address = addressWithInvalidCountryCode,
           contactDetails = ContactDetails(None, None, None, None),
           individual = None,
           isAnASAgent = Some(false),
@@ -337,8 +373,32 @@ trait RegistrationHelper {
     countryCode = "CH"
   )
 
+  private def nonUkAddressJersey = AddressResponse(
+    addressLine1 = "123 Jersey street",
+    addressLine2 = Some("Jersey"),
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = Some("JE4 1AA"),
+    countryCode = "JE"
+  )
+
+  private def addressWithInvalidCountryCode = AddressResponse(
+    addressLine1 = "123 Bad street",
+    addressLine2 = Some("CountryCodeBad"),
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = Some("ZX 2AZ"),
+    countryCode = "ZX"
+  )
+
   private def randomiseNonUkAddress = {
-    val countries = List(nonUkAddressUs, nonUkAddressFrance, nonUkAddressGermany, nonUkAddressSwitzerland)
+    val countries = List(
+      nonUkAddressUs,
+      nonUkAddressFrance,
+      nonUkAddressGermany,
+      nonUkAddressSwitzerland,
+      nonUkAddressJersey
+    )
     val index     = Random.between(0, countries.size)
     countries(index)
   }

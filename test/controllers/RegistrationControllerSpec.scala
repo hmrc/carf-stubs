@@ -179,7 +179,7 @@ class RegistrationControllerSpec extends SpecBase {
     countryCode = "GB"
   )
 
-  private val nonUkCountryCodes = List("US", "FR", "DE", "CH")
+  private val nonUkCountryCodes = List("US", "FR", "DE", "CH", "JE")
   private val testRepeater      = List(false, false, false)
 
   "RegistrationController" - {
@@ -335,6 +335,16 @@ class RegistrationControllerSpec extends SpecBase {
 
         }
         outcome mustBe true
+      }
+
+      "must return a 200 OK with a invalid country code organisation response when the UTR starts with a 68" in {
+        val request     = testOrganisationRequestModel.copy(requestDetail =
+          testOrganisationRequestModel.requestDetail.copy(IDNumber = "6823456789")
+        )
+        val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
+        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+
+        resultModel.responseDetail.get.address.countryCode mustEqual "ZX"
       }
 
       "must return a 200 OK with an empty organisation response when the UTR starts with a 7" in {
