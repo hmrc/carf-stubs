@@ -26,7 +26,6 @@ import uk.gov.hmrc.carfstubs.models.request.{Contact, Subscription}
 import uk.gov.hmrc.carfstubs.models.{Individual, Organisation}
 
 class SubscriptionControllerSpec extends SpecBase with OptionValues {
-  import org.scalatest.matchers.should.Matchers.*
 
   "SubscriptionController" - {
     "createSubscription" - {
@@ -36,7 +35,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
-        status(result) shouldBe CREATED
+        status(result) mustBe CREATED
       }
 
       s"must return Created - $CREATED response for a valid json with secondary contact individual" in {
@@ -44,7 +43,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
-        status(result) shouldBe CREATED
+        status(result) mustBe CREATED
       }
 
       "must return 201 with success response for valid individual subscription" in {
@@ -64,10 +63,10 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe CREATED
+        status(result) mustBe CREATED
         val json = contentAsJson(result)
-        (json \ "success" \ "CARFReference").as[String]       should startWith("XCARF")
-        (json \ "success" \ "processingDate").asOpt[String] shouldBe defined
+        (json \ "success" \ "CARFReference").as[String]       must startWith("XCARF")
+        (json \ "success" \ "processingDate").asOpt[String] mustBe defined
 
       }
 
@@ -91,9 +90,9 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe CREATED
+        status(result) mustBe CREATED
         val json = contentAsJson(result)
-        (json \ "success" \ "CARFReference").as[String] should startWith("XCARF")
+        (json \ "success" \ "CARFReference").as[String] must startWith("XCARF")
       }
 
       "return 400 for contact with both individual and organisation" in {
@@ -116,7 +115,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe BAD_REQUEST
+        status(result) mustBe BAD_REQUEST
       }
 
       "return 400 for contact with neither individual nor organisation" in {
@@ -137,7 +136,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe BAD_REQUEST
+        status(result) mustBe BAD_REQUEST
       }
 
       "return 400 for invalid JSON" in {
@@ -146,7 +145,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe BAD_REQUEST
+        status(result) mustBe BAD_REQUEST
       }
 
       "return 400 for missing required fields" in {
@@ -162,7 +161,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe BAD_REQUEST
+        status(result) mustBe BAD_REQUEST
       }
 
       "return 400 for missing required fields (idNumber)" in {
@@ -188,8 +187,8 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result)        shouldBe BAD_REQUEST
-        contentAsString(result) should include("idNumber")
+        status(result)        mustBe BAD_REQUEST
+        contentAsString(result) must include("idNumber")
       }
 
       "return 422 with error code 008 when idNumber starts with XE3" in {
@@ -209,10 +208,10 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe UNPROCESSABLE_ENTITY
+        status(result) mustBe UNPROCESSABLE_ENTITY
         val json = contentAsJson(result)
-        (json \ "errorDetail" \ "errorCode").as[String]    shouldBe "422"
-        (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "No Business Partner identified for ID provided"
+        (json \ "errorDetail" \ "errorCode").as[String]    mustBe "422"
+        (json \ "errorDetail" \ "errorMessage").as[String] mustBe "No Business Partner identified for ID provided"
       }
 
       "return 422 with error code 004 when firstName is 'duplicateSubmission'" in {
@@ -232,10 +231,10 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe UNPROCESSABLE_ENTITY
+        status(result) mustBe UNPROCESSABLE_ENTITY
         val json = contentAsJson(result)
-        (json \ "errorDetail" \ "errorCode").as[String]    shouldBe "004"
-        (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "Duplicate submission acknowledgment reference"
+        (json \ "errorDetail" \ "errorCode").as[String]    mustBe "004"
+        (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Duplicate submission acknowledgment reference"
       }
 
       "return 422 with error code 007 when firstName is 'duplicateAlreadyRegistered'" in {
@@ -255,11 +254,11 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe UNPROCESSABLE_ENTITY
+        status(result) mustBe UNPROCESSABLE_ENTITY
         val json = contentAsJson(result)
-        (json \ "errorDetail" \ "errorCode").as[String] shouldBe "007"
+        (json \ "errorDetail" \ "errorCode").as[String] mustBe "007"
         (json \ "errorDetail" \ "errorMessage")
-          .as[String]                                   shouldBe "Business Partner already has a Subscription for this regime "
+          .as[String]                                   mustBe "Business Partner already has a Subscription for this regime "
       }
 
       "return 422 with error code 422 when firstName is 'alreadyRegistered'" in {
@@ -279,10 +278,10 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe UNPROCESSABLE_ENTITY
+        status(result) mustBe UNPROCESSABLE_ENTITY
         val json = contentAsJson(result)
-        (json \ "errorDetail" \ "errorCode").as[String]    shouldBe "422"
-        (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "Business Error (from backend)"
+        (json \ "errorDetail" \ "errorCode").as[String]    mustBe "422"
+        (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Business Error (from backend)"
       }
 
       "return 422 with error code 015 when idNumber starts with XID" in {
@@ -302,10 +301,10 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe UNPROCESSABLE_ENTITY
+        status(result) mustBe UNPROCESSABLE_ENTITY
         val json = contentAsJson(result)
-        (json \ "errorDetail" \ "errorCode").as[String]    shouldBe "015"
-        (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "Invalid ID type"
+        (json \ "errorDetail" \ "errorCode").as[String]    mustBe "015"
+        (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Invalid ID type"
       }
 
       "return 500 when firstName is 'internalServerError'" in {
@@ -325,10 +324,10 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe INTERNAL_SERVER_ERROR
+        status(result) mustBe INTERNAL_SERVER_ERROR
         val json = contentAsJson(result)
-        (json \ "errorDetail" \ "errorCode").as[String]    shouldBe "500"
-        (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "Internal Server Error"
+        (json \ "errorDetail" \ "errorCode").as[String]    mustBe "500"
+        (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Internal Server Error"
       }
 
       "return 500 with error code 003 when firstName is 'invalid'" in {
@@ -348,10 +347,10 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) shouldBe INTERNAL_SERVER_ERROR
+        status(result) mustBe INTERNAL_SERVER_ERROR
         val json = contentAsJson(result)
-        (json \ "errorDetail" \ "errorCode").as[String]    shouldBe "003"
-        (json \ "errorDetail" \ "errorMessage").as[String] shouldBe "Request could not be processed"
+        (json \ "errorDetail" \ "errorCode").as[String]    mustBe "003"
+        (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Request could not be processed"
       }
     }
   }
