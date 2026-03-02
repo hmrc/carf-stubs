@@ -179,6 +179,9 @@ class RegistrationControllerSpec extends SpecBase {
     countryCode = "GB"
   )
 
+  private val nonUkCountryCodes = List("US", "FR", "DE", "CH")
+  private val testRepeater      = List(false, false, false)
+
   "RegistrationController" - {
     "register Individual - IDNumber[NINO]" - {
       "must return a 200 OK with a full individual response for a valid NINO (starting with A) " in {
@@ -265,14 +268,18 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return a 200 OK with an non uk response when request IDNumber[UTR] starts with '6' and returns the fixed name" in {
-        val request = Json.toJson(testIndividualUtrEmptyResponseRequestModel("6")).as[JsObject]
-        val result  = testController.register()(fakeRequestWithJsonBody(request))
+        val outcome = testRepeater.foldLeft(true) { (previousResult, _) =>
+          val request = Json.toJson(testIndividualUtrEmptyResponseRequestModel("6")).as[JsObject]
+          val result  = testController.register()(fakeRequestWithJsonBody(request))
 
-        status(result) mustBe OK
+          status(result) mustBe OK
 
-        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+          val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
 
-        resultModel.responseDetail.get.address.countryCode mustBe "US"
+          previousResult && nonUkCountryCodes.contains(resultModel.responseDetail.get.address.countryCode)
+        }
+
+        outcome mustBe true
       }
 
       "must return a not found response when the request IDNumber[UTR] starts with '8'" in {
@@ -316,13 +323,18 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return a 200 OK with a non-UK organisation response when the UTR starts with a 6" in {
-        val request     = testOrganisationRequestModel.copy(requestDetail =
-          testOrganisationRequestModel.requestDetail.copy(IDNumber = "6123456789")
-        )
-        val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
-        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
 
-        resultModel.responseDetail.get.address.countryCode mustBe "US"
+        val outcome = testRepeater.foldLeft(true) { (previousResult, _) =>
+          val request     = testOrganisationRequestModel.copy(requestDetail =
+            testOrganisationRequestModel.requestDetail.copy(IDNumber = "6123456789")
+          )
+          val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
+          val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+
+          previousResult && nonUkCountryCodes.contains(resultModel.responseDetail.get.address.countryCode)
+
+        }
+        outcome mustBe true
       }
 
       "must return a 200 OK with an empty organisation response when the UTR starts with a 7" in {

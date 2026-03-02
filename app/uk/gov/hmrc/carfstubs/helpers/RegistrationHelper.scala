@@ -23,6 +23,7 @@ import uk.gov.hmrc.carfstubs.models.request.RegisterWithIDRequest
 import uk.gov.hmrc.carfstubs.models.response.*
 
 import java.time.LocalDate
+import scala.util.Random
 
 trait RegistrationHelper {
 
@@ -150,7 +151,7 @@ trait RegistrationHelper {
         ResponseDetail(
           ARN = "",
           SAFEID = "Test-SafeId",
-          address = nonUkAddress,
+          address = randomiseNonUkAddress,
           contactDetails = ContactDetails(None, None, None, None),
           individual = None,
           isAnASAgent = Some(false),
@@ -256,7 +257,7 @@ trait RegistrationHelper {
         ResponseDetail(
           ARN = "",
           SAFEID = "Test-SafeId",
-          address = nonUkAddress,
+          address = randomiseNonUkAddress,
           contactDetails = ContactDetails(None, None, None, None),
           individual = Some(
             IndividualResponse(
@@ -300,7 +301,7 @@ trait RegistrationHelper {
     countryCode = "GB"
   )
 
-  private def nonUkAddress = AddressResponse(
+  private def nonUkAddressUs = AddressResponse(
     addressLine1 = "123 Big Apple",
     addressLine2 = Some("New York"),
     addressLine3 = None,
@@ -308,4 +309,37 @@ trait RegistrationHelper {
     postalCode = Some("BNY 2AZ"),
     countryCode = "US"
   )
+
+  private def nonUkAddressFrance = AddressResponse(
+    addressLine1 = "123 France street",
+    addressLine2 = Some("Paris"),
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = Some("FRY 2AZ"),
+    countryCode = "FR"
+  )
+
+  private def nonUkAddressGermany = AddressResponse(
+    addressLine1 = "123 Germany street",
+    addressLine2 = Some("Frankfurt"),
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = Some("DEY 2AZ"),
+    countryCode = "DE"
+  )
+
+  private def nonUkAddressSwitzerland = AddressResponse(
+    addressLine1 = "123 Switzerland street",
+    addressLine2 = Some("Zurich"),
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = Some("CH 2AZ"),
+    countryCode = "CH"
+  )
+
+  private def randomiseNonUkAddress = {
+    val countries = List(nonUkAddressUs, nonUkAddressFrance, nonUkAddressGermany, nonUkAddressSwitzerland)
+    val index     = Random.between(0, countries.size)
+    countries(index)
+  }
 }
