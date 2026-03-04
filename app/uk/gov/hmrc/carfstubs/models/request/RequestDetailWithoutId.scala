@@ -22,8 +22,8 @@ case class RequestDetailWithoutId(
     individual: IndividualDetailsWithoutId,
     address: AddressDetails,
     contactDetails: ContactDetails,
-    IsAnAgent: Boolean,
-    IsAGroup: Boolean
+    isAnAgent: Boolean,
+    isAGroup: Boolean
 )
 
 object RequestDetailWithoutId {

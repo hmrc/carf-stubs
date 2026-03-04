@@ -23,3 +23,11 @@ case class RegisterWithoutIDRequest(requestCommon: RequestCommon, requestDetail:
 object RegisterWithoutIDRequest {
   implicit val format: OFormat[RegisterWithoutIDRequest] = Json.format[RegisterWithoutIDRequest]
 }
+
+case class RegisterWithoutIDRequestWrapper(
+    registerWithoutIDRequest: RegisterWithoutIDRequest
+)
+
+object RegisterWithoutIDRequestWrapper {
+  implicit val format: OFormat[RegisterWithoutIDRequestWrapper] = Json.format[RegisterWithoutIDRequestWrapper]
+}

@@ -26,3 +26,11 @@ case class RegisterWithoutIDResponse(
 object RegisterWithoutIDResponse {
   implicit val format: OFormat[RegisterWithoutIDResponse] = Json.format[RegisterWithoutIDResponse]
 }
+
+case class RegisterWithoutIDResponseWrapper(
+    registerWithoutIDResponse: RegisterWithoutIDResponse
+)
+
+object RegisterWithoutIDResponseWrapper {
+  implicit val format: OFormat[RegisterWithoutIDResponseWrapper] = Json.format[RegisterWithoutIDResponseWrapper]
+}
