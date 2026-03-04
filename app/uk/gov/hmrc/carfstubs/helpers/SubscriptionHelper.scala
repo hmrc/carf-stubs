@@ -30,17 +30,16 @@ trait SubscriptionHelper extends Logging {
 
     val organisationName   = request.primaryContact.organisation.map(_.name).getOrElse("")
     val primaryContactName = request.primaryContact.individual.map(_.firstName).getOrElse(organisationName)
-    val idNumber           = request.idNumber.take(3)
 
-    (primaryContactName, idNumber) match {
-      case ("duplicateSubmission", _)        => duplicateSubmission004Response
-      case ("duplicateAlreadyRegistered", _) => alreadyRegistered007Response
-      case ("alreadyRegistered", _)          => alreadyRegistered400Response
-      case ("invalid", _)                    => requestCouldNotBeProcessed003Response
-      case ("internalServerError", _)        => internalServerError500Response
-      case (_, "XE3")                        => noBusinessPartnerResponse
-      case (_, "XID")                        => invalidIdType015Response
-      case _                                 => createSubscriptionResponse(request)
+    primaryContactName match {
+      case "duplicateSubmission"        => duplicateSubmission004Response
+      case "duplicateAlreadyRegistered" => alreadyRegistered007Response
+      case "alreadyRegistered"          => alreadyRegistered400Response
+      case "invalid"                    => requestCouldNotBeProcessed003Response
+      case "internalServerError"        => internalServerError500Response
+      case "noBusinessPartner"          => noBusinessPartner008Response
+      case "invalidType"                => invalidIdType015Response
+      case _                            => createSubscriptionResponse(request)
 
     }
   }
@@ -49,7 +48,7 @@ trait SubscriptionHelper extends Logging {
     Created(
       Json.obj(
         "success" -> Json.obj(
-          "CARFReference"  -> s"XCARF${request.idNumber.drop(2)}",
+          "CARFReference"  -> s"XCARF${request.idNumber.slice(2, 10)}",
           "processingDate" -> java.time.Instant.now().toString
         )
       )
@@ -71,7 +70,7 @@ trait SubscriptionHelper extends Logging {
       )
     )
 
-  private def noBusinessPartnerResponse: Result =
+  private def noBusinessPartner008Response: Result =
     UnprocessableEntity(
       Json.obj(
         "errorDetail" -> Json.obj(

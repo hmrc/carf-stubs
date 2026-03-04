@@ -191,8 +191,8 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         contentAsString(result) must include("idNumber")
       }
 
-      "return 422 with error code 008 when idNumber starts with XE3" in {
-        val individual   = Individual("John", "Doe")
+      "return 422 with error code 008 when firstName is 'noBusinessPartner'" in {
+        val individual   = Individual("noBusinessPartner", "Doe")
         val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), None)
         val subscription = Subscription(
           gbUser = true,
@@ -284,8 +284,8 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Business Error (from backend)"
       }
 
-      "return 422 with error code 015 when idNumber starts with XID" in {
-        val individual   = Individual("John", "Doe")
+      "return 422 with error code 015 when firstName is 'invalidType'" in {
+        val individual   = Individual("invalidType", "Doe")
         val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), None)
         val subscription = Subscription(
           gbUser = true,
