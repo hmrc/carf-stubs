@@ -53,12 +53,14 @@ trait RegistrationHelper {
       case ("9" | "Y", _) => InternalServerError("Unexpected error")
       case ("8" | "X", _) => NotFound("The match was unsuccessful")
 
-      case ("7", UserEntryOrg | AutoMatchOrg)     =>
-        Ok(Json.toJson(createEmptyOrganisationResponse(getCodeFromOrgType(journeyType))))
-      case ("7", IndWithUtr) | ("W", IndWithNino) => Ok(Json.toJson(createEmptyIndividualResponse(request)))
-      case ("6", UserEntryOrg | AutoMatchOrg)     =>
+      case ("7", UserEntryOrg | AutoMatchOrg)                              =>
+        Ok(Json.toJson(createEmptyOrganisationResponse(request, getCodeFromOrgType(journeyType))))
+      case ("7", IndWithUtr) | ("W", IndWithNino)                          => Ok(Json.toJson(createEmptyIndividualResponse(request)))
+      case ("6", UserEntryOrg | AutoMatchOrg) if idNumber.startsWith("68") =>
+        Ok(Json.toJson(createOrgResponseWithInvalidCode(request, getCodeFromOrgType(journeyType))))
+      case ("6", UserEntryOrg | AutoMatchOrg)                              =>
         Ok(Json.toJson(createNonUkOrganisationResponse(request, getCodeFromOrgType(journeyType))))
-      case ("6", IndWithUtr)                      =>
+      case ("6", IndWithUtr)                                               =>
         Ok(Json.toJson(createNonUkIndividualResponse(request, getCodeFromOrgType(journeyType))))
 
       case (_, UserEntryOrg | AutoMatchOrg) => Ok(Json.toJson(createFullOrganisationResponse(request)))
@@ -102,6 +104,7 @@ trait RegistrationHelper {
     )
 
   private def createEmptyOrganisationResponse(
+      request: RegisterWithIDRequest,
       code: Option[String]
   ): RegisterWithIDResponse =
     RegisterWithIDResponse(
@@ -150,7 +153,41 @@ trait RegistrationHelper {
         ResponseDetail(
           ARN = "",
           SAFEID = generateSafeId,
-          address = nonUkAddress,
+          address = randomiseNonUkAddress,
+          contactDetails = ContactDetails(None, None, None, None),
+          individual = None,
+          isAnASAgent = Some(false),
+          isAnAgent = false,
+          isAnIndividual = false,
+          isEditable = false,
+          organisation = Some(
+            OrganisationResponse(
+              organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
+              code = code,
+              isAGroup = false,
+              organisationType = request.requestDetail.organisation.map(_.organisationType)
+            )
+          )
+        )
+      )
+    )
+
+  private def createOrgResponseWithInvalidCode(
+      request: RegisterWithIDRequest,
+      code: Option[String]
+  ): RegisterWithIDResponse =
+    RegisterWithIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = Some(
+        ResponseDetail(
+          ARN = "",
+          SAFEID = generateSafeId,
+          address = addressWithInvalidCountryCode,
           contactDetails = ContactDetails(None, None, None, None),
           individual = None,
           isAnASAgent = Some(false),
@@ -255,8 +292,8 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "",
-          SAFEID = "Test-SafeId",
-          address = nonUkAddress,
+          SAFEID = generateSafeId,
+          address = randomiseNonUkAddress,
           contactDetails = ContactDetails(None, None, None, None),
           individual = Some(
             IndividualResponse(
@@ -300,7 +337,7 @@ trait RegistrationHelper {
     countryCode = "GB"
   )
 
-  private def nonUkAddress = AddressResponse(
+  private def nonUkAddressUs = AddressResponse(
     addressLine1 = "123 Big Apple",
     addressLine2 = Some("New York"),
     addressLine3 = None,
@@ -308,6 +345,63 @@ trait RegistrationHelper {
     postalCode = Some("BNY 2AZ"),
     countryCode = "US"
   )
+
+  private def nonUkAddressFrance = AddressResponse(
+    addressLine1 = "123 France street",
+    addressLine2 = Some("Paris"),
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = Some("FRY 2AZ"),
+    countryCode = "FR"
+  )
+
+  private def nonUkAddressGermany = AddressResponse(
+    addressLine1 = "123 Germany street",
+    addressLine2 = Some("Frankfurt"),
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = Some("DEY 2AZ"),
+    countryCode = "DE"
+  )
+
+  private def nonUkAddressSwitzerland = AddressResponse(
+    addressLine1 = "123 Switzerland street",
+    addressLine2 = Some("Zurich"),
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = Some("CH 2AZ"),
+    countryCode = "CH"
+  )
+
+  private def nonUkAddressJersey = AddressResponse(
+    addressLine1 = "123 Jersey street",
+    addressLine2 = Some("Jersey"),
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = Some("JE4 1AA"),
+    countryCode = "JE"
+  )
+
+  private def addressWithInvalidCountryCode = AddressResponse(
+    addressLine1 = "123 Bad street",
+    addressLine2 = Some("CountryCodeBad"),
+    addressLine3 = None,
+    addressLine4 = None,
+    postalCode = Some("ZX 2AZ"),
+    countryCode = "ZX"
+  )
+
+  private def randomiseNonUkAddress = {
+    val countries = List(
+      nonUkAddressUs,
+      nonUkAddressFrance,
+      nonUkAddressGermany,
+      nonUkAddressSwitzerland,
+      nonUkAddressJersey
+    )
+    val index     = Random.between(0, countries.size)
+    countries(index)
+  }
 
   private def generateSafeId: String = {
     val random        = new Random()
