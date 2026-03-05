@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.carfstubs.helpers.RegistrationHelper
-import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIDRequest}
+import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIDRequestWrapper}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -47,7 +47,7 @@ class RegistrationController @Inject() (
   }
 
   def registerWithoutId: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    request.body.validate[RegisterWithoutIDRequest] match {
+    request.body.validate[RegisterWithoutIDRequestWrapper] match {
       case JsSuccess(payload, _) =>
         logger.info(s"Stub WithoutId Request Body \n-> ${Json.prettyPrint(request.body)}")
         val result: Result = returnResponseWithoutId(payload)
@@ -55,7 +55,8 @@ class RegistrationController @Inject() (
         Future.successful(result)
 
       case JsError(errors) =>
-        logger.error(s"Invalid RegisterWithoutIDRequest payload: $errors")
-        Future.successful(BadRequest(s"Invalid RegisterWithoutIDRequest payload: $errors"))
+        val errorMsg = errors.map { case (path, errs) => s"$path -> ${errs.map(_.message).mkString(", ")}"}.mkString("; ")
+        logger.error(s"Invalid RegisterWithoutIDRequestWrapper payload: $errorMsg")
+        Future.successful(BadRequest(s"Invalid RegisterWithoutIDRequestWrapper payload: $errorMsg"))
     }
   }

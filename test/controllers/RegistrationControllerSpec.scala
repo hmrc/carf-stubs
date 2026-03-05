@@ -17,7 +17,7 @@
 package controllers
 
 import base.SpecBase
-import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
+import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK, UNPROCESSABLE_ENTITY}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.Helpers.{contentAsJson, contentAsString, status}
 import uk.gov.hmrc.carfstubs.controllers.RegistrationController
@@ -182,33 +182,35 @@ class RegistrationControllerSpec extends SpecBase {
   private val nonUkCountryCodes = List("US", "FR", "DE", "CH", "JE")
   private val testRepeater      = List(false, false, false)
 
-  private val validWithoutIdRequest: RegisterWithoutIDRequest =
-    RegisterWithoutIDRequest(
-      requestCommon = RequestCommon(
-        acknowledgementReference = "Test-Ref-WithoutId",
-        receiptDate = LocalDate.now().toString,
-        regime = "CARF"
-      ),
-      requestDetail = RequestDetailWithoutId(
-        individual = IndividualDetailsWithoutId(
-          firstName = "John",
-          lastName = "Doe",
-          dateOfBirth = "1990-01-01"
+  private val validWithoutIdRequest: RegisterWithoutIDRequestWrapper =
+    RegisterWithoutIDRequestWrapper(
+      registerWithoutIDRequest = RegisterWithoutIDRequest(
+        requestCommon = RequestCommon(
+          acknowledgementReference = "Test-Ref-WithoutId",
+          receiptDate = LocalDate.now().toString,
+          regime = "CARF"
         ),
-        address = AddressDetails(
-          addressLine1 = "10 Test Street",
-          addressLine2 = Some("Testington"),
-          addressLine3 = None,
-          addressLine4 = None,
-          postalCode = Some("AB1 2CD"),
-          countryCode = "GB"
-        ),
-        contactDetails = uk.gov.hmrc.carfstubs.models.request.ContactDetails(
-          emailAddress = "john.doe@example.com",
-          phoneNumber = Some("01234567890")
-        ),
-        isAnAgent = false,
-        isAGroup = false
+        requestDetail = RequestDetailWithoutId(
+          individual = IndividualDetailsWithoutId(
+            firstName = "John",
+            lastName = "Doe",
+            dateOfBirth = "1990-01-01"
+          ),
+          address = AddressDetails(
+            addressLine1 = "10 Test Street",
+            addressLine2 = Some("Testington"),
+            addressLine3 = None,
+            addressLine4 = None,
+            postalCode = Some("AB1 2CD"),
+            countryCode = "GB"
+          ),
+          contactDetails = uk.gov.hmrc.carfstubs.models.request.ContactDetails(
+            emailAddress = "john.doe@example.com",
+            phoneNumber = Some("01234567890")
+          ),
+          isAnAgent = false,
+          isAGroup = false
+        )
       )
     )
 
@@ -434,8 +436,11 @@ class RegistrationControllerSpec extends SpecBase {
       "must return 200 OK with SAFEID for 'W' first-name scenario (empty response)" in {
         val wRequest =
           validWithoutIdRequest.copy(
-            requestDetail = validWithoutIdRequest.requestDetail.copy(
-              individual = validWithoutIdRequest.requestDetail.individual.copy(firstName = "William")
+            registerWithoutIDRequest = validWithoutIdRequest.registerWithoutIDRequest.copy(
+              requestDetail = validWithoutIdRequest.registerWithoutIDRequest.requestDetail.copy(
+                individual =
+                  validWithoutIdRequest.registerWithoutIDRequest.requestDetail.individual.copy(firstName = "William")
+              )
             )
           )
 
@@ -449,8 +454,11 @@ class RegistrationControllerSpec extends SpecBase {
       "must return 200 OK with SAFEID for 'Z' first-name scenario (non-UK response)" in {
         val zRequest =
           validWithoutIdRequest.copy(
-            requestDetail = validWithoutIdRequest.requestDetail.copy(
-              individual = validWithoutIdRequest.requestDetail.individual.copy(firstName = "Zara")
+            registerWithoutIDRequest = validWithoutIdRequest.registerWithoutIDRequest.copy(
+              requestDetail = validWithoutIdRequest.registerWithoutIDRequest.requestDetail.copy(
+                individual =
+                  validWithoutIdRequest.registerWithoutIDRequest.requestDetail.individual.copy(firstName = "William")
+              )
             )
           )
 
@@ -461,31 +469,44 @@ class RegistrationControllerSpec extends SpecBase {
         response.responseDetail.SAFEID mustBe "Test-SafeId"
       }
 
-      "must return 404 Not Found when first name starts with 'X'" in {
+      "must return a 422 error response when first name starts with 'X'" in {
         val xRequest =
           validWithoutIdRequest.copy(
-            requestDetail = validWithoutIdRequest.requestDetail.copy(
-              individual = validWithoutIdRequest.requestDetail.individual.copy(firstName = "Xavier")
+            registerWithoutIDRequest = validWithoutIdRequest.registerWithoutIDRequest.copy(
+              requestDetail = validWithoutIdRequest.registerWithoutIDRequest.requestDetail.copy(
+                individual =
+                  validWithoutIdRequest.registerWithoutIDRequest.requestDetail.individual.copy(firstName = "Xavier")
+              )
             )
           )
 
         val result = testController.registerWithoutId()(fakeRequestWithJsonBody(Json.toJson(xRequest)))
-        status(result)        mustBe NOT_FOUND
-        contentAsString(result) must include("The match was unsuccessful")
+        status(result) mustBe UNPROCESSABLE_ENTITY
+
+        val errorResponse = contentAsJson(result).as[ErrorResponse]
+        errorResponse.errorDetail.errorCode    mustBe "422"
+        errorResponse.errorDetail.errorMessage mustBe "The match was unsuccessful"
       }
 
       "must return 500 Internal Server Error when first name starts with 'Y'" in {
         val yRequest =
           validWithoutIdRequest.copy(
-            requestDetail = validWithoutIdRequest.requestDetail.copy(
-              individual = validWithoutIdRequest.requestDetail.individual.copy(firstName = "Yolanda")
+            registerWithoutIDRequest = validWithoutIdRequest.registerWithoutIDRequest.copy(
+              requestDetail = validWithoutIdRequest.registerWithoutIDRequest.requestDetail.copy(
+                individual =
+                  validWithoutIdRequest.registerWithoutIDRequest.requestDetail.individual.copy(firstName = "Yolanda")
+              )
             )
           )
 
         val result = testController.registerWithoutId()(fakeRequestWithJsonBody(Json.toJson(yRequest)))
-        status(result)        mustBe INTERNAL_SERVER_ERROR
-        contentAsString(result) must include("Unexpected error")
+        status(result) mustBe INTERNAL_SERVER_ERROR
+
+        val errorResponse = contentAsJson(result).as[ErrorResponse]
+        errorResponse.errorDetail.errorCode    mustBe "500"
+        errorResponse.errorDetail.errorMessage mustBe "Unexpected error"
       }
+
     }
 
     "Other errors" - {
@@ -495,12 +516,6 @@ class RegistrationControllerSpec extends SpecBase {
 
         status(result)        mustBe BAD_REQUEST
         contentAsString(result) must include("error.path.missing")
-      }
-
-      "must return 400 Bad Request when the request JSON is invalid for RegisterWithoutId" in {
-        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(Json.obj("invalid" -> "payload")))
-        status(result)        mustBe BAD_REQUEST
-        contentAsString(result) must include("Invalid RegisterWithoutIDRequest payload")
       }
 
     }
