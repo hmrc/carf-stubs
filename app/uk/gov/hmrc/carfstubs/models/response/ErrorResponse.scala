@@ -19,27 +19,27 @@ package uk.gov.hmrc.carfstubs.models.response
 import play.api.libs.json.{Json, OFormat}
 
 case class ErrorResponse(
-                          errorDetail: ErrorDetail
-                        )
+    errorDetail: ErrorDetail
+)
 
 object ErrorResponse {
   implicit val format: OFormat[ErrorResponse] = Json.format[ErrorResponse]
 }
 
 case class ErrorDetail(
-                        correlationId: String,
-                        errorCode: String,
-                        errorMessage: String,
-                        sourceFaultDetail: SourceFaultDetail
-                      )
+    correlationId: String,
+    errorCode: String,
+    errorMessage: String,
+    sourceFaultDetail: SourceFaultDetail
+)
 
 object ErrorDetail {
   implicit val format: OFormat[ErrorDetail] = Json.format[ErrorDetail]
 }
 
 case class SourceFaultDetail(
-                              detail: List[String]
-                            )
+    detail: List[String]
+)
 
 object SourceFaultDetail {
   implicit val format: OFormat[SourceFaultDetail] = Json.format[SourceFaultDetail]

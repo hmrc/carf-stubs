@@ -182,37 +182,49 @@ class RegistrationControllerSpec extends SpecBase {
   private val nonUkCountryCodes = List("US", "FR", "DE", "CH", "JE")
   private val testRepeater      = List(false, false, false)
 
-  private val validWithoutIdRequest: RegisterWithoutIDRequestWrapper =
-    RegisterWithoutIDRequestWrapper(
-      registerWithoutIDRequest = RegisterWithoutIDRequest(
-        requestCommon = RequestCommon(
-          acknowledgementReference = "Test-Ref-WithoutId",
-          receiptDate = LocalDate.now().toString,
-          regime = "CARF"
-        ),
-        requestDetail = RequestDetailWithoutId(
-          individual = IndividualDetailsWithoutId(
-            firstName = "John",
-            lastName = "Doe",
-            dateOfBirth = "1990-01-01"
-          ),
-          address = AddressDetails(
-            addressLine1 = "10 Test Street",
-            addressLine2 = Some("Testington"),
-            addressLine3 = None,
-            addressLine4 = None,
-            postalCode = Some("AB1 2CD"),
-            countryCode = "GB"
-          ),
-          contactDetails = uk.gov.hmrc.carfstubs.models.request.ContactDetails(
-            emailAddress = "john.doe@example.com",
-            phoneNumber = Some("01234567890")
-          ),
-          isAnAgent = false,
-          isAGroup = false
-        )
-      )
-    )
+  private val validWithoutIdRequestJson: JsValue = Json.parse(
+    """{
+      "registerWithoutIDRequest": {
+        "requestCommon": {
+          "acknowledgementReference": "Test-Ref-WithoutId",
+          "receiptDate": "2024-01-01T00:00:00Z",
+          "regime": "CARF"
+        },
+        "requestDetail": {
+          "individual": {
+            "firstName": "John",
+            "lastName": "Doe",
+            "dateOfBirth": "1990-01-01"
+          },
+          "address": {
+            "addressLine1": "10 Test Street",
+            "addressLine2": "Testington",
+            "postalCode": "AB1 2CD",
+            "countryCode": "GB"
+          },
+          "contactDetails": {
+            "emailAddress": "john.doe@example.com",
+            "phoneNumber": "01234567890"
+          },
+          "isAnAgent": false,
+          "isAGroup": false
+        }
+      }
+    }"""
+  )
+
+  private def createModifiedWithoutIdRequest(firstName: String): JsValue = {
+    val baseRequest              = validWithoutIdRequestJson.as[JsObject]
+    val registerWithoutIDRequest = (baseRequest \ "registerWithoutIDRequest").as[JsObject]
+    val requestDetail            = (registerWithoutIDRequest \ "requestDetail").as[JsObject]
+    val individual               = (requestDetail \ "individual").as[JsObject]
+
+    val modifiedIndividual      = individual + ("firstName"                   -> Json.toJson(firstName))
+    val modifiedRequestDetail   = requestDetail + ("individual"               -> modifiedIndividual)
+    val modifiedRegisterRequest = registerWithoutIDRequest + ("requestDetail" -> modifiedRequestDetail)
+
+    baseRequest + ("registerWithoutIDRequest" -> modifiedRegisterRequest)
+  }
 
   "RegistrationController" - {
     "register Individual - IDNumber[NINO]" - {
@@ -286,7 +298,6 @@ class RegistrationControllerSpec extends SpecBase {
         val request = Json.toJson(testIndividualUtrRequestModel).as[JsObject]
         val result  = testController.register()(fakeRequestWithJsonBody(request))
         status(result) mustBe OK
-
         val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
 
         resultModel.responseDetail.get.SAFEID                     must not be empty
@@ -315,7 +326,6 @@ class RegistrationControllerSpec extends SpecBase {
           val result  = testController.register()(fakeRequestWithJsonBody(request))
 
           status(result) mustBe OK
-
           val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
 
           previousResult && nonUkCountryCodes.contains(resultModel.responseDetail.get.address.countryCode)
@@ -426,7 +436,7 @@ class RegistrationControllerSpec extends SpecBase {
     "register Individual (Without ID)" - {
 
       "must return 200 OK with SAFEID for a valid request" in {
-        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(Json.toJson(validWithoutIdRequest)))
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(validWithoutIdRequestJson))
 
         status(result) mustBe OK
         val response = contentAsJson(result).as[RegisterWithoutIDResponse]
@@ -434,17 +444,9 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return 200 OK with SAFEID for 'W' first-name scenario (empty response)" in {
-        val wRequest =
-          validWithoutIdRequest.copy(
-            registerWithoutIDRequest = validWithoutIdRequest.registerWithoutIDRequest.copy(
-              requestDetail = validWithoutIdRequest.registerWithoutIDRequest.requestDetail.copy(
-                individual =
-                  validWithoutIdRequest.registerWithoutIDRequest.requestDetail.individual.copy(firstName = "William")
-              )
-            )
-          )
+        val wRequestJson = createModifiedWithoutIdRequest("William")
 
-        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(Json.toJson(wRequest)))
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(wRequestJson))
 
         status(result) mustBe OK
         val response = contentAsJson(result).as[RegisterWithoutIDResponse]
@@ -452,17 +454,9 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return 200 OK with SAFEID for 'Z' first-name scenario (non-UK response)" in {
-        val zRequest =
-          validWithoutIdRequest.copy(
-            registerWithoutIDRequest = validWithoutIdRequest.registerWithoutIDRequest.copy(
-              requestDetail = validWithoutIdRequest.registerWithoutIDRequest.requestDetail.copy(
-                individual =
-                  validWithoutIdRequest.registerWithoutIDRequest.requestDetail.individual.copy(firstName = "William")
-              )
-            )
-          )
+        val zRequestJson = createModifiedWithoutIdRequest("Zara")
 
-        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(Json.toJson(zRequest)))
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(zRequestJson))
 
         status(result) mustBe OK
         val response = contentAsJson(result).as[RegisterWithoutIDResponse]
@@ -470,17 +464,9 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return a 422 error response when first name starts with 'X'" in {
-        val xRequest =
-          validWithoutIdRequest.copy(
-            registerWithoutIDRequest = validWithoutIdRequest.registerWithoutIDRequest.copy(
-              requestDetail = validWithoutIdRequest.registerWithoutIDRequest.requestDetail.copy(
-                individual =
-                  validWithoutIdRequest.registerWithoutIDRequest.requestDetail.individual.copy(firstName = "Xavier")
-              )
-            )
-          )
+        val xRequestJson = createModifiedWithoutIdRequest("Xavier")
 
-        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(Json.toJson(xRequest)))
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(xRequestJson))
         status(result) mustBe UNPROCESSABLE_ENTITY
 
         val errorResponse = contentAsJson(result).as[ErrorResponse]
@@ -489,22 +475,20 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return 500 Internal Server Error when first name starts with 'Y'" in {
-        val yRequest =
-          validWithoutIdRequest.copy(
-            registerWithoutIDRequest = validWithoutIdRequest.registerWithoutIDRequest.copy(
-              requestDetail = validWithoutIdRequest.registerWithoutIDRequest.requestDetail.copy(
-                individual =
-                  validWithoutIdRequest.registerWithoutIDRequest.requestDetail.individual.copy(firstName = "Yolanda")
-              )
-            )
-          )
+        val yRequestJson = createModifiedWithoutIdRequest("Yolanda")
 
-        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(Json.toJson(yRequest)))
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(yRequestJson))
         status(result) mustBe INTERNAL_SERVER_ERROR
 
         val errorResponse = contentAsJson(result).as[ErrorResponse]
         errorResponse.errorDetail.errorCode    mustBe "500"
         errorResponse.errorDetail.errorMessage mustBe "Unexpected error"
+      }
+
+      "must return 400 Bad Request when the request JSON is invalid for RegisterWithoutId" in {
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(Json.obj("invalid" -> "payload")))
+        status(result)        mustBe BAD_REQUEST
+        contentAsString(result) must include("Invalid RegisterWithoutIDRequestWrapper payload")
       }
 
     }

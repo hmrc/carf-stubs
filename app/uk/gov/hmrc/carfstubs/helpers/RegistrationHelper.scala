@@ -76,18 +76,32 @@ trait RegistrationHelper {
     val firstName = request.registerWithoutIDRequest.requestDetail.individual.firstName
 
     firstName.take(1).toUpperCase match {
-      case "Y" => InternalServerError(Json.toJson(ErrorResponse(ErrorDetail(
-        correlationId = java.util.UUID.randomUUID().toString,
-        errorCode = "500",
-        errorMessage = "Unexpected error",
-        sourceFaultDetail = SourceFaultDetail(detail = List("Internal server error occurred"))
-      ))))
-      case "X" => UnprocessableEntity(Json.toJson(ErrorResponse(ErrorDetail(
-        correlationId = java.util.UUID.randomUUID().toString,
-        errorCode = "422",
-        errorMessage = "The match was unsuccessful",
-        sourceFaultDetail = SourceFaultDetail(detail = List("No matching record found"))
-      ))))
+      case "Y" =>
+        InternalServerError(
+          Json.toJson(
+            ErrorResponse(
+              ErrorDetail(
+                correlationId = java.util.UUID.randomUUID().toString,
+                errorCode = "500",
+                errorMessage = "Unexpected error",
+                sourceFaultDetail = SourceFaultDetail(detail = List("Internal server error occurred"))
+              )
+            )
+          )
+        )
+      case "X" =>
+        UnprocessableEntity(
+          Json.toJson(
+            ErrorResponse(
+              ErrorDetail(
+                correlationId = java.util.UUID.randomUUID().toString,
+                errorCode = "422",
+                errorMessage = "The match was unsuccessful",
+                sourceFaultDetail = SourceFaultDetail(detail = List("No matching record found"))
+              )
+            )
+          )
+        )
       case "W" => Ok(Json.toJson(createEmptyIndividualResponseWithoutId(request)))
       case "Z" => Ok(Json.toJson(createNonUkIndividualResponseWithoutId(request)))
       case _   => Ok(Json.toJson(createFullIndividualResponseWithoutId(request)))
@@ -342,7 +356,9 @@ trait RegistrationHelper {
       )
     )
 
-  private def createFullIndividualResponseWithoutId(request: RegisterWithoutIDRequestWrapper): RegisterWithoutIDResponse =
+  private def createFullIndividualResponseWithoutId(
+      request: RegisterWithoutIDRequestWrapper
+  ): RegisterWithoutIDResponse =
     RegisterWithoutIDResponse(
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,
@@ -355,7 +371,9 @@ trait RegistrationHelper {
       )
     )
 
-  private def createEmptyIndividualResponseWithoutId(request: RegisterWithoutIDRequestWrapper): RegisterWithoutIDResponse =
+  private def createEmptyIndividualResponseWithoutId(
+      request: RegisterWithoutIDRequestWrapper
+  ): RegisterWithoutIDResponse =
     RegisterWithoutIDResponse(
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,
@@ -368,7 +386,9 @@ trait RegistrationHelper {
       )
     )
 
-  private def createNonUkIndividualResponseWithoutId(request: RegisterWithoutIDRequestWrapper): RegisterWithoutIDResponse =
+  private def createNonUkIndividualResponseWithoutId(
+      request: RegisterWithoutIDRequestWrapper
+  ): RegisterWithoutIDResponse =
     RegisterWithoutIDResponse(
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,

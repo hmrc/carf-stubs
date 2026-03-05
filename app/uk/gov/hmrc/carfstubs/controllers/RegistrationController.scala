@@ -55,7 +55,8 @@ class RegistrationController @Inject() (
         Future.successful(result)
 
       case JsError(errors) =>
-        val errorMsg = errors.map { case (path, errs) => s"$path -> ${errs.map(_.message).mkString(", ")}"}.mkString("; ")
+        val errorMsg =
+          errors.map { case (path, errs) => s"$path -> ${errs.map(_.message).mkString(", ")}" }.mkString("; ")
         logger.error(s"Invalid RegisterWithoutIDRequestWrapper payload: $errorMsg")
         Future.successful(BadRequest(s"Invalid RegisterWithoutIDRequestWrapper payload: $errorMsg"))
     }
