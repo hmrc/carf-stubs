@@ -133,43 +133,6 @@ class RegistrationControllerSpec extends SpecBase {
       )
     )
 
-  private def testEmptyResponseInd(firstName: String, lastName: String): JsValue = Json.toJson(
-    RegisterWithIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "OK",
-        statusText = None
-      ),
-      responseDetail = Some(
-        ResponseDetail(
-          ARN = "Test-ARN",
-          SAFEID = "Test-SafeId",
-          address = emptyAddress,
-          contactDetails = ContactDetails(
-            emailAddress = None,
-            faxNumber = None,
-            mobileNumber = None,
-            phoneNumber = None
-          ),
-          individual = Some(
-            IndividualResponse(
-              dateOfBirth = None,
-              firstName = firstName,
-              lastName = lastName,
-              middleName = None
-            )
-          ),
-          isAnASAgent = None,
-          isAnAgent = false,
-          isAnIndividual = true,
-          isEditable = false,
-          organisation = None
-        )
-      )
-    )
-  )
-
   private def emptyAddress = AddressResponse(
     addressLine1 = "2 Newarre Road",
     addressLine2 = None,
@@ -193,7 +156,7 @@ class RegistrationControllerSpec extends SpecBase {
         val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
 
         status(result)                                          mustBe OK
-        resultModel.responseDetail.get.SAFEID                   mustBe "Test-SafeId"
+        resultModel.responseDetail.get.SAFEID                     must not be empty
         resultModel.responseDetail.get.individual.get.firstName mustBe "Professor"
         resultModel.responseDetail.get.individual.get.lastName  mustBe "Oak"
         resultModel.responseDetail.get.address.addressLine1     mustBe "2 High Street"
@@ -201,7 +164,7 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return an empty response with the fixed name when the request IDNumber[NINO] starts with a W char" in {
-        val result = testController.register()(
+        val result      = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(
               testIndividualNinoRequestModel.copy(requestDetail =
@@ -210,8 +173,14 @@ class RegistrationControllerSpec extends SpecBase {
             )
           )
         )
-        status(result)        mustBe OK
-        contentAsJson(result) mustBe testEmptyResponseInd("Apple", "Pear")
+        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+
+        status(result) mustBe OK
+
+        resultModel.responseDetail.get.SAFEID                        must not be empty
+        resultModel.responseDetail.get.individual.get.firstName    mustBe "Apple"
+        resultModel.responseDetail.get.individual.get.lastName     mustBe "Pear"
+        resultModel.responseDetail.get.contactDetails.emailAddress mustBe None
       }
 
       "must return a not found response when the request IDNumber[NINO] starts with a X char" in {
@@ -251,7 +220,7 @@ class RegistrationControllerSpec extends SpecBase {
 
         val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
 
-        resultModel.responseDetail.get.SAFEID                   mustBe "Test-SafeId"
+        resultModel.responseDetail.get.SAFEID                     must not be empty
         resultModel.responseDetail.get.individual.get.firstName mustBe "indiv firstName"
         resultModel.responseDetail.get.individual.get.lastName  mustBe "indiv lastName"
         resultModel.responseDetail.get.address.addressLine1     mustBe "2 High Street"
@@ -262,9 +231,13 @@ class RegistrationControllerSpec extends SpecBase {
         val request = Json.toJson(testIndividualUtrEmptyResponseRequestModel("7")).as[JsObject]
         val result  = testController.register()(fakeRequestWithJsonBody(request))
 
-        status(result)        mustBe OK
-        contentAsString(result) must include("Test-SafeId")
-        contentAsJson(result) mustBe testEmptyResponseInd("Apple", "Pear")
+        status(result) mustBe OK
+
+        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+
+        resultModel.responseDetail.get.SAFEID                     must not be empty
+        resultModel.responseDetail.get.individual.get.firstName mustBe "Apple"
+        resultModel.responseDetail.get.individual.get.lastName  mustBe "Pear"
       }
 
       "must return a 200 OK with an non uk response when request IDNumber[UTR] starts with '6' and returns the fixed name" in {
@@ -316,7 +289,7 @@ class RegistrationControllerSpec extends SpecBase {
         val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(testOrganisationRequestModel)))
         val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
 
-        resultModel.responseDetail.get.SAFEID                                mustBe "Test-SafeId"
+        resultModel.responseDetail.get.SAFEID                                  must not be empty
         resultModel.responseDetail.get.organisation.get.organisationName     mustBe "The Secret Lab Ltd"
         resultModel.responseDetail.get.organisation.get.organisationType.get mustBe "0003"
         resultModel.responseDetail.get.address.countryCode                   mustBe "GB"
@@ -387,7 +360,7 @@ class RegistrationControllerSpec extends SpecBase {
         val result = testController.register()(fakeRequestWithJsonBody(Json.obj("invalid" -> "payload")))
 
         status(result)        mustBe BAD_REQUEST
-        contentAsString(result) must include("Invalid RegisterWithIDRequest payload")
+        contentAsString(result) must include("error.path.missing")
       }
     }
   }

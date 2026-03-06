@@ -82,7 +82,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "",
-          SAFEID = "Test-SafeId",
+          SAFEID = generateSafeId,
           address = fullAddress,
           contactDetails = ContactDetails(None, None, None, None),
           individual = None,
@@ -117,7 +117,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "",
-          SAFEID = "Test-SafeId",
+          SAFEID = generateSafeId,
           address = emptyAddress,
           contactDetails = ContactDetails(None, None, None, None),
           individual = None,
@@ -152,7 +152,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "",
-          SAFEID = "Test-SafeId",
+          SAFEID = generateSafeId,
           address = randomiseNonUkAddress,
           contactDetails = ContactDetails(None, None, None, None),
           individual = None,
@@ -186,7 +186,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "",
-          SAFEID = "Test-SafeId",
+          SAFEID = generateSafeId,
           address = addressWithInvalidCountryCode,
           contactDetails = ContactDetails(None, None, None, None),
           individual = None,
@@ -217,7 +217,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "Test-ARN",
-          SAFEID = "Test-SafeId",
+          SAFEID = generateSafeId,
           address = fullAddress,
           contactDetails = ContactDetails(
             emailAddress = Some("test@example.com"),
@@ -292,7 +292,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "",
-          SAFEID = "Test-SafeId",
+          SAFEID = generateSafeId,
           address = randomiseNonUkAddress,
           contactDetails = ContactDetails(None, None, None, None),
           individual = Some(
@@ -401,5 +401,12 @@ trait RegistrationHelper {
     )
     val index     = Random.between(0, countries.size)
     countries(index)
+  }
+
+  private def generateSafeId: String = {
+    val random        = new Random()
+    val randomInteger = (0 to 9).map(_ => random.between(0, 9)).mkString
+
+    s"XE$randomInteger"
   }
 }
