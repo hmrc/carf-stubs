@@ -29,7 +29,7 @@ trait KeyValues {
 }
 
 object Enrolment {
-  implicit val formatEnrollment: OFormat[Enrolment]  = Json.format[Enrolment]
+  implicit val formatEnrolment: OFormat[Enrolment]   = Json.format[Enrolment]
   implicit val formatIdentifier: OFormat[Identifier] = Json.format[Identifier]
   implicit val formatVerifier: OFormat[Verifier]     = Json.format[Verifier]
 }

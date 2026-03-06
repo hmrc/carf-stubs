@@ -32,7 +32,7 @@ class EnrolmentControllerSpec extends SpecBase with Matchers {
         val json: JsValue = Json.parse(
           s"""
              |{
-             |  "identifiers": [ { "key": "UTR", "value": "AA000003D" } ],
+             |  "identifiers": [ { "key": "CARFID", "value": "AA000003D" } ],
              |  "verifiers": [
              |          {
              |              "key": "PostCode",
@@ -53,11 +53,11 @@ class EnrolmentControllerSpec extends SpecBase with Matchers {
         status(result) mustBe NO_CONTENT
       }
 
-      s"must return Bad Request - $BAD_REQUEST for a UTR value starts with (8)" in {
+      s"must return Bad Request - $BAD_REQUEST for a CARFID value starts with (8)" in {
         val json: JsValue = Json.parse(
           s"""
              |{
-             |  "identifiers": [ { "key": "UTR", "value": "8A000008D" } ],
+             |  "identifiers": [ { "key": "CARFID", "value": "8A000008D" } ],
              |  "verifiers": [
              |          {
              |              "key": "PostCode",
@@ -80,11 +80,11 @@ class EnrolmentControllerSpec extends SpecBase with Matchers {
           "Provided service name is not in services-to-activate or No group ID in active auth session"
         )
       }
-      s"must return Bad Request - $BAD_REQUEST for a UTR value starts with (X)" in {
+      s"must return Bad Request - $BAD_REQUEST for a CARFID value starts with (X)" in {
         val json: JsValue = Json.parse(
           s"""
              |{
-             |  "identifiers": [ { "key": "UTR", "value": "XA000008D" } ],
+             |  "identifiers": [ { "key": "CARFID", "value": "XA000008D" } ],
              |  "verifiers": [
              |          {
              |              "key": "PostCode",
@@ -134,11 +134,11 @@ class EnrolmentControllerSpec extends SpecBase with Matchers {
           "Provided service name is not in services-to-activate or No group ID in active auth session"
         )
       }
-      s"must return Bad Request - $INTERNAL_SERVER_ERROR for a UTR value starts with (9)" in {
+      s"must return Bad Request - $INTERNAL_SERVER_ERROR for a CARFID value starts with (9)" in {
         val json: JsValue = Json.parse(
           s"""
              |{
-             |  "identifiers": [ { "key": "UTR", "value": "9A000008D" } ],
+             |  "identifiers": [ { "key": "CARFID", "value": "9A000008D" } ],
              |  "verifiers": [
              |          {
              |              "key": "PostCode",
@@ -159,11 +159,11 @@ class EnrolmentControllerSpec extends SpecBase with Matchers {
         status(result)        mustBe INTERNAL_SERVER_ERROR
         contentAsString(result) must include("Internal Server Error")
       }
-      s"must return Bad Request - $INTERNAL_SERVER_ERROR for a UTR value starts with (Y)" in {
+      s"must return Bad Request - $INTERNAL_SERVER_ERROR for a CARFID value starts with (Y)" in {
         val json: JsValue = Json.parse(
           s"""
              |{
-             |  "identifiers": [ { "key": "UTR", "value": "YA000008D" } ],
+             |  "identifiers": [ { "key": "CARFID", "value": "YA000008D" } ],
              |  "verifiers": [
              |          {
              |              "key": "PostCode",
