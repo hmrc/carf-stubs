@@ -8,4 +8,4 @@ POST        /dac6/dprs0101/v1        uk.gov.hmrc.carfstubs.controllers.Registrat
 
 POST        /dac6/dct102c/v1         uk.gov.hmrc.carfstubs.controllers.SubscriptionController.createSubscription()
 
-PUT         /dac6/dprs0101/v1        uk.gov.hmrc.carfstubs.controllers.EnrolmentController.upsertEnrolment()
+PUT         /dac6/dprs0101/v1        uk.gov.hmrc.carfstubs.controllers.EnrolmentController.upsertEnrolment
