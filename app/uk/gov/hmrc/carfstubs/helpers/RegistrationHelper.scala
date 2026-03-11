@@ -17,8 +17,8 @@
 package uk.gov.hmrc.carfstubs.helpers
 
 import play.api.libs.json.Json
-import play.api.mvc.Result
-import play.api.mvc.Results.{BadRequest, InternalServerError, NotFound, Ok, UnprocessableEntity}
+import play.api.mvc.{Result, Results}
+import play.api.mvc.Results.{BadRequest, InternalServerError, NotFound, Ok, ServiceUnavailable, UnprocessableEntity}
 import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIDRequest, RegisterWithoutIDRequestWrapper}
 import uk.gov.hmrc.carfstubs.models.response.*
 import uk.gov.hmrc.carfstubs.models.response.ErrorResponse
@@ -115,6 +115,22 @@ trait RegistrationHelper {
             )
           )
         )
+      case "S" =>
+        ServiceUnavailable(
+          Json.toJson(
+            ErrorResponse(
+              ErrorDetail(
+                correlationId = java.util.UUID.randomUUID().toString,
+                errorCode = "503",
+                errorMessage = "Service unavailable",
+                sourceFaultDetail = SourceFaultDetail(detail = List("External service unavailable"))
+              )
+            )
+          )
+        )
+
+      case "F" =>
+        Results.Status(403)("Forbidden")
       case _   => Ok(Json.toJson(createFullIndividualResponseWithoutId(request)))
     }
   }

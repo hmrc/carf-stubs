@@ -17,7 +17,7 @@
 package controllers
 
 import base.SpecBase
-import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK, UNPROCESSABLE_ENTITY}
+import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, NOT_FOUND, OK, SERVICE_UNAVAILABLE, UNPROCESSABLE_ENTITY}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.Helpers.{contentAsJson, contentAsString, status}
 import uk.gov.hmrc.carfstubs.controllers.RegistrationController
@@ -491,6 +491,27 @@ class RegistrationControllerSpec extends SpecBase {
         val result = testController.registerWithoutId()(fakeRequestWithJsonBody(Json.obj("invalid" -> "payload")))
         status(result)        mustBe BAD_REQUEST
         contentAsString(result) must include("Invalid RegisterWithoutIDRequestWrapper payload")
+      }
+
+      "must return 503 Service Unavailable when first name starts with 'S'" in {
+        val sRequestJson = createModifiedWithoutIdRequest("Sarah")
+
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(sRequestJson))
+
+        status(result) mustBe SERVICE_UNAVAILABLE
+
+        val errorResponse = contentAsJson(result).as[ErrorResponse]
+        errorResponse.errorDetail.errorCode    mustBe "503"
+        errorResponse.errorDetail.errorMessage mustBe "Service unavailable"
+      }
+
+      "must return 403 Forbidden when first name starts with 'F'" in {
+        val fRequestJson = createModifiedWithoutIdRequest("Frank")
+
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(fRequestJson))
+
+        status(result)          mustBe FORBIDDEN
+        contentAsString(result) mustBe "Forbidden"
       }
 
     }
