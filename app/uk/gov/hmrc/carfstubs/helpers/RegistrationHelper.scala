@@ -102,8 +102,19 @@ trait RegistrationHelper {
             )
           )
         )
-      case "W" => Ok(Json.toJson(createEmptyIndividualResponseWithoutId(request)))
-      case "Z" => Ok(Json.toJson(createNonUkIndividualResponseWithoutId(request)))
+      case "Z" =>
+        BadRequest(
+          Json.toJson(
+            ErrorResponse(
+              ErrorDetail(
+                correlationId = java.util.UUID.randomUUID().toString,
+                errorCode = "400",
+                errorMessage = "Bad Request",
+                sourceFaultDetail = SourceFaultDetail(detail = List("Invalid JSON document."))
+              )
+            )
+          )
+        )
       case _   => Ok(Json.toJson(createFullIndividualResponseWithoutId(request)))
     }
   }
@@ -357,36 +368,6 @@ trait RegistrationHelper {
     )
 
   private def createFullIndividualResponseWithoutId(
-      request: RegisterWithoutIDRequestWrapper
-  ): RegisterWithoutIDResponse =
-    RegisterWithoutIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "OK",
-        statusText = None
-      ),
-      responseDetail = ResponseDetailWithoutId(
-        SAFEID = "Test-SafeId"
-      )
-    )
-
-  private def createEmptyIndividualResponseWithoutId(
-      request: RegisterWithoutIDRequestWrapper
-  ): RegisterWithoutIDResponse =
-    RegisterWithoutIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "OK",
-        statusText = None
-      ),
-      responseDetail = ResponseDetailWithoutId(
-        SAFEID = "Test-SafeId"
-      )
-    )
-
-  private def createNonUkIndividualResponseWithoutId(
       request: RegisterWithoutIDRequestWrapper
   ): RegisterWithoutIDResponse =
     RegisterWithoutIDResponse(
