@@ -2,6 +2,10 @@
 
 POST        /dac6/dct102b/v1         uk.gov.hmrc.carfstubs.controllers.RegistrationController.register()
 
+POST        /dac6/dprs0101/v1        uk.gov.hmrc.carfstubs.controllers.RegistrationController.registerWithoutId()
+
+# Subscription
+
 POST        /dac6/dct102c/v1         uk.gov.hmrc.carfstubs.controllers.SubscriptionController.createSubscription()
 
 PUT         /dac6/dprs0101/v1        uk.gov.hmrc.carfstubs.controllers.EnrolmentController.upsertEnrolment
