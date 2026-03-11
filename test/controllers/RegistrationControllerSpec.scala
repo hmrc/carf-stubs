@@ -453,14 +453,16 @@ class RegistrationControllerSpec extends SpecBase {
         response.responseDetail.SAFEID mustBe "Test-SafeId"
       }
 
-      "must return 200 OK with SAFEID for 'Z' first-name scenario (non-UK response)" in {
+      "must return 400 Bad Request when first name starts with 'Z'" in {
         val zRequestJson = createModifiedWithoutIdRequest("Zara")
 
         val result = testController.registerWithoutId()(fakeRequestWithJsonBody(zRequestJson))
 
-        status(result) mustBe OK
-        val response = contentAsJson(result).as[RegisterWithoutIDResponse]
-        response.responseDetail.SAFEID mustBe "Test-SafeId"
+        status(result) mustBe BAD_REQUEST
+
+        val errorResponse = contentAsJson(result).as[ErrorResponse]
+        errorResponse.errorDetail.errorCode    mustBe "400"
+        errorResponse.errorDetail.errorMessage mustBe "Bad Request"
       }
 
       "must return a 422 error response when first name starts with 'X'" in {
