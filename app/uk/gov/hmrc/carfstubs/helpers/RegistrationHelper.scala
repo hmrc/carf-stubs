@@ -17,10 +17,11 @@
 package uk.gov.hmrc.carfstubs.helpers
 
 import play.api.libs.json.Json
-import play.api.mvc.Result
-import play.api.mvc.Results.{BadRequest, InternalServerError, NotFound, Ok}
-import uk.gov.hmrc.carfstubs.models.request.RegisterWithIDRequest
+import play.api.mvc.{Result, Results}
+import play.api.mvc.Results.{BadRequest, InternalServerError, NotFound, Ok, ServiceUnavailable, UnprocessableEntity}
+import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIDRequest, RegisterWithoutIDRequestWrapper}
 import uk.gov.hmrc.carfstubs.models.response.*
+import uk.gov.hmrc.carfstubs.models.response.ErrorResponse
 
 import java.time.LocalDate
 import scala.util.Random
@@ -68,6 +69,69 @@ trait RegistrationHelper {
       case (_, IndWithUtr | IndWithNino)    => Ok(Json.toJson(createFullIndividualResponse(request)))
 
       case _ => BadRequest(s"Unhandled or invalid scenario. <ID Type: $idType, ID Number: $idNumber>")
+    }
+  }
+
+  def returnResponseWithoutId(request: RegisterWithoutIDRequestWrapper): Result = {
+    val firstName = request.registerWithoutIDRequest.requestDetail.individual.firstName
+
+    firstName.take(1).toUpperCase match {
+      case "Y" =>
+        InternalServerError(
+          Json.toJson(
+            ErrorResponse(
+              ErrorDetail(
+                correlationId = java.util.UUID.randomUUID().toString,
+                errorCode = "500",
+                errorMessage = "Unexpected error",
+                sourceFaultDetail = SourceFaultDetail(detail = List("Internal server error occurred"))
+              )
+            )
+          )
+        )
+      case "X" =>
+        UnprocessableEntity(
+          Json.toJson(
+            ErrorResponse(
+              ErrorDetail(
+                correlationId = java.util.UUID.randomUUID().toString,
+                errorCode = "422",
+                errorMessage = "The match was unsuccessful",
+                sourceFaultDetail = SourceFaultDetail(detail = List("No matching record found"))
+              )
+            )
+          )
+        )
+      case "Z" =>
+        BadRequest(
+          Json.toJson(
+            ErrorResponse(
+              ErrorDetail(
+                correlationId = java.util.UUID.randomUUID().toString,
+                errorCode = "400",
+                errorMessage = "Bad Request",
+                sourceFaultDetail = SourceFaultDetail(detail = List("Invalid JSON document."))
+              )
+            )
+          )
+        )
+      case "S" =>
+        ServiceUnavailable(
+          Json.toJson(
+            ErrorResponse(
+              ErrorDetail(
+                correlationId = java.util.UUID.randomUUID().toString,
+                errorCode = "503",
+                errorMessage = "Service unavailable",
+                sourceFaultDetail = SourceFaultDetail(detail = List("External service unavailable"))
+              )
+            )
+          )
+        )
+
+      case "F" =>
+        Results.Status(403)("Forbidden")
+      case _   => Ok(Json.toJson(createFullIndividualResponseWithoutId(request)))
     }
   }
 
@@ -316,6 +380,21 @@ trait RegistrationHelper {
             )
           )
         )
+      )
+    )
+
+  private def createFullIndividualResponseWithoutId(
+      request: RegisterWithoutIDRequestWrapper
+  ): RegisterWithoutIDResponse =
+    RegisterWithoutIDResponse(
+      responseCommon = ResponseCommon(
+        processingDate = LocalDate.now().toString,
+        returnParameters = None,
+        status = "OK",
+        statusText = None
+      ),
+      responseDetail = ResponseDetailWithoutId(
+        SAFEID = "Test-SafeId"
       )
     )
 
