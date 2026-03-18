@@ -17,11 +17,10 @@
 package uk.gov.hmrc.carfstubs.helpers
 
 import play.api.libs.json.Json
-import play.api.mvc.{Result, Results}
 import play.api.mvc.Results.{BadRequest, InternalServerError, NotFound, Ok, ServiceUnavailable, UnprocessableEntity}
-import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIDRequest, RegisterWithoutIDRequestWrapper}
+import play.api.mvc.{Result, Results}
+import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIDRequestWrapper}
 import uk.gov.hmrc.carfstubs.models.response.*
-import uk.gov.hmrc.carfstubs.models.response.ErrorResponse
 
 import java.time.LocalDate
 import scala.util.Random

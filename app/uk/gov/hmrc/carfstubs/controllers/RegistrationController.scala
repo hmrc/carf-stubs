@@ -20,9 +20,8 @@ import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.carfstubs.helpers.RegistrationHelper
-import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIDRequestWrapper}
+import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDApiRequest, RegisterWithoutIDRequestWrapper}
 import uk.gov.hmrc.carfstubs.utils.JsonErrorUtils
-import uk.gov.hmrc.carfstubs.models.request.RegisterWithIDApiRequest
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
