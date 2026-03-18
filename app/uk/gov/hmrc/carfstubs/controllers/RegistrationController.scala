@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.carfstubs.helpers.RegistrationHelper
-import uk.gov.hmrc.carfstubs.models.request.RegisterWithIDRequest
+import uk.gov.hmrc.carfstubs.models.request.RegisterWithIDApiRequest
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -33,15 +33,15 @@ class RegistrationController @Inject() (
     with RegistrationHelper:
 
   def register: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    request.body.validate[RegisterWithIDRequest] match {
+    request.body.validate[RegisterWithIDApiRequest] match {
       case JsSuccess(payload, _) =>
         logger.info(s" Stub Request Body \n-> ${Json.prettyPrint(request.body)}")
-        val response = returnResponse(payload)
+        val response = returnResponse(payload.registerWithIDRequest)
         logger.info(s" Stub Response \n-> $response")
         Future.successful(response)
 
       case JsError(errors) =>
-        logger.error(s"Invalid RegisterWithIDRequest payload: $errors")
-        Future.successful(BadRequest(s"Invalid RegisterWithIDRequest payload: $errors"))
+        logger.error(s"Invalid RegisterWithIDApiRequest payload: $errors")
+        Future.successful(BadRequest(s"Invalid RegisterWithIDApiRequest payload: $errors"))
     }
   }
