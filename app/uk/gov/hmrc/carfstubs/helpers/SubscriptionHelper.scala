@@ -45,7 +45,7 @@ trait SubscriptionHelper extends Logging {
   }
 
   private def createSubscriptionResponse(request: Subscription) =
-    Created(
+    Ok(
       Json.obj(
         "success" -> Json.obj(
           "CARFReference"  -> s"XCARF${request.idNumber.slice(2, 10)}",

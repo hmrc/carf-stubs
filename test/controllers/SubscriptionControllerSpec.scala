@@ -30,23 +30,23 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
   "SubscriptionController" - {
     "createSubscription" - {
 
-      s"must return Created - $CREATED response for a valid json with secondary contact organisation" in {
+      s"must return Ok - $OK response for a valid json with secondary contact organisation" in {
         val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
-        status(result) mustBe CREATED
+        status(result) mustBe OK
       }
 
-      s"must return Created - $CREATED response for a valid json with secondary contact individual" in {
+      s"must return Ok - $OK response for a valid json with secondary contact individual" in {
         val json: JsValue = createSubscriptionSecondaryContactIndJson("Walker", "XE000123456799")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
-        status(result) mustBe CREATED
+        status(result) mustBe OK
       }
 
-      "must return 201 with success response for valid individual subscription" in {
+      "must return 200 with success response for valid individual subscription" in {
         val individual   = Individual("John", "Doe")
         val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), Some("1234567890"))
         val subscription = Subscription(
@@ -63,14 +63,14 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) mustBe CREATED
+        status(result) mustBe OK
         val json = contentAsJson(result)
         (json \ "success" \ "CARFReference").as[String]       must startWith("XCARF")
         (json \ "success" \ "processingDate").asOpt[String] mustBe defined
 
       }
 
-      "return 201 with success response for valid organisation subscription" in {
+      "return 200 with success response for valid organisation subscription" in {
         val organisation     = Organisation("Test Org Ltd")
         val primaryContact   =
           Contact("primary@example.com", None, Some(organisation), Some("1234567890"), Some("1234567890"))
@@ -90,7 +90,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         val result = route(app, request).value
 
-        status(result) mustBe CREATED
+        status(result) mustBe OK
         val json = contentAsJson(result)
         (json \ "success" \ "CARFReference").as[String] must startWith("XCARF")
       }
