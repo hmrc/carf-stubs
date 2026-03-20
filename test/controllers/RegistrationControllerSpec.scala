@@ -316,6 +316,22 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsString(result) must include("Unexpected error")
       }
 
+      "must return a service unavailable error response when the request IDNumber[NINO] starts with a U" in {
+        val result = testController.register()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testIndividualNinoRequestModel.copy(registerWithIDRequest =
+                testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+                  testIndividualNinoRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "UX123456D")
+                )
+              )
+            )
+          )
+        )
+        status(result)        mustBe SERVICE_UNAVAILABLE
+        contentAsString(result) must include("Service unavailable")
+      }
+
     }
 
     "register Individual - IDNumber[UTR]" - {
@@ -405,6 +421,22 @@ class RegistrationControllerSpec extends SpecBase {
         )
         status(result)        mustBe INTERNAL_SERVER_ERROR
         contentAsString(result) must include("Unexpected error")
+      }
+
+      "must return a service unavailable error response when the request IDNumber[UTR] starts with a 4" in {
+        val result = testController.register()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testIndividualNinoRequestModel.copy(registerWithIDRequest =
+                testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+                  testIndividualNinoRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "4234567890")
+                )
+              )
+            )
+          )
+        )
+        status(result)        mustBe SERVICE_UNAVAILABLE
+        contentAsString(result) must include("Service unavailable")
       }
 
     }
@@ -498,6 +530,18 @@ class RegistrationControllerSpec extends SpecBase {
 
         status(result)        mustBe INTERNAL_SERVER_ERROR
         contentAsString(result) must include("Unexpected error")
+      }
+
+      "must return 503 Service Unavailable Error for an Organisation when the UTR starts with a 4" in {
+        val request = testOrganisationRequestModel.copy(registerWithIDRequest =
+          testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+            testOrganisationRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "4123456789")
+          )
+        )
+        val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
+
+        status(result)        mustBe SERVICE_UNAVAILABLE
+        contentAsString(result) must include("Service unavailable")
       }
 
     }
