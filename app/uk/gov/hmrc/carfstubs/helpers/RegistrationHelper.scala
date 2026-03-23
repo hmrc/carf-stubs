@@ -82,6 +82,7 @@ trait RegistrationHelper {
             ErrorResponse(
               ErrorDetail(
                 correlationId = java.util.UUID.randomUUID().toString,
+                timestamp = LocalDate.now().toString,
                 errorCode = "500",
                 errorMessage = "Unexpected error",
                 sourceFaultDetail = SourceFaultDetail(detail = List("Internal server error occurred"))
@@ -95,6 +96,7 @@ trait RegistrationHelper {
             ErrorResponse(
               ErrorDetail(
                 correlationId = java.util.UUID.randomUUID().toString,
+                timestamp = LocalDate.now().toString,
                 errorCode = "422",
                 errorMessage = "The match was unsuccessful",
                 sourceFaultDetail = SourceFaultDetail(detail = List("No matching record found"))
@@ -108,6 +110,7 @@ trait RegistrationHelper {
             ErrorResponse(
               ErrorDetail(
                 correlationId = java.util.UUID.randomUUID().toString,
+                timestamp = LocalDate.now().toString,
                 errorCode = "400",
                 errorMessage = "Bad Request",
                 sourceFaultDetail = SourceFaultDetail(detail = List("Invalid JSON document."))
@@ -121,6 +124,7 @@ trait RegistrationHelper {
             ErrorResponse(
               ErrorDetail(
                 correlationId = java.util.UUID.randomUUID().toString,
+                timestamp = LocalDate.now().toString,
                 errorCode = "503",
                 errorMessage = "Service unavailable",
                 sourceFaultDetail = SourceFaultDetail(detail = List("External service unavailable"))
@@ -473,6 +477,7 @@ trait RegistrationHelper {
   private def errorDetail400Response = ErrorResponse(
     errorDetail = ErrorDetail(
       correlationId = java.util.UUID.randomUUID().toString,
+      timestamp = LocalDate.now().toString,
       errorCode = "400",
       errorMessage = "Unhandled or invalid scenario.",
       sourceFaultDetail = SourceFaultDetail(
@@ -484,6 +489,7 @@ trait RegistrationHelper {
   private def errorDetail422Response = ErrorResponse(
     errorDetail = ErrorDetail(
       correlationId = java.util.UUID.randomUUID().toString,
+      timestamp = LocalDate.now().toString,
       errorCode = "422",
       errorMessage = "Unprocessable entity",
       sourceFaultDetail = SourceFaultDetail(
@@ -495,6 +501,7 @@ trait RegistrationHelper {
   private def errorDetail500Response = ErrorResponse(
     errorDetail = ErrorDetail(
       correlationId = java.util.UUID.randomUUID().toString,
+      timestamp = LocalDate.now().toString,
       errorCode = "500",
       errorMessage = "Unexpected error",
       sourceFaultDetail = SourceFaultDetail(
@@ -506,6 +513,7 @@ trait RegistrationHelper {
   private def errorDetail503Response = ErrorResponse(
     errorDetail = ErrorDetail(
       correlationId = java.util.UUID.randomUUID().toString,
+      timestamp = LocalDate.now().toString,
       errorCode = "503",
       errorMessage = "Service unavailable",
       sourceFaultDetail = SourceFaultDetail(
