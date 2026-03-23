@@ -307,6 +307,29 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Invalid ID type"
       }
 
+      "return 400 when firstName is 'badRequest'" in {
+        val individual   = Individual("badRequest", "Doe")
+        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), None)
+        val subscription = Subscription(
+          gbUser = true,
+          idNumber = "SAFE123456",
+          idType = "SAFE",
+          primaryContact = contact,
+          secondaryContact = None,
+          tradingName = None
+        )
+
+        val request = FakeRequest(POST, routes.SubscriptionController.createSubscription().url)
+          .withJsonBody(Json.toJson(subscription))
+
+        val result = route(app, request).value
+
+        status(result) mustBe BAD_REQUEST
+        val json = contentAsJson(result)
+        (json \ "errorDetail" \ "errorCode").as[String]    mustBe "400"
+        (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Bad Request"
+      }
+
       "return 500 when firstName is 'internalServerError'" in {
         val individual   = Individual("internalServerError", "Doe")
         val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), None)
@@ -328,6 +351,29 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         val json = contentAsJson(result)
         (json \ "errorDetail" \ "errorCode").as[String]    mustBe "500"
         (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Internal Server Error"
+      }
+
+      "return 503 when firstName is 'serviceUnavailable'" in {
+        val individual   = Individual("serviceUnavailable", "Doe")
+        val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), None)
+        val subscription = Subscription(
+          gbUser = true,
+          idNumber = "SAFE123456",
+          idType = "SAFE",
+          primaryContact = contact,
+          secondaryContact = None,
+          tradingName = None
+        )
+
+        val request = FakeRequest(POST, routes.SubscriptionController.createSubscription().url)
+          .withJsonBody(Json.toJson(subscription))
+
+        val result = route(app, request).value
+
+        status(result) mustBe SERVICE_UNAVAILABLE
+        val json = contentAsJson(result)
+        (json \ "errorDetail" \ "errorCode").as[String]    mustBe "503"
+        (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Service Unavailable"
       }
 
       "return 500 with error code 003 when firstName is 'invalid'" in {

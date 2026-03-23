@@ -37,6 +37,8 @@ trait SubscriptionHelper extends Logging {
       case "alreadyRegistered"          => alreadyRegistered400Response
       case "invalid"                    => requestCouldNotBeProcessed003Response
       case "internalServerError"        => internalServerError500Response
+      case "badRequest"                 => badRequest400Response
+      case "serviceUnavailable"         => serviceUnavailable503Response
       case "noBusinessPartner"          => noBusinessPartner008Response
       case "invalidType"                => invalidIdType015Response
       case _                            => createSubscriptionResponse(request)
@@ -150,6 +152,22 @@ trait SubscriptionHelper extends Logging {
       )
     )
 
+  private def badRequest400Response: Result =
+    BadRequest(
+      Json.obj(
+        "errorDetail" -> Json.obj(
+          "correlationId"     -> "d60de98c-f499-47f5-b2d6-e80966e8d19e",
+          "errorCode"         -> "400",
+          "errorMessage"      -> "Bad Request",
+          "source"            -> "carf-stubs",
+          "sourceFaultDetail" -> Json.obj(
+            "detail" -> Json.arr("400 - Simulated bad request from stubs")
+          ),
+          "timestamp"         -> java.time.Instant.now().toString
+        )
+      )
+    )
+
   private def internalServerError500Response: Result =
     InternalServerError(
       Json.obj(
@@ -160,6 +178,22 @@ trait SubscriptionHelper extends Logging {
           "source"            -> "carf-stubs",
           "sourceFaultDetail" -> Json.obj(
             "detail" -> Json.arr("500 - Simulated internal server error from stubs")
+          ),
+          "timestamp"         -> java.time.Instant.now().toString
+        )
+      )
+    )
+
+  private def serviceUnavailable503Response: Result =
+    ServiceUnavailable(
+      Json.obj(
+        "errorDetail" -> Json.obj(
+          "correlationId"     -> "d60de98c-f499-47f5-b2d6-e80966e8d19e",
+          "errorCode"         -> "503",
+          "errorMessage"      -> "Service Unavailable",
+          "source"            -> "carf-stubs",
+          "sourceFaultDetail" -> Json.obj(
+            "detail" -> Json.arr("503 - Simulated service unavailable from stubs")
           ),
           "timestamp"         -> java.time.Instant.now().toString
         )
