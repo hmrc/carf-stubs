@@ -30,7 +30,11 @@ class EmailControllerSpec extends SpecBase {
       Json.obj(
         "to"         -> Seq(email),
         "templateId" -> "test-template",
-        "parameters" -> Json.obj()
+        "parameters" -> Json.obj(
+          "name"          -> "John Smith",
+          "carfReference" -> "XCARF0012345678"
+        ),
+        "force"      -> true
       )
     )
 

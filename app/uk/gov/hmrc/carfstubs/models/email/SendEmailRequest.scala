@@ -22,7 +22,7 @@ case class SendEmailRequest(
     to: List[String],
     templateId: String,
     parameters: Map[String, String],
-    force: Option[Boolean] = None
+    force: Boolean
 )
 
 object SendEmailRequest {
