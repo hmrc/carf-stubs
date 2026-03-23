@@ -62,8 +62,8 @@ trait RegistrationHelper {
         Ok(Json.toJson(createNonUkOrganisationResponse(request, getCodeFromOrgType(journeyType))))
       case ("6", IndWithUtr)                                               =>
         Ok(Json.toJson(createNonUkIndividualResponse(request, getCodeFromOrgType(journeyType))))
-      case ("5" | "V", _)                                                  => UnprocessableEntity(Json.toJson(errorDetail422Response))
-      case ("4" | "U", _)                                                  => ServiceUnavailable(Json.toJson(errorDetail503Response))
+      case ("5" | "T", _)                                                  => UnprocessableEntity(Json.toJson(errorDetail422Response))
+      case ("4" | "S", _)                                                  => ServiceUnavailable(Json.toJson(errorDetail503Response))
       case (_, UserEntryOrg | AutoMatchOrg)                                => Ok(Json.toJson(createFullOrganisationResponse(request)))
       // TODO: in future, split out IndWithUtr and IndWithNino to remove getOrElse in createFullIndividualResponse
       case (_, IndWithUtr | IndWithNino)                                   => Ok(Json.toJson(createFullIndividualResponse(request)))
