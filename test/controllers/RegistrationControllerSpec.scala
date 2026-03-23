@@ -284,13 +284,13 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsString(result) must include("The match was unsuccessful")
       }
 
-      "must return an unprocessable entity error response when the request IDNumber[NINO] starts with a V" in {
+      "must return an unprocessable entity error response when the request IDNumber[NINO] starts with a T" in {
         val result = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(
               testIndividualNinoRequestModel.copy(registerWithIDRequest =
                 testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
-                  testIndividualNinoRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "VX123456D")
+                  testIndividualNinoRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "TX123456D")
                 )
               )
             )
@@ -316,13 +316,13 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsString(result) must include("Unexpected error")
       }
 
-      "must return a service unavailable error response when the request IDNumber[NINO] starts with a U" in {
+      "must return a service unavailable error response when the request IDNumber[NINO] starts with a S" in {
         val result = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(
               testIndividualNinoRequestModel.copy(registerWithIDRequest =
                 testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
-                  testIndividualNinoRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "UX123456D")
+                  testIndividualNinoRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "SX123456D")
                 )
               )
             )
