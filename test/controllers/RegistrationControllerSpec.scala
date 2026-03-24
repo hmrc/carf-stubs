@@ -408,7 +408,7 @@ class RegistrationControllerSpec extends SpecBase {
 
         status(result) mustBe OK
         val response = contentAsJson(result).as[RegisterWithoutIDResponse]
-        response.responseDetail.SAFEID.take(2) mustBe "XE"
+        response.registerWithoutIDResponse.responseDetail.SAFEID.take(2) mustBe "XE"
       }
 
       "must return 200 OK with SAFEID for 'W' first-name scenario (empty response)" in {
@@ -418,7 +418,7 @@ class RegistrationControllerSpec extends SpecBase {
 
         status(result) mustBe OK
         val response = contentAsJson(result).as[RegisterWithoutIDResponse]
-        response.responseDetail.SAFEID.take(2) mustBe "XE"
+        response.registerWithoutIDResponse.responseDetail.SAFEID.take(2) mustBe "XE"
       }
 
       "must return 400 Bad Request when first name starts with 'Z'" in {
@@ -491,7 +491,7 @@ class RegistrationControllerSpec extends SpecBase {
 
         status(result) mustBe OK
         val response = contentAsJson(result).as[RegisterWithoutIDResponse]
-        response.responseDetail.SAFEID.take(2) mustBe "XE"
+        response.registerWithoutIDResponse.responseDetail.SAFEID.take(2) mustBe "XE"
       }
 
       "must return 200 OK with SAFEID for 'W' first-name scenario (empty response)" in {
@@ -501,7 +501,7 @@ class RegistrationControllerSpec extends SpecBase {
 
         status(result) mustBe OK
         val response = contentAsJson(result).as[RegisterWithoutIDResponse]
-        response.responseDetail.SAFEID.take(2) mustBe "XE"
+        response.registerWithoutIDResponse.responseDetail.SAFEID.take(2) mustBe "XE"
       }
 
       "must return 400 Bad Request when first name starts with 'Z'" in {

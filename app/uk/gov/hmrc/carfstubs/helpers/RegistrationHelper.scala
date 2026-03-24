@@ -83,6 +83,7 @@ trait RegistrationHelper {
           Json.toJson(
             ErrorResponse(
               ErrorDetail(
+                timestamp = "123",
                 correlationId = java.util.UUID.randomUUID().toString,
                 errorCode = "500",
                 errorMessage = "Unexpected error",
@@ -96,6 +97,7 @@ trait RegistrationHelper {
           Json.toJson(
             ErrorResponse(
               ErrorDetail(
+                timestamp = "123",
                 correlationId = java.util.UUID.randomUUID().toString,
                 errorCode = "422",
                 errorMessage = "The match was unsuccessful",
@@ -109,6 +111,7 @@ trait RegistrationHelper {
           Json.toJson(
             ErrorResponse(
               ErrorDetail(
+                timestamp = "123",
                 correlationId = java.util.UUID.randomUUID().toString,
                 errorCode = "400",
                 errorMessage = "Bad Request",
@@ -122,6 +125,7 @@ trait RegistrationHelper {
           Json.toJson(
             ErrorResponse(
               ErrorDetail(
+                timestamp = "123",
                 correlationId = java.util.UUID.randomUUID().toString,
                 errorCode = "503",
                 errorMessage = "Service unavailable",
@@ -385,15 +389,17 @@ trait RegistrationHelper {
     )
 
   private val createFullResponseWithoutId: RegisterWithoutIDResponse =
-    RegisterWithoutIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "OK",
-        statusText = None
-      ),
-      responseDetail = ResponseDetailWithoutId(
-        SAFEID = generateSafeId
+    RegisterWithoutIDResponse(registerWithoutIDResponse =
+      RegisterWithoutIDResponseDetails(
+        responseCommon = ResponseCommon(
+          processingDate = LocalDate.now().toString,
+          returnParameters = None,
+          status = "OK",
+          statusText = None
+        ),
+        responseDetail = ResponseDetailWithoutId(
+          SAFEID = generateSafeId
+        )
       )
     )
 
