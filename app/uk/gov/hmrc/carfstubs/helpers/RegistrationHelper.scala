@@ -17,18 +17,17 @@
 package uk.gov.hmrc.carfstubs.helpers
 
 import play.api.libs.json.Json
+import play.api.mvc.Results.{BadRequest, Forbidden, InternalServerError, NotFound, Ok, ServiceUnavailable, UnprocessableEntity}
 import play.api.mvc.{Result, Results}
-import play.api.mvc.Results.{BadRequest, InternalServerError, NotFound, Ok, ServiceUnavailable, UnprocessableEntity}
-import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIDRequest, RegisterWithoutIDRequestWrapper}
+import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIdRequest}
 import uk.gov.hmrc.carfstubs.models.response.*
-import uk.gov.hmrc.carfstubs.models.response.ErrorResponse
 
 import java.time.LocalDate
 import scala.util.Random
 
 trait RegistrationHelper {
 
-  sealed trait JourneyType
+  private sealed trait JourneyType
 
   private case object UserEntryOrg extends JourneyType
   private case object AutoMatchOrg extends JourneyType
@@ -72,10 +71,13 @@ trait RegistrationHelper {
     }
   }
 
-  def returnResponseWithoutId(request: RegisterWithoutIDRequestWrapper): Result = {
-    val firstName = request.registerWithoutIDRequest.requestDetail.individual.firstName
+  def returnResponseWithoutId(request: RegisterWithoutIdRequest): Result = {
+    val thingToMatchOn = request.registerWithoutIDRequest.requestDetail.individual match {
+      case Some(value) => value.firstName
+      case None        => request.registerWithoutIDRequest.requestDetail.organisation.get.organisationName
+    }
 
-    firstName.take(1).toUpperCase match {
+    thingToMatchOn.take(1).toUpperCase match {
       case "Y" =>
         InternalServerError(
           Json.toJson(
@@ -129,9 +131,8 @@ trait RegistrationHelper {
           )
         )
 
-      case "F" =>
-        Results.Status(403)("Forbidden")
-      case _   => Ok(Json.toJson(createFullIndividualResponseWithoutId(request)))
+      case "F" => Forbidden("Forbidden")
+      case _   => Ok(Json.toJson(createFullResponseWithoutId))
     }
   }
 
@@ -317,7 +318,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "Test-ARN",
-          SAFEID = "Test-SafeId",
+          SAFEID = generateSafeId,
           address = emptyAddress,
           contactDetails = ContactDetails(
             emailAddress = None,
@@ -383,9 +384,7 @@ trait RegistrationHelper {
       )
     )
 
-  private def createFullIndividualResponseWithoutId(
-      request: RegisterWithoutIDRequestWrapper
-  ): RegisterWithoutIDResponse =
+  private val createFullResponseWithoutId: RegisterWithoutIDResponse =
     RegisterWithoutIDResponse(
       responseCommon = ResponseCommon(
         processingDate = LocalDate.now().toString,
@@ -394,7 +393,7 @@ trait RegistrationHelper {
         statusText = None
       ),
       responseDetail = ResponseDetailWithoutId(
-        SAFEID = "Test-SafeId"
+        SAFEID = generateSafeId
       )
     )
 

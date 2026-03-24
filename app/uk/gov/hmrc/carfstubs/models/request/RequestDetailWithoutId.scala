@@ -19,7 +19,8 @@ package uk.gov.hmrc.carfstubs.models.request
 import play.api.libs.json.*
 
 case class RequestDetailWithoutId(
-    individual: IndividualDetailsWithoutId,
+    individual: Option[IndividualDetailsWithoutId],
+    organisation: Option[OrganisationDetailsWithoutId],
     address: AddressDetails,
     contactDetails: ContactDetails,
     isAnAgent: Boolean,
