@@ -486,7 +486,8 @@ class RegistrationControllerSpec extends SpecBase {
 
     "register Organisation Without ID" - {
       "must return 200 OK with SAFEID for a valid request" in {
-        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(validOrganisationWithoutIdRequestJson()))
+        val result =
+          testController.registerWithoutId()(fakeRequestWithJsonBody(validOrganisationWithoutIdRequestJson()))
 
         status(result) mustBe OK
         val response = contentAsJson(result).as[RegisterWithoutIDResponse]
@@ -511,7 +512,7 @@ class RegistrationControllerSpec extends SpecBase {
         status(result) mustBe BAD_REQUEST
 
         val errorResponse = contentAsJson(result).as[ErrorResponse]
-        errorResponse.errorDetail.errorCode mustBe "400"
+        errorResponse.errorDetail.errorCode    mustBe "400"
         errorResponse.errorDetail.errorMessage mustBe "Bad Request"
       }
 
@@ -522,7 +523,7 @@ class RegistrationControllerSpec extends SpecBase {
         status(result) mustBe UNPROCESSABLE_ENTITY
 
         val errorResponse = contentAsJson(result).as[ErrorResponse]
-        errorResponse.errorDetail.errorCode mustBe "422"
+        errorResponse.errorDetail.errorCode    mustBe "422"
         errorResponse.errorDetail.errorMessage mustBe "The match was unsuccessful"
       }
 
@@ -533,7 +534,7 @@ class RegistrationControllerSpec extends SpecBase {
         status(result) mustBe INTERNAL_SERVER_ERROR
 
         val errorResponse = contentAsJson(result).as[ErrorResponse]
-        errorResponse.errorDetail.errorCode mustBe "500"
+        errorResponse.errorDetail.errorCode    mustBe "500"
         errorResponse.errorDetail.errorMessage mustBe "Unexpected error"
       }
 
@@ -545,7 +546,7 @@ class RegistrationControllerSpec extends SpecBase {
         status(result) mustBe SERVICE_UNAVAILABLE
 
         val errorResponse = contentAsJson(result).as[ErrorResponse]
-        errorResponse.errorDetail.errorCode mustBe "503"
+        errorResponse.errorDetail.errorCode    mustBe "503"
         errorResponse.errorDetail.errorMessage mustBe "Service unavailable"
       }
 
@@ -554,7 +555,7 @@ class RegistrationControllerSpec extends SpecBase {
 
         val result = testController.registerWithoutId()(fakeRequestWithJsonBody(fRequestJson))
 
-        status(result) mustBe FORBIDDEN
+        status(result)          mustBe FORBIDDEN
         contentAsString(result) mustBe "Forbidden"
       }
     }
