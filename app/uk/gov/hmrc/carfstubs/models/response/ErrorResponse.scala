@@ -28,6 +28,7 @@ object ErrorResponse {
 
 case class ErrorDetail(
     correlationId: String,
+    timestamp: String,
     errorCode: String,
     errorMessage: String,
     sourceFaultDetail: SourceFaultDetail

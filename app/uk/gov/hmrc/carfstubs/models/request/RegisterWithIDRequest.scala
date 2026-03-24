@@ -23,3 +23,9 @@ case class RegisterWithIDRequest(requestCommon: RequestCommon, requestDetail: Re
 object RegisterWithIDRequest {
   implicit val format: OFormat[RegisterWithIDRequest] = Json.format[RegisterWithIDRequest]
 }
+
+case class RegisterWithIDApiRequest(registerWithIDRequest: RegisterWithIDRequest)
+
+object RegisterWithIDApiRequest {
+  implicit val format: OFormat[RegisterWithIDApiRequest] = Json.format[RegisterWithIDApiRequest]
+}

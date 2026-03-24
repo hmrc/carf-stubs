@@ -1,6 +1,6 @@
 # microservice specific routes
 
-POST        /dac6/dct102b/v1         uk.gov.hmrc.carfstubs.controllers.RegistrationController.register()
+POST        /dac6/dprs0102/v1        uk.gov.hmrc.carfstubs.controllers.RegistrationController.register()
 
 POST        /dac6/dprs0101/v1        uk.gov.hmrc.carfstubs.controllers.RegistrationController.registerWithoutId()
 
