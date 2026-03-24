@@ -18,7 +18,6 @@ package controllers
 
 import base.SpecBase
 import org.scalatest.matchers.must.Matchers
-import play.api.http.Status.NO_CONTENT
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -80,11 +79,11 @@ class EnrolmentControllerSpec extends SpecBase with Matchers {
           "Provided service name is not in services-to-activate or No group ID in active auth session"
         )
       }
-      s"must return Bad Request - $BAD_REQUEST for a CARFID value starts with (X)" in {
+      s"must return Bad Request - $BAD_REQUEST for a CARFID value starts with (W)" in {
         val json: JsValue = Json.parse(
           s"""
              |{
-             |  "identifiers": [ { "key": "CARFID", "value": "XA000008D" } ],
+             |  "identifiers": [ { "key": "CARFID", "value": "WA000008D" } ],
              |  "verifiers": [
              |          {
              |              "key": "PostCode",

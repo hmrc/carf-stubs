@@ -24,7 +24,7 @@ import uk.gov.hmrc.carfstubs.models.request.Enrolment
 trait EnrolmentHelper extends Logging {
   def returnResponse(request: Enrolment): Result = {
 
-    val badRequestMatches          = Set("8", "x")
+    val badRequestMatches          = Set("8", "w")
     val internalServerErrorMatches = Set("9", "y")
 
     request match {
