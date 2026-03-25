@@ -31,7 +31,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
     "createSubscription" - {
 
       s"must return Ok - $OK response for a valid json with secondary contact organisation" in {
-        val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792")
+        val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792", "Tools for Traders")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
@@ -93,6 +93,26 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         status(result) mustBe OK
         val json = contentAsJson(result)
         (json \ "success" \ "CARFReference").as[String] must startWith("XCARF")
+      }
+
+      s"must return Created - $CREATED response with a CARFID that will return bad request for enrolment stubs" in {
+        val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792", "Tools for TraderXX")
+        val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
+        val result        = route(app, request).value
+
+        status(result) mustBe CREATED
+        val jsonResult = contentAsJson(result)
+        (jsonResult \ "success" \ "CARFReference").as[String] must startWith("WCARF")
+      }
+
+      s"must return Created - $CREATED response with a CARFID that will return internal server error for enrolment stubs" in {
+        val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792", "Tools for TraderYY")
+        val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
+        val result        = route(app, request).value
+
+        status(result) mustBe CREATED
+        val jsonResult = contentAsJson(result)
+        (jsonResult \ "success" \ "CARFReference").as[String] must startWith("YCARF")
       }
 
       "return 400 for contact with both individual and organisation" in {
@@ -401,8 +421,9 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
     }
   }
 
-  private def createSubscriptionSecondaryContactOrgJson(firstName: String, idNumber: String): JsValue = Json.parse(
-    s"""
+  private def createSubscriptionSecondaryContactOrgJson(firstName: String, idNumber: String, orgName: String): JsValue =
+    Json.parse(
+      s"""
        |{
        | "idType": "SAFE",
        | "idNumber": "$idNumber",
@@ -419,14 +440,14 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
        | },
        | "secondaryContact": {
        |    "organisation": {
-       |      "name": "Tools for Traders"
+       |      "name": "$orgName"
        |    },
        |    "email": "contact@toolsfortraders.com",
        |    "phone": "+44 020 39898980"
        | }
        |}
        |""".stripMargin
-  )
+    )
 
   private def createSubscriptionSecondaryContactIndJson(firstName: String, idNumber: String): JsValue = Json.parse(
     s"""

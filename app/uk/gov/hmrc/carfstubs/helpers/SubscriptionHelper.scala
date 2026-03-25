@@ -28,10 +28,10 @@ trait SubscriptionHelper extends Logging {
 
     logger.info(s" Received subscription request: \n -> ${Json.prettyPrint(Json.toJson(request))}")
 
-    val organisationName   = request.primaryContact.organisation.map(_.name).getOrElse("")
-    val primaryContactName = request.primaryContact.individual.map(_.firstName).getOrElse(organisationName)
+    val organisationName            = request.primaryContact.organisation.map(_.name).getOrElse("")
+    val primaryContactNameOrOrgName = request.primaryContact.individual.map(_.firstName).getOrElse(organisationName)
 
-    primaryContactName match {
+    primaryContactNameOrOrgName match {
       case "duplicateSubmission"        => duplicateSubmission004Response
       case "duplicateAlreadyRegistered" => alreadyRegistered007Response
       case "alreadyRegistered"          => alreadyRegistered400Response
@@ -41,16 +41,32 @@ trait SubscriptionHelper extends Logging {
       case "serviceUnavailable"         => serviceUnavailable503Response
       case "noBusinessPartner"          => noBusinessPartner008Response
       case "invalidType"                => invalidIdType015Response
-      case _                            => createSubscriptionResponse(request)
+      case _                            =>
+        val secondaryContactOrgName     = request.secondaryContact.flatMap(_.organisation.map(_.name))
+        val primaryContactNameOrOrgName = request.primaryContact.individual.map(_.lastName).getOrElse(organisationName)
 
+        secondaryContactOrgName.getOrElse(primaryContactNameOrOrgName).takeRight(2) match {
+          case "XX" => createSubResponseWithEnrolBadRequest(request)
+          case "YY" => createSubResponseWithEnrolInternalError(request)
+          case _    => createSubscriptionResponse(request)
+        }
     }
   }
 
   private def createSubscriptionResponse(request: Subscription) =
+    createSuccessfulSubResponse(s"XCARF${request.idNumber.slice(2, 10)}")
+
+  private def createSubResponseWithEnrolBadRequest(request: Subscription) =
+    createSuccessfulSubResponse(s"WCARF${request.idNumber.slice(2, 10)}")
+
+  private def createSubResponseWithEnrolInternalError(request: Subscription) =
+    createSuccessfulSubResponse(s"YCARF${request.idNumber.slice(2, 10)}")
+
+  private def createSuccessfulSubResponse(carfReference: String) =
     Ok(
       Json.obj(
         "success" -> Json.obj(
-          "CARFReference"  -> s"XCARF${request.idNumber.slice(2, 10)}",
+          "CARFReference"  -> carfReference,
           "processingDate" -> java.time.Instant.now().toString
         )
       )

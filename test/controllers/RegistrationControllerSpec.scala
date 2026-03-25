@@ -30,8 +30,8 @@ class RegistrationControllerSpec extends SpecBase {
 
   val testController: RegistrationController = new RegistrationController(cc)
 
-  val testIndividualNinoRequestModel: RegisterWithIDRequest =
-    RegisterWithIDRequest(
+  val testIndividualNinoRequestModel: RegisterWithIDApiRequest = RegisterWithIDApiRequest(
+    registerWithIDRequest = RegisterWithIDRequest(
       requestCommon = RequestCommon(
         acknowledgementReference = "Test-Ref",
         receiptDate = "Test-ProcessingDate",
@@ -52,9 +52,10 @@ class RegistrationControllerSpec extends SpecBase {
         organisation = None
       )
     )
+  )
 
-  val testIndividualUtrRequestModel: RegisterWithIDRequest =
-    RegisterWithIDRequest(
+  val testIndividualUtrRequestModel: RegisterWithIDApiRequest = RegisterWithIDApiRequest(
+    registerWithIDRequest = RegisterWithIDRequest(
       requestCommon = RequestCommon(
         acknowledgementReference = "Test-Ref",
         receiptDate = "Test-ProcessingDate",
@@ -75,32 +76,35 @@ class RegistrationControllerSpec extends SpecBase {
         organisation = None
       )
     )
+  )
 
-  def testIndividualUtrEmptyResponseRequestModel(utrStartNumber: String): RegisterWithIDRequest =
-    RegisterWithIDRequest(
-      requestCommon = RequestCommon(
-        acknowledgementReference = "Test-Ref",
-        receiptDate = "Test-ProcessingDate",
-        regime = "Test-Regime"
-      ),
-      requestDetail = RequestDetail(
-        requiresNameMatch = true,
-        IDNumber = utrStartNumber,
-        IDType = "UTR",
-        individual = Some(
-          IndividualDetails(
-            firstName = "indiv Empty firstName",
-            lastName = "indiv Empty lastName",
-            dateOfBirth = None
-          )
+  def testIndividualUtrEmptyResponseRequestModel(utrStartNumber: String): RegisterWithIDApiRequest =
+    RegisterWithIDApiRequest(
+      registerWithIDRequest = RegisterWithIDRequest(
+        requestCommon = RequestCommon(
+          acknowledgementReference = "Test-Ref",
+          receiptDate = "Test-ProcessingDate",
+          regime = "Test-Regime"
         ),
-        isAnAgent = false,
-        organisation = None
+        requestDetail = RequestDetail(
+          requiresNameMatch = true,
+          IDNumber = utrStartNumber,
+          IDType = "UTR",
+          individual = Some(
+            IndividualDetails(
+              firstName = "indiv Empty firstName",
+              lastName = "indiv Empty lastName",
+              dateOfBirth = None
+            )
+          ),
+          isAnAgent = false,
+          organisation = None
+        )
       )
     )
 
-  val testOrganisationRequestModel: RegisterWithIDRequest =
-    RegisterWithIDRequest(
+  val testOrganisationRequestModel: RegisterWithIDApiRequest = RegisterWithIDApiRequest(
+    registerWithIDRequest = RegisterWithIDRequest(
       requestCommon = RequestCommon(
         acknowledgementReference = "Test-Ref-Org",
         receiptDate = "Test-ProcessingDate-Org",
@@ -115,9 +119,10 @@ class RegistrationControllerSpec extends SpecBase {
         organisation = Some(OrganisationDetails("The Secret Lab Ltd", "0003"))
       )
     )
+  )
 
-  val invalidOrganisationRequestWithNino: RegisterWithIDRequest =
-    RegisterWithIDRequest(
+  val invalidOrganisationRequestWithNino: RegisterWithIDApiRequest = RegisterWithIDApiRequest(
+    registerWithIDRequest = RegisterWithIDRequest(
       requestCommon = RequestCommon(
         acknowledgementReference = "Test-Ref-Org",
         receiptDate = "Test-ProcessingDate-Org",
@@ -132,6 +137,7 @@ class RegistrationControllerSpec extends SpecBase {
         organisation = Some(OrganisationDetails("The Secret Lab Ltd", "0003"))
       )
     )
+  )
 
   private def testEmptyResponseInd(firstName: String, lastName: String): JsValue = Json.toJson(
     RegisterWithIDResponse(
@@ -229,11 +235,7 @@ class RegistrationControllerSpec extends SpecBase {
   "RegistrationController" - {
     "register Individual - IDNumber[NINO]" - {
       "must return a 200 OK with a full individual response for a valid NINO (starting with A) " in {
-        val originalJson  = Json.toJson(testIndividualNinoRequestModel).as[JsObject]
-        val requestDetail = originalJson("requestDetail")
-          .as[JsObject] + ("organisation" -> Json.toJson(None: Option[OrganisationDetails]))
-        val jsonRequest = originalJson + ("requestDetail" -> requestDetail)
-        val result      = testController.register()(fakeRequestWithJsonBody(jsonRequest))
+        val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(testIndividualNinoRequestModel)))
         val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
 
         status(result)                                          mustBe OK
@@ -248,8 +250,10 @@ class RegistrationControllerSpec extends SpecBase {
         val result      = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(
-              testIndividualNinoRequestModel.copy(requestDetail =
-                testIndividualNinoRequestModel.requestDetail.copy(IDNumber = "WX123456D")
+              testIndividualNinoRequestModel.copy(registerWithIDRequest =
+                testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+                  testIndividualNinoRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "WX123456D")
+                )
               )
             )
           )
@@ -268,8 +272,10 @@ class RegistrationControllerSpec extends SpecBase {
         val result = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(
-              testIndividualNinoRequestModel.copy(requestDetail =
-                testIndividualNinoRequestModel.requestDetail.copy(IDNumber = "XX123456D")
+              testIndividualNinoRequestModel.copy(registerWithIDRequest =
+                testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+                  testIndividualNinoRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "XX123456D")
+                )
               )
             )
           )
@@ -278,12 +284,30 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsString(result) must include("The match was unsuccessful")
       }
 
+      "must return an unprocessable entity error response when the request IDNumber[NINO] starts with a T" in {
+        val result = testController.register()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testIndividualNinoRequestModel.copy(registerWithIDRequest =
+                testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+                  testIndividualNinoRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "TX123456D")
+                )
+              )
+            )
+          )
+        )
+        status(result)        mustBe UNPROCESSABLE_ENTITY
+        contentAsString(result) must include("Unprocessable entity")
+      }
+
       "must return an internal server error response when the request IDNumber[NINO] starts with a Y" in {
         val result = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(
-              testIndividualNinoRequestModel.copy(requestDetail =
-                testIndividualNinoRequestModel.requestDetail.copy(IDNumber = "YX123456D")
+              testIndividualNinoRequestModel.copy(registerWithIDRequest =
+                testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+                  testIndividualNinoRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "YX123456D")
+                )
               )
             )
           )
@@ -291,6 +315,23 @@ class RegistrationControllerSpec extends SpecBase {
         status(result)        mustBe INTERNAL_SERVER_ERROR
         contentAsString(result) must include("Unexpected error")
       }
+
+      "must return a service unavailable error response when the request IDNumber[NINO] starts with a S" in {
+        val result = testController.register()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testIndividualNinoRequestModel.copy(registerWithIDRequest =
+                testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+                  testIndividualNinoRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "SX123456D")
+                )
+              )
+            )
+          )
+        )
+        status(result)        mustBe SERVICE_UNAVAILABLE
+        contentAsString(result) must include("Service unavailable")
+      }
+
     }
 
     "register Individual - IDNumber[UTR]" - {
@@ -338,8 +379,10 @@ class RegistrationControllerSpec extends SpecBase {
         val result = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(
-              testIndividualUtrRequestModel.copy(requestDetail =
-                testIndividualUtrRequestModel.requestDetail.copy(IDNumber = "8234567890")
+              testIndividualUtrRequestModel.copy(registerWithIDRequest =
+                testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+                  testIndividualUtrRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "8234567890")
+                )
               )
             )
           )
@@ -348,12 +391,30 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsString(result) must include("The match was unsuccessful")
       }
 
+      "must return an unprocessable entity error response when the request IDNumber[UTR] starts with a 5" in {
+        val result = testController.register()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testIndividualUtrRequestModel.copy(registerWithIDRequest =
+                testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+                  testIndividualUtrRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "5234567890")
+                )
+              )
+            )
+          )
+        )
+        status(result)        mustBe UNPROCESSABLE_ENTITY
+        contentAsString(result) must include("Unprocessable entity")
+      }
+
       "must return an internal server error response when request IDNumber[UTR] starts with '9'" in {
         val result = testController.register()(
           fakeRequestWithJsonBody(
             Json.toJson(
-              testIndividualUtrRequestModel.copy(requestDetail =
-                testIndividualUtrRequestModel.requestDetail.copy(IDNumber = "9234567890")
+              testIndividualUtrRequestModel.copy(registerWithIDRequest =
+                testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+                  testIndividualUtrRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "9234567890")
+                )
               )
             )
           )
@@ -361,6 +422,23 @@ class RegistrationControllerSpec extends SpecBase {
         status(result)        mustBe INTERNAL_SERVER_ERROR
         contentAsString(result) must include("Unexpected error")
       }
+
+      "must return a service unavailable error response when the request IDNumber[UTR] starts with a 4" in {
+        val result = testController.register()(
+          fakeRequestWithJsonBody(
+            Json.toJson(
+              testIndividualNinoRequestModel.copy(registerWithIDRequest =
+                testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+                  testIndividualNinoRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "4234567890")
+                )
+              )
+            )
+          )
+        )
+        status(result)        mustBe SERVICE_UNAVAILABLE
+        contentAsString(result) must include("Service unavailable")
+      }
+
     }
 
     "register Organisation" - {
@@ -377,8 +455,10 @@ class RegistrationControllerSpec extends SpecBase {
       "must return a 200 OK with a non-UK organisation response when the UTR starts with a 6" in {
 
         val outcome = testRepeater.foldLeft(true) { (previousResult, _) =>
-          val request     = testOrganisationRequestModel.copy(requestDetail =
-            testOrganisationRequestModel.requestDetail.copy(IDNumber = "6123456789")
+          val request     = testOrganisationRequestModel.copy(registerWithIDRequest =
+            testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+              testOrganisationRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "6123456789")
+            )
           )
           val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
           val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
@@ -390,8 +470,10 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return a 200 OK with a invalid country code organisation response when the UTR starts with a 68" in {
-        val request     = testOrganisationRequestModel.copy(requestDetail =
-          testOrganisationRequestModel.requestDetail.copy(IDNumber = "6823456789")
+        val request     = testOrganisationRequestModel.copy(registerWithIDRequest =
+          testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+            testOrganisationRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "6823456789")
+          )
         )
         val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
         val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
@@ -400,8 +482,10 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return a 200 OK with an empty organisation response when the UTR starts with a 7" in {
-        val request     = testOrganisationRequestModel.copy(requestDetail =
-          testOrganisationRequestModel.requestDetail.copy(IDNumber = "7123456789")
+        val request     = testOrganisationRequestModel.copy(registerWithIDRequest =
+          testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+            testOrganisationRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "7123456789")
+          )
         )
         val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
         val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
@@ -413,8 +497,10 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return 404 Not Found for an Organisation when the UTR starts with an 8" in {
-        val request = testOrganisationRequestModel.copy(requestDetail =
-          testOrganisationRequestModel.requestDetail.copy(IDNumber = "8123456789")
+        val request = testOrganisationRequestModel.copy(registerWithIDRequest =
+          testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+            testOrganisationRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "8123456789")
+          )
         )
         val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
 
@@ -422,15 +508,42 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsString(result) mustBe "The match was unsuccessful"
       }
 
+      "must return 422 Unprocessable Entity Error for an Organisation when the UTR starts with a 5" in {
+        val request = testOrganisationRequestModel.copy(registerWithIDRequest =
+          testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+            testOrganisationRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "5123456789")
+          )
+        )
+        val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
+
+        status(result)        mustBe UNPROCESSABLE_ENTITY
+        contentAsString(result) must include("Unprocessable entity")
+      }
+
       "must return 500 Internal Server Error for an Organisation when the UTR starts with a 9" in {
-        val request = testOrganisationRequestModel.copy(requestDetail =
-          testOrganisationRequestModel.requestDetail.copy(IDNumber = "9123456789")
+        val request = testOrganisationRequestModel.copy(registerWithIDRequest =
+          testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+            testOrganisationRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "9123456789")
+          )
         )
         val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
 
         status(result)        mustBe INTERNAL_SERVER_ERROR
         contentAsString(result) must include("Unexpected error")
       }
+
+      "must return 503 Service Unavailable Error for an Organisation when the UTR starts with a 4" in {
+        val request = testOrganisationRequestModel.copy(registerWithIDRequest =
+          testIndividualNinoRequestModel.registerWithIDRequest.copy(requestDetail =
+            testOrganisationRequestModel.registerWithIDRequest.requestDetail.copy(IDNumber = "4123456789")
+          )
+        )
+        val result  = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
+
+        status(result)        mustBe SERVICE_UNAVAILABLE
+        contentAsString(result) must include("Service unavailable")
+      }
+
     }
 
     "register Individual (Without ID)" - {
