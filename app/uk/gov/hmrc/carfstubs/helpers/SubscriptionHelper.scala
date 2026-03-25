@@ -40,10 +40,10 @@ trait SubscriptionHelper extends Logging {
       case "noBusinessPartner"          => noBusinessPartner008Response
       case "invalidType"                => invalidIdType015Response
       case _                            =>
-        val secondaryContactOrgName     = request.secondaryContact.flatMap(_.organisation.map(_.name))
-        val primaryContactNameOrOrgName = request.primaryContact.individual.map(_.lastName).getOrElse(organisationName)
+        val secondaryContactOrgName = request.secondaryContact.flatMap(_.organisation.map(_.name)).getOrElse("")
+        val primaryIndContactName   = request.primaryContact.individual.map(_.lastName)
 
-        secondaryContactOrgName.getOrElse(primaryContactNameOrOrgName).takeRight(2) match {
+        primaryIndContactName.getOrElse(secondaryContactOrgName).takeRight(2) match {
           case "XX" => createSubResponseWithEnrolBadRequest(request)
           case "YY" => createSubResponseWithEnrolInternalError(request)
           case _    => createSubscriptionResponse(request)

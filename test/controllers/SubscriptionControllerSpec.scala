@@ -31,7 +31,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
     "createSubscription" - {
 
       s"must return Created - $CREATED response for a valid json with secondary contact organisation" in {
-        val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792", "Tools for Traders")
+        val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
@@ -39,7 +39,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
       }
 
       s"must return Created - $CREATED response for a valid json with secondary contact individual" in {
-        val json: JsValue = createSubscriptionSecondaryContactIndJson("Walker", "XE000123456799")
+        val json: JsValue = createSubscriptionContactIndJson("Lname1", "XE000123456799")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
@@ -95,8 +95,8 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         (json \ "success" \ "CARFReference").as[String] must startWith("XCARF")
       }
 
-      s"must return Created - $CREATED response with a CARFID that will return bad request for enrolment stubs" in {
-        val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792", "Tools for TraderXX")
+      s"must return Created - $CREATED response with a CARFID that will return bad request for enrolment stubs (org name)" in {
+        val json: JsValue = createSubscriptionSecondaryContactOrgJson("XE000123456792", "Tools for TraderXX")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
@@ -105,8 +105,28 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         (jsonResult \ "success" \ "CARFReference").as[String] must startWith("WCARF")
       }
 
-      s"must return Created - $CREATED response with a CARFID that will return internal server error for enrolment stubs" in {
-        val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792", "Tools for TraderYY")
+      s"must return Created - $CREATED response with a CARFID that will return internal server error for enrolment stubs (org name)" in {
+        val json: JsValue = createSubscriptionSecondaryContactOrgJson("XE000123456792", "Tools for TraderYY")
+        val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
+        val result        = route(app, request).value
+
+        status(result) mustBe CREATED
+        val jsonResult = contentAsJson(result)
+        (jsonResult \ "success" \ "CARFReference").as[String] must startWith("YCARF")
+      }
+
+      s"must return Created - $CREATED response with a CARFID that will return bad request for enrolment stubs (last name)" in {
+        val json: JsValue = createSubscriptionContactIndJson("lastnameXX", "XE000123456792")
+        val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
+        val result        = route(app, request).value
+
+        status(result) mustBe CREATED
+        val jsonResult = contentAsJson(result)
+        (jsonResult \ "success" \ "CARFReference").as[String] must startWith("WCARF")
+      }
+
+      s"must return Created - $CREATED response with a CARFID that will return internal server error for enrolment stubs (last name)" in {
+        val json: JsValue = createSubscriptionContactIndJson("lastnameYY", "XE000123456792")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
@@ -375,7 +395,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
     }
   }
 
-  private def createSubscriptionSecondaryContactOrgJson(firstName: String, idNumber: String, orgName: String): JsValue =
+  private def createSubscriptionPrimaryContactJson(firstName: String, idNumber: String): JsValue =
     Json.parse(
       s"""
        |{
@@ -392,6 +412,26 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
        |    "phone": "0188899999",
        |    "mobile": "07321012345"
        | },
+       |}
+       |""".stripMargin
+    )
+
+  private def createSubscriptionSecondaryContactOrgJson(idNumber: String, orgName: String): JsValue =
+    Json.parse(
+      s"""
+       |{
+       | "idType": "SAFE",
+       | "idNumber": "$idNumber",
+       | "tradingName": "Tools for Traders Limited",
+       | "gbUser": true,
+       | "primaryContact": {
+       | "organisation": {
+       |      "name": "$orgName"
+       |  },
+       |    "email": "john@toolsfortraders.com",
+       |    "phone": "0188899999",
+       |    "mobile": "07321012345"
+       | },
        | "secondaryContact": {
        |    "organisation": {
        |      "name": "$orgName"
@@ -403,7 +443,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
        |""".stripMargin
     )
 
-  private def createSubscriptionSecondaryContactIndJson(firstName: String, idNumber: String): JsValue = Json.parse(
+  private def createSubscriptionContactIndJson(lastName: String, idNumber: String): JsValue = Json.parse(
     s"""
        |{
        |  "gbUser": false,
@@ -412,8 +452,8 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
        |  "primaryContact": {
        |    "email": "mj@gmailqqq.com",
        |    "individual": {
-       |      "firstName": "$firstName",
-       |      "lastName": "Lname1",
+       |      "firstName": "Walker",
+       |      "lastName": "$lastName",
        |      "middleName": "lxtt"
        |    },
        |    "mobile": "7834512345",
