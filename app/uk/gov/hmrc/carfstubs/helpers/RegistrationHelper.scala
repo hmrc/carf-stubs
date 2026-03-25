@@ -50,7 +50,7 @@ trait RegistrationHelper {
       }
 
     (idNumber.take(1), journeyType) match {
-      case ("9" | "Y", _) => InternalServerError("Unexpected error")
+      case ("9" | "Y", _) => InternalServerError(Json.toJson(errorDetail500Response))
       case ("8" | "X", _) => NotFound("The match was unsuccessful")
 
       case ("7", UserEntryOrg | AutoMatchOrg)                              =>
@@ -62,12 +62,13 @@ trait RegistrationHelper {
         Ok(Json.toJson(createNonUkOrganisationResponse(request, getCodeFromOrgType(journeyType))))
       case ("6", IndWithUtr)                                               =>
         Ok(Json.toJson(createNonUkIndividualResponse(request, getCodeFromOrgType(journeyType))))
-
-      case (_, UserEntryOrg | AutoMatchOrg) => Ok(Json.toJson(createFullOrganisationResponse(request)))
+      case ("5" | "T", _)                                                  => UnprocessableEntity(Json.toJson(errorDetail422Response))
+      case ("4" | "S", _)                                                  => ServiceUnavailable(Json.toJson(errorDetail503Response))
+      case (_, UserEntryOrg | AutoMatchOrg)                                => Ok(Json.toJson(createFullOrganisationResponse(request)))
       // TODO: in future, split out IndWithUtr and IndWithNino to remove getOrElse in createFullIndividualResponse
-      case (_, IndWithUtr | IndWithNino)    => Ok(Json.toJson(createFullIndividualResponse(request)))
+      case (_, IndWithUtr | IndWithNino)                                   => Ok(Json.toJson(createFullIndividualResponse(request)))
 
-      case _ => BadRequest(s"Unhandled or invalid scenario. <ID Type: $idType, ID Number: $idNumber>")
+      case _ => BadRequest(Json.toJson(errorDetail400Response))
     }
   }
 
@@ -83,8 +84,8 @@ trait RegistrationHelper {
           Json.toJson(
             ErrorResponse(
               ErrorDetail(
-                timestamp = "123",
                 correlationId = java.util.UUID.randomUUID().toString,
+                timestamp = LocalDate.now().toString,
                 errorCode = "500",
                 errorMessage = "Unexpected error",
                 sourceFaultDetail = SourceFaultDetail(detail = List("Internal server error occurred"))
@@ -97,8 +98,8 @@ trait RegistrationHelper {
           Json.toJson(
             ErrorResponse(
               ErrorDetail(
-                timestamp = "123",
                 correlationId = java.util.UUID.randomUUID().toString,
+                timestamp = LocalDate.now().toString,
                 errorCode = "422",
                 errorMessage = "The match was unsuccessful",
                 sourceFaultDetail = SourceFaultDetail(detail = List("No matching record found"))
@@ -111,8 +112,8 @@ trait RegistrationHelper {
           Json.toJson(
             ErrorResponse(
               ErrorDetail(
-                timestamp = "123",
                 correlationId = java.util.UUID.randomUUID().toString,
+                timestamp = LocalDate.now().toString,
                 errorCode = "400",
                 errorMessage = "Bad Request",
                 sourceFaultDetail = SourceFaultDetail(detail = List("Invalid JSON document."))
@@ -125,8 +126,8 @@ trait RegistrationHelper {
           Json.toJson(
             ErrorResponse(
               ErrorDetail(
-                timestamp = "123",
                 correlationId = java.util.UUID.randomUUID().toString,
+                timestamp = LocalDate.now().toString,
                 errorCode = "503",
                 errorMessage = "Service unavailable",
                 sourceFaultDetail = SourceFaultDetail(detail = List("External service unavailable"))
@@ -473,6 +474,54 @@ trait RegistrationHelper {
     addressLine4 = None,
     postalCode = Some("ZX 2AZ"),
     countryCode = "ZX"
+  )
+
+  private def errorDetail400Response = ErrorResponse(
+    errorDetail = ErrorDetail(
+      correlationId = java.util.UUID.randomUUID().toString,
+      timestamp = LocalDate.now().toString,
+      errorCode = "400",
+      errorMessage = "Unhandled or invalid scenario.",
+      sourceFaultDetail = SourceFaultDetail(
+        detail = List("Unhandled or invalid scenario.")
+      )
+    )
+  )
+
+  private def errorDetail422Response = ErrorResponse(
+    errorDetail = ErrorDetail(
+      correlationId = java.util.UUID.randomUUID().toString,
+      timestamp = LocalDate.now().toString,
+      errorCode = "422",
+      errorMessage = "Unprocessable entity",
+      sourceFaultDetail = SourceFaultDetail(
+        detail = List("Unprocessable entity")
+      )
+    )
+  )
+
+  private def errorDetail500Response = ErrorResponse(
+    errorDetail = ErrorDetail(
+      correlationId = java.util.UUID.randomUUID().toString,
+      timestamp = LocalDate.now().toString,
+      errorCode = "500",
+      errorMessage = "Unexpected error",
+      sourceFaultDetail = SourceFaultDetail(
+        detail = List("Unexpected error")
+      )
+    )
+  )
+
+  private def errorDetail503Response = ErrorResponse(
+    errorDetail = ErrorDetail(
+      correlationId = java.util.UUID.randomUUID().toString,
+      timestamp = LocalDate.now().toString,
+      errorCode = "503",
+      errorMessage = "Service unavailable",
+      sourceFaultDetail = SourceFaultDetail(
+        detail = List("Service unavailable")
+      )
+    )
   )
 
   private def randomiseNonUkAddress = {
