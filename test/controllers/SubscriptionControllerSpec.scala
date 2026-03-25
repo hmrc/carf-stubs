@@ -95,22 +95,22 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         (json \ "success" \ "CARFReference").as[String] must startWith("XCARF")
       }
 
-      s"must return Created - $CREATED response with a CARFID that will return bad request for enrolment stubs" in {
+      s"must return Ok - $OK response with a CARFID that will return bad request for enrolment stubs" in {
         val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792", "Tools for TraderXX")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
-        status(result) mustBe CREATED
+        status(result) mustBe OK
         val jsonResult = contentAsJson(result)
         (jsonResult \ "success" \ "CARFReference").as[String] must startWith("WCARF")
       }
 
-      s"must return Created - $CREATED response with a CARFID that will return internal server error for enrolment stubs" in {
+      s"must return Ok - $OK response with a CARFID that will return internal server error for enrolment stubs" in {
         val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792", "Tools for TraderYY")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
-        status(result) mustBe CREATED
+        status(result) mustBe OK
         val jsonResult = contentAsJson(result)
         (jsonResult \ "success" \ "CARFReference").as[String] must startWith("YCARF")
       }
