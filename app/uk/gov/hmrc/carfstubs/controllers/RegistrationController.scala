@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.carfstubs.helpers.RegistrationHelper
-import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDApiRequest, RegisterWithoutIDRequestWrapper}
+import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDApiRequest, RegisterWithIDRequest, RegisterWithoutIdRequest}
 import uk.gov.hmrc.carfstubs.utils.JsonErrorUtils
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -48,7 +48,7 @@ class RegistrationController @Inject() (
   }
 
   def registerWithoutId: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    request.body.validate[RegisterWithoutIDRequestWrapper] match {
+    request.body.validate[RegisterWithoutIdRequest] match {
       case JsSuccess(payload, _) =>
         logger.info(s"Stub WithoutId Request Body \n-> ${Json.prettyPrint(request.body)}")
         val result: Result = returnResponseWithoutId(payload)

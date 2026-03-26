@@ -16,18 +16,19 @@
 
 package uk.gov.hmrc.carfstubs.helpers
 
+import play.api.Logging
 import play.api.libs.json.Json
-import play.api.mvc.Results.{BadRequest, InternalServerError, NotFound, Ok, ServiceUnavailable, UnprocessableEntity}
+import play.api.mvc.Results.{BadRequest, Forbidden, InternalServerError, NotFound, Ok, ServiceUnavailable, UnprocessableEntity}
 import play.api.mvc.{Result, Results}
-import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIDRequestWrapper}
+import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIdRequest}
 import uk.gov.hmrc.carfstubs.models.response.*
 
 import java.time.LocalDate
 import scala.util.Random
 
-trait RegistrationHelper {
+trait RegistrationHelper extends Logging {
 
-  sealed trait JourneyType
+  private sealed trait JourneyType
 
   private case object UserEntryOrg extends JourneyType
   private case object AutoMatchOrg extends JourneyType
@@ -72,70 +73,77 @@ trait RegistrationHelper {
     }
   }
 
-  def returnResponseWithoutId(request: RegisterWithoutIDRequestWrapper): Result = {
-    val firstName = request.registerWithoutIDRequest.requestDetail.individual.firstName
+  def returnResponseWithoutId(request: RegisterWithoutIdRequest): Result = {
+    val thingToMatchOn = request.registerWithoutIDRequest.requestDetail.individual match {
+      case Some(value) => value.firstName
+      case None        => request.registerWithoutIDRequest.requestDetail.organisation.get.organisationName
+    }
 
-    firstName.take(1).toUpperCase match {
+    thingToMatchOn.take(1).toUpperCase match {
       case "Y" =>
-        InternalServerError(
-          Json.toJson(
-            ErrorResponse(
-              ErrorDetail(
-                correlationId = java.util.UUID.randomUUID().toString,
-                timestamp = LocalDate.now().toString,
-                errorCode = "500",
-                errorMessage = "Unexpected error",
-                sourceFaultDetail = SourceFaultDetail(detail = List("Internal server error occurred"))
-              )
+        val body = Json.toJson(
+          ErrorResponse(
+            ErrorDetail(
+              correlationId = java.util.UUID.randomUUID().toString,
+              timestamp = LocalDate.now().toString,
+              errorCode = "500",
+              errorMessage = "Unexpected error",
+              sourceFaultDetail = SourceFaultDetail(detail = List("Internal server error occurred"))
             )
           )
         )
+        logger.info(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
+        InternalServerError(body)
       case "X" =>
-        UnprocessableEntity(
-          Json.toJson(
-            ErrorResponse(
-              ErrorDetail(
-                correlationId = java.util.UUID.randomUUID().toString,
-                timestamp = LocalDate.now().toString,
-                errorCode = "422",
-                errorMessage = "The match was unsuccessful",
-                sourceFaultDetail = SourceFaultDetail(detail = List("No matching record found"))
-              )
+        val body = Json.toJson(
+          ErrorResponse(
+            ErrorDetail(
+              correlationId = java.util.UUID.randomUUID().toString,
+              timestamp = LocalDate.now().toString,
+              errorCode = "422",
+              errorMessage = "The match was unsuccessful",
+              sourceFaultDetail = SourceFaultDetail(detail = List("No matching record found"))
             )
           )
         )
+        logger.info(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
+        UnprocessableEntity(body)
       case "Z" =>
-        BadRequest(
-          Json.toJson(
-            ErrorResponse(
-              ErrorDetail(
-                correlationId = java.util.UUID.randomUUID().toString,
-                timestamp = LocalDate.now().toString,
-                errorCode = "400",
-                errorMessage = "Bad Request",
-                sourceFaultDetail = SourceFaultDetail(detail = List("Invalid JSON document."))
-              )
+        val body = Json.toJson(
+          ErrorResponse(
+            ErrorDetail(
+              correlationId = java.util.UUID.randomUUID().toString,
+              timestamp = LocalDate.now().toString,
+              errorCode = "400",
+              errorMessage = "Bad Request",
+              sourceFaultDetail = SourceFaultDetail(detail = List("Invalid JSON document."))
             )
           )
         )
+        logger.info(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
+        BadRequest(body)
       case "S" =>
-        ServiceUnavailable(
-          Json.toJson(
-            ErrorResponse(
-              ErrorDetail(
-                correlationId = java.util.UUID.randomUUID().toString,
-                timestamp = LocalDate.now().toString,
-                errorCode = "503",
-                errorMessage = "Service unavailable",
-                sourceFaultDetail = SourceFaultDetail(detail = List("External service unavailable"))
-              )
+        val body = Json.toJson(
+          ErrorResponse(
+            ErrorDetail(
+              correlationId = java.util.UUID.randomUUID().toString,
+              timestamp = LocalDate.now().toString,
+              errorCode = "503",
+              errorMessage = "Service unavailable",
+              sourceFaultDetail = SourceFaultDetail(detail = List("External service unavailable"))
             )
           )
         )
+        logger.info(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
+        ServiceUnavailable(body)
 
       case "F" =>
-        Results.Status(403)("Forbidden")
-      case _   => Ok(Json.toJson(createFullIndividualResponseWithoutId(request)))
+        logger.info(s"Stub Response body is 'Forbidden'")
+        Forbidden("Forbidden")
+      case _   =>
+        val body = Json.toJson(createFullResponseWithoutId)
+        logger.info(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
+        Ok(body)
     }
   }
 
@@ -321,7 +329,7 @@ trait RegistrationHelper {
       responseDetail = Some(
         ResponseDetail(
           ARN = "Test-ARN",
-          SAFEID = "Test-SafeId",
+          SAFEID = generateSafeId,
           address = emptyAddress,
           contactDetails = ContactDetails(
             emailAddress = None,
@@ -387,18 +395,18 @@ trait RegistrationHelper {
       )
     )
 
-  private def createFullIndividualResponseWithoutId(
-      request: RegisterWithoutIDRequestWrapper
-  ): RegisterWithoutIDResponse =
-    RegisterWithoutIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "OK",
-        statusText = None
-      ),
-      responseDetail = ResponseDetailWithoutId(
-        SAFEID = "Test-SafeId"
+  private val createFullResponseWithoutId: RegisterWithoutIDResponse =
+    RegisterWithoutIDResponse(registerWithoutIDResponse =
+      RegisterWithoutIDResponseDetails(
+        responseCommon = ResponseCommon(
+          processingDate = LocalDate.now().toString,
+          returnParameters = None,
+          status = "OK",
+          statusText = None
+        ),
+        responseDetail = ResponseDetailWithoutId(
+          SAFEID = generateSafeId
+        )
       )
     )
 

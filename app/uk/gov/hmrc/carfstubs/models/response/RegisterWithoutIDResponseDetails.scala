@@ -19,16 +19,24 @@ package uk.gov.hmrc.carfstubs.models.response
 import play.api.libs.json.{Json, OFormat}
 
 case class RegisterWithoutIDResponse(
-    responseCommon: ResponseCommon,
-    responseDetail: ResponseDetailWithoutId
+    registerWithoutIDResponse: RegisterWithoutIDResponseDetails
 )
 
 object RegisterWithoutIDResponse {
   implicit val format: OFormat[RegisterWithoutIDResponse] = Json.format[RegisterWithoutIDResponse]
 }
 
+case class RegisterWithoutIDResponseDetails(
+    responseCommon: ResponseCommon,
+    responseDetail: ResponseDetailWithoutId
+)
+
+object RegisterWithoutIDResponseDetails {
+  implicit val format: OFormat[RegisterWithoutIDResponseDetails] = Json.format[RegisterWithoutIDResponseDetails]
+}
+
 case class RegisterWithoutIDResponseWrapper(
-    registerWithoutIDResponse: RegisterWithoutIDResponse
+    registerWithoutIDResponse: RegisterWithoutIDResponseDetails
 )
 
 object RegisterWithoutIDResponseWrapper {
