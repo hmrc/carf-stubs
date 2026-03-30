@@ -27,3 +27,11 @@ case class IndividualDetailsWithoutId(
 object IndividualDetailsWithoutId {
   implicit val format: OFormat[IndividualDetailsWithoutId] = Json.format[IndividualDetailsWithoutId]
 }
+
+case class OrganisationDetailsWithoutId(
+    organisationName: String
+)
+
+object OrganisationDetailsWithoutId {
+  implicit val format: OFormat[OrganisationDetailsWithoutId] = Json.format[OrganisationDetailsWithoutId]
+}

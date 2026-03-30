@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.carfstubs.models.request
+package uk.gov.hmrc.carfstubs.models.email
 
-import play.api.libs.json.*
+import play.api.libs.json.{Json, OFormat}
 
-case class RequestDetailWithoutId(
-    individual: Option[IndividualDetailsWithoutId],
-    organisation: Option[OrganisationDetailsWithoutId],
-    address: AddressDetails,
-    contactDetails: ContactDetails,
-    isAnAgent: Boolean,
-    isAGroup: Boolean
+case class SendEmailRequest(
+    to: List[String],
+    templateId: String,
+    parameters: Map[String, String],
+    force: Boolean
 )
 
-object RequestDetailWithoutId {
-  implicit val format: OFormat[RequestDetailWithoutId] = Json.format[RequestDetailWithoutId]
+object SendEmailRequest {
+  implicit val format: OFormat[SendEmailRequest] = Json.format[SendEmailRequest]
 }

@@ -17,14 +17,12 @@
 package controllers
 
 import base.SpecBase
-import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, NOT_FOUND, OK, SERVICE_UNAVAILABLE, UNPROCESSABLE_ENTITY}
+import play.api.http.Status.*
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.Helpers.{contentAsJson, contentAsString, status}
 import uk.gov.hmrc.carfstubs.controllers.RegistrationController
 import uk.gov.hmrc.carfstubs.models.request.*
 import uk.gov.hmrc.carfstubs.models.response.*
-
-import java.time.LocalDate
 
 class RegistrationControllerSpec extends SpecBase {
 
@@ -139,57 +137,11 @@ class RegistrationControllerSpec extends SpecBase {
     )
   )
 
-  private def testEmptyResponseInd(firstName: String, lastName: String): JsValue = Json.toJson(
-    RegisterWithIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "OK",
-        statusText = None
-      ),
-      responseDetail = Some(
-        ResponseDetail(
-          ARN = "Test-ARN",
-          SAFEID = "Test-SafeId",
-          address = emptyAddress,
-          contactDetails = uk.gov.hmrc.carfstubs.models.response.ContactDetails(
-            emailAddress = None,
-            faxNumber = None,
-            mobileNumber = None,
-            phoneNumber = None
-          ),
-          individual = Some(
-            IndividualResponse(
-              dateOfBirth = None,
-              firstName = firstName,
-              lastName = lastName,
-              middleName = None
-            )
-          ),
-          isAnASAgent = None,
-          isAnAgent = false,
-          isAnIndividual = true,
-          isEditable = false,
-          organisation = None
-        )
-      )
-    )
-  )
-
-  private def emptyAddress = AddressResponse(
-    addressLine1 = "2 Newarre Road",
-    addressLine2 = None,
-    addressLine3 = None,
-    addressLine4 = None,
-    postalCode = None,
-    countryCode = "GB"
-  )
-
   private val nonUkCountryCodes = List("US", "FR", "DE", "CH", "JE")
   private val testRepeater      = List(false, false, false)
 
-  private val validWithoutIdRequestJson: JsValue = Json.parse(
-    """{
+  private def validIndividualWithoutIdRequestJson(firstName: String = "John"): JsValue = Json.parse(
+    s"""{
       "registerWithoutIDRequest": {
         "requestCommon": {
           "acknowledgementReference": "Test-Ref-WithoutId",
@@ -198,7 +150,7 @@ class RegistrationControllerSpec extends SpecBase {
         },
         "requestDetail": {
           "individual": {
-            "firstName": "John",
+            "firstName": ${Json.toJson(firstName)},
             "lastName": "Doe",
             "dateOfBirth": "1990-01-01"
           },
@@ -219,18 +171,34 @@ class RegistrationControllerSpec extends SpecBase {
     }"""
   )
 
-  private def createModifiedWithoutIdRequest(firstName: String): JsValue = {
-    val baseRequest              = validWithoutIdRequestJson.as[JsObject]
-    val registerWithoutIDRequest = (baseRequest \ "registerWithoutIDRequest").as[JsObject]
-    val requestDetail            = (registerWithoutIDRequest \ "requestDetail").as[JsObject]
-    val individual               = (requestDetail \ "individual").as[JsObject]
-
-    val modifiedIndividual      = individual + ("firstName"                   -> Json.toJson(firstName))
-    val modifiedRequestDetail   = requestDetail + ("individual"               -> modifiedIndividual)
-    val modifiedRegisterRequest = registerWithoutIDRequest + ("requestDetail" -> modifiedRequestDetail)
-
-    baseRequest + ("registerWithoutIDRequest" -> modifiedRegisterRequest)
-  }
+  private def validOrganisationWithoutIdRequestJson(organisationName: String = "Apples LTD"): JsValue = Json.parse(
+    s"""{
+        "registerWithoutIDRequest": {
+          "requestCommon": {
+            "acknowledgementReference": "Test-Ref-WithoutId",
+            "receiptDate": "2024-01-01T00:00:00Z",
+            "regime": "CARF"
+          },
+          "requestDetail": {
+            "organisation": {
+              "organisationName": ${Json.toJson(organisationName)}
+            },
+            "address": {
+              "addressLine1": "10 Test Street",
+              "addressLine2": "Testington",
+              "postalCode": "AB1 2CD",
+              "countryCode": "GB"
+            },
+            "contactDetails": {
+              "emailAddress": "john.doe@example.com",
+              "phoneNumber": "01234567890"
+            },
+            "isAnAgent": false,
+            "isAGroup": false
+          }
+        }
+      }"""
+  )
 
   "RegistrationController" - {
     "register Individual - IDNumber[NINO]" - {
@@ -546,28 +514,28 @@ class RegistrationControllerSpec extends SpecBase {
 
     }
 
-    "register Individual (Without ID)" - {
+    "register Individual Without ID" - {
 
       "must return 200 OK with SAFEID for a valid request" in {
-        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(validWithoutIdRequestJson))
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(validIndividualWithoutIdRequestJson()))
 
         status(result) mustBe OK
         val response = contentAsJson(result).as[RegisterWithoutIDResponse]
-        response.responseDetail.SAFEID mustBe "Test-SafeId"
+        response.registerWithoutIDResponse.responseDetail.SAFEID.take(2) mustBe "XE"
       }
 
       "must return 200 OK with SAFEID for 'W' first-name scenario (empty response)" in {
-        val wRequestJson = createModifiedWithoutIdRequest("William")
+        val wRequestJson = validIndividualWithoutIdRequestJson("William")
 
         val result = testController.registerWithoutId()(fakeRequestWithJsonBody(wRequestJson))
 
         status(result) mustBe OK
         val response = contentAsJson(result).as[RegisterWithoutIDResponse]
-        response.responseDetail.SAFEID mustBe "Test-SafeId"
+        response.registerWithoutIDResponse.responseDetail.SAFEID.take(2) mustBe "XE"
       }
 
       "must return 400 Bad Request when first name starts with 'Z'" in {
-        val zRequestJson = createModifiedWithoutIdRequest("Zara")
+        val zRequestJson = validIndividualWithoutIdRequestJson("Zara")
 
         val result = testController.registerWithoutId()(fakeRequestWithJsonBody(zRequestJson))
 
@@ -579,7 +547,7 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return a 422 error response when first name starts with 'X'" in {
-        val xRequestJson = createModifiedWithoutIdRequest("Xavier")
+        val xRequestJson = validIndividualWithoutIdRequestJson("Xavier")
 
         val result = testController.registerWithoutId()(fakeRequestWithJsonBody(xRequestJson))
         status(result) mustBe UNPROCESSABLE_ENTITY
@@ -590,7 +558,7 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return 500 Internal Server Error when first name starts with 'Y'" in {
-        val yRequestJson = createModifiedWithoutIdRequest("Yolanda")
+        val yRequestJson = validIndividualWithoutIdRequestJson("Yolanda")
 
         val result = testController.registerWithoutId()(fakeRequestWithJsonBody(yRequestJson))
         status(result) mustBe INTERNAL_SERVER_ERROR
@@ -607,7 +575,7 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return 503 Service Unavailable when first name starts with 'S'" in {
-        val sRequestJson = createModifiedWithoutIdRequest("Sarah")
+        val sRequestJson = validIndividualWithoutIdRequestJson("Sarah")
 
         val result = testController.registerWithoutId()(fakeRequestWithJsonBody(sRequestJson))
 
@@ -619,7 +587,7 @@ class RegistrationControllerSpec extends SpecBase {
       }
 
       "must return 403 Forbidden when first name starts with 'F'" in {
-        val fRequestJson = createModifiedWithoutIdRequest("Frank")
+        val fRequestJson = validIndividualWithoutIdRequestJson("Frank")
 
         val result = testController.registerWithoutId()(fakeRequestWithJsonBody(fRequestJson))
 
@@ -627,6 +595,82 @@ class RegistrationControllerSpec extends SpecBase {
         contentAsString(result) mustBe "Forbidden"
       }
 
+    }
+
+    "register Organisation Without ID" - {
+      "must return 200 OK with SAFEID for a valid request" in {
+        val result =
+          testController.registerWithoutId()(fakeRequestWithJsonBody(validOrganisationWithoutIdRequestJson()))
+
+        status(result) mustBe OK
+        val response = contentAsJson(result).as[RegisterWithoutIDResponse]
+        response.registerWithoutIDResponse.responseDetail.SAFEID.take(2) mustBe "XE"
+      }
+
+      "must return 200 OK with SAFEID for 'W' first-name scenario (empty response)" in {
+        val wRequestJson = validOrganisationWithoutIdRequestJson("William LTD")
+
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(wRequestJson))
+
+        status(result) mustBe OK
+        val response = contentAsJson(result).as[RegisterWithoutIDResponse]
+        response.registerWithoutIDResponse.responseDetail.SAFEID.take(2) mustBe "XE"
+      }
+
+      "must return 400 Bad Request when first name starts with 'Z'" in {
+        val zRequestJson = validOrganisationWithoutIdRequestJson("Zara LTD")
+
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(zRequestJson))
+
+        status(result) mustBe BAD_REQUEST
+
+        val errorResponse = contentAsJson(result).as[ErrorResponse]
+        errorResponse.errorDetail.errorCode    mustBe "400"
+        errorResponse.errorDetail.errorMessage mustBe "Bad Request"
+      }
+
+      "must return a 422 error response when first name starts with 'X'" in {
+        val xRequestJson = validOrganisationWithoutIdRequestJson("Xavier LTD")
+
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(xRequestJson))
+        status(result) mustBe UNPROCESSABLE_ENTITY
+
+        val errorResponse = contentAsJson(result).as[ErrorResponse]
+        errorResponse.errorDetail.errorCode    mustBe "422"
+        errorResponse.errorDetail.errorMessage mustBe "The match was unsuccessful"
+      }
+
+      "must return 500 Internal Server Error when first name starts with 'Y'" in {
+        val yRequestJson = validOrganisationWithoutIdRequestJson("Yolanda LTD")
+
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(yRequestJson))
+        status(result) mustBe INTERNAL_SERVER_ERROR
+
+        val errorResponse = contentAsJson(result).as[ErrorResponse]
+        errorResponse.errorDetail.errorCode    mustBe "500"
+        errorResponse.errorDetail.errorMessage mustBe "Unexpected error"
+      }
+
+      "must return 503 Service Unavailable when first name starts with 'S'" in {
+        val sRequestJson = validOrganisationWithoutIdRequestJson("Sarah LTD")
+
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(sRequestJson))
+
+        status(result) mustBe SERVICE_UNAVAILABLE
+
+        val errorResponse = contentAsJson(result).as[ErrorResponse]
+        errorResponse.errorDetail.errorCode    mustBe "503"
+        errorResponse.errorDetail.errorMessage mustBe "Service unavailable"
+      }
+
+      "must return 403 Forbidden when first name starts with 'F'" in {
+        val fRequestJson = validOrganisationWithoutIdRequestJson("Frank LTD")
+
+        val result = testController.registerWithoutId()(fakeRequestWithJsonBody(fRequestJson))
+
+        status(result)          mustBe FORBIDDEN
+        contentAsString(result) mustBe "Forbidden"
+      }
     }
 
     "Other errors" - {

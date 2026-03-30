@@ -1,11 +1,13 @@
 # microservice specific routes
 
-POST        /dac6/dprs0102/v1        uk.gov.hmrc.carfstubs.controllers.RegistrationController.register()
+POST        /dac6/dprs0102/v1                                      uk.gov.hmrc.carfstubs.controllers.RegistrationController.register()
 
-POST        /dac6/dprs0101/v1        uk.gov.hmrc.carfstubs.controllers.RegistrationController.registerWithoutId()
+POST        /dac6/dprs0101/v1                                      uk.gov.hmrc.carfstubs.controllers.RegistrationController.registerWithoutId()
 
 # Subscription
 
 POST        /dac6/createsubscriptiondata/carf/v1        uk.gov.hmrc.carfstubs.controllers.SubscriptionController.createSubscription()
 
-PUT         /dac6/dprs0101/v1        uk.gov.hmrc.carfstubs.controllers.EnrolmentController.upsertEnrolment
+PUT         /tax-enrolments/service/HMRC-CARF-ORG/enrolment        uk.gov.hmrc.carfstubs.controllers.EnrolmentController.upsertEnrolment
+
+POST        /hmrc/email                                            uk.gov.hmrc.carfstubs.controllers.EmailController.send()
