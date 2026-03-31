@@ -6,7 +6,7 @@ POST        /dac6/dprs0101/v1                                      uk.gov.hmrc.c
 
 # Subscription
 
-POST        /dac6/dct102c/v1                                       uk.gov.hmrc.carfstubs.controllers.SubscriptionController.createSubscription()
+POST        /dac6/createsubscriptiondata/carf/v1        uk.gov.hmrc.carfstubs.controllers.SubscriptionController.createSubscription()
 
 PUT         /tax-enrolments/service/HMRC-CARF-ORG/enrolment        uk.gov.hmrc.carfstubs.controllers.EnrolmentController.upsertEnrolment
 

@@ -85,7 +85,7 @@ trait RegistrationHelper extends Logging {
           ErrorResponse(
             ErrorDetail(
               correlationId = java.util.UUID.randomUUID().toString,
-              timestamp = LocalDate.now().toString,
+              timestamp = java.time.Instant.now().toString,
               errorCode = "500",
               errorMessage = "Unexpected error",
               sourceFaultDetail = SourceFaultDetail(detail = List("Internal server error occurred"))
@@ -99,7 +99,7 @@ trait RegistrationHelper extends Logging {
           ErrorResponse(
             ErrorDetail(
               correlationId = java.util.UUID.randomUUID().toString,
-              timestamp = LocalDate.now().toString,
+              timestamp = java.time.Instant.now().toString,
               errorCode = "422",
               errorMessage = "The match was unsuccessful",
               sourceFaultDetail = SourceFaultDetail(detail = List("No matching record found"))
@@ -113,7 +113,7 @@ trait RegistrationHelper extends Logging {
           ErrorResponse(
             ErrorDetail(
               correlationId = java.util.UUID.randomUUID().toString,
-              timestamp = LocalDate.now().toString,
+              timestamp = java.time.Instant.now().toString,
               errorCode = "400",
               errorMessage = "Bad Request",
               sourceFaultDetail = SourceFaultDetail(detail = List("Invalid JSON document."))
@@ -127,7 +127,7 @@ trait RegistrationHelper extends Logging {
           ErrorResponse(
             ErrorDetail(
               correlationId = java.util.UUID.randomUUID().toString,
-              timestamp = LocalDate.now().toString,
+              timestamp = java.time.Instant.now().toString,
               errorCode = "503",
               errorMessage = "Service unavailable",
               sourceFaultDetail = SourceFaultDetail(detail = List("External service unavailable"))
