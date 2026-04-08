@@ -20,11 +20,113 @@ import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.*
-import uk.gov.hmrc.carfstubs.models.request.Subscription
+import uk.gov.hmrc.carfstubs.models.{Individual, Organisation}
+import uk.gov.hmrc.carfstubs.models.request.{Contact, Subscription}
+import uk.gov.hmrc.carfstubs.models.response.{CarfSubscriptionDetails, SubscriptionDisplayResponse}
 
 trait SubscriptionHelper extends Logging {
 
-  def returnResponse(request: Subscription): Result = {
+  def returnDisplayResponse(carfId: String): Result = {
+    logger.info(s"Received subscription display request")
+
+    carfId.take(1) match {
+      case "Y" => internalServerError500Response
+      case "X" => NotFound("The match was unsuccessful")
+      case "W" => Ok(Json.toJson(emptySubscriptionDisplayResponse(carfId)))
+      case "T" => alreadyRegistered400Response
+      case "S" => serviceUnavailable503Response
+      case "R" => Ok(Json.toJson(fullOrganisationSubscriptionDisplayResponse(carfId)))
+      case "Q" => badRequest400Response
+      case _   => Ok(Json.toJson(fullIndividualSubscriptionDisplayResponse(carfId)))
+    }
+  }
+
+  private def fullIndividualSubscriptionDisplayResponse(carfReference: String) = SubscriptionDisplayResponse(
+    processingDate = java.time.Instant.now().toString,
+    carfSubscriptionDetails = CarfSubscriptionDetails(
+      carfReference = carfReference,
+      tradingName = Some("CARF LTD"),
+      gbUser = true,
+      primaryContact = Contact(
+        individual = Some(
+          Individual(
+            firstName = "Jon",
+            lastName = "Doe"
+          )
+        ),
+        email = "GroupRep@FATCACRS.com",
+        phone = Some("01232473743"),
+        mobile = Some("07232473743"),
+        organisation = None
+      ),
+      secondaryContact = Some(
+        Contact(
+          individual = Some(
+            Individual(
+              firstName = "Don",
+              lastName = "Joe"
+            )
+          ),
+          email = "GroupRep@FATCACRS.com",
+          phone = Some("01232473744"),
+          mobile = Some("07232473744"),
+          organisation = None
+        )
+      )
+    )
+  )
+
+  private def fullOrganisationSubscriptionDisplayResponse(carfReference: String) = SubscriptionDisplayResponse(
+    processingDate = java.time.Instant.now().toString,
+    carfSubscriptionDetails = CarfSubscriptionDetails(
+      carfReference = carfReference,
+      tradingName = Some("CARF LTD"),
+      gbUser = true,
+      primaryContact = Contact(
+        organisation = Some(
+          Organisation(
+            name = "Jon Doe"
+          )
+        ),
+        email = "GroupRep@FATCACRS.com",
+        phone = Some("01232473743"),
+        mobile = Some("07232473743"),
+        individual = None
+      ),
+      secondaryContact = Some(
+        Contact(
+          organisation = Some(
+            Organisation(
+              name = "Don Joe"
+            )
+          ),
+          email = "GroupRep@FATCACRS.com",
+          phone = Some("01232473744"),
+          mobile = Some("07232473744"),
+          individual = None
+        )
+      )
+    )
+  )
+
+  private def emptySubscriptionDisplayResponse(carfReference: String) = SubscriptionDisplayResponse(
+    processingDate = java.time.Instant.now().toString,
+    carfSubscriptionDetails = CarfSubscriptionDetails(
+      carfReference = carfReference,
+      tradingName = None,
+      gbUser = true,
+      primaryContact = Contact(
+        individual = None,
+        email = "GroupRep@FATCACRS.com",
+        phone = None,
+        mobile = None,
+        organisation = None
+      ),
+      secondaryContact = None
+    )
+  )
+
+  def returnCreateResponse(request: Subscription): Result = {
 
     logger.info(s" Received subscription request: \n -> ${Json.prettyPrint(Json.toJson(request))}")
 
