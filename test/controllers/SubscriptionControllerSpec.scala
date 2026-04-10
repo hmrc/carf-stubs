@@ -428,9 +428,9 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val json = contentAsJson(result)
-        (json \ "carfSubscriptionDetails" \ "carfReference").as[String] must startWith("C")
-        (json \ "carfSubscriptionDetails" \ "primaryContact" \ "individual")
-          .asOpt[Individual]                                          mustBe defined
+        (json \ "success" \ "carfSubscriptionDetails" \ "carfReference").as[String] must startWith("C")
+        (json \ "success" \ "carfSubscriptionDetails" \ "primaryContact" \ "individual")
+          .asOpt[Individual]                                                      mustBe defined
       }
 
       s"must return Ok - $OK response with full organisation response for a valid CARFID starting with R" in {
@@ -439,9 +439,9 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val json = contentAsJson(result)
-        (json \ "carfSubscriptionDetails" \ "carfReference").as[String] must startWith("R")
-        (json \ "carfSubscriptionDetails" \ "primaryContact" \ "organisation")
-          .asOpt[Organisation]                                        mustBe defined
+        (json \ "success" \ "carfSubscriptionDetails" \ "carfReference").as[String] must startWith("R")
+        (json \ "success" \ "carfSubscriptionDetails" \ "primaryContact" \ "organisation")
+          .asOpt[Organisation]                                                    mustBe defined
       }
 
       s"must return Ok - $OK response with empty response for a valid CARFID starting with W" in {
@@ -450,8 +450,8 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val json = contentAsJson(result)
-        (json \ "carfSubscriptionDetails" \ "carfReference").as[String]    must startWith("W")
-        (json \ "carfSubscriptionDetails" \ "tradingName").asOpt[String] mustBe empty
+        (json \ "success" \ "carfSubscriptionDetails" \ "carfReference").as[String]    must startWith("W")
+        (json \ "success" \ "carfSubscriptionDetails" \ "tradingName").asOpt[String] mustBe empty
       }
 
       s"must return Internal Server Error - $INTERNAL_SERVER_ERROR response for a valid CARFID starting with Y" in {

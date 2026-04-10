@@ -22,7 +22,7 @@ import play.api.mvc.Result
 import play.api.mvc.Results.*
 import uk.gov.hmrc.carfstubs.models.{Individual, Organisation}
 import uk.gov.hmrc.carfstubs.models.request.{Contact, Subscription}
-import uk.gov.hmrc.carfstubs.models.response.{CarfSubscriptionDetails, SubscriptionDisplayResponse}
+import uk.gov.hmrc.carfstubs.models.response.{CarfSubscriptionDetails, SubscriptionDisplayResponse, SubscriptionDisplaySuccess}
 
 trait SubscriptionHelper extends Logging {
 
@@ -42,87 +42,98 @@ trait SubscriptionHelper extends Logging {
   }
 
   private def fullIndividualSubscriptionDisplayResponse(carfReference: String) = SubscriptionDisplayResponse(
-    processingDate = java.time.Instant.now().toString,
-    carfSubscriptionDetails = CarfSubscriptionDetails(
-      carfReference = carfReference,
-      tradingName = Some("CARF LTD"),
-      gbUser = true,
-      primaryContact = Contact(
-        individual = Some(
-          Individual(
-            firstName = "Jon",
-            lastName = "Doe"
-          )
-        ),
-        email = "GroupRep@FATCACRS.com",
-        phone = Some("01232473743"),
-        mobile = Some("07232473743"),
-        organisation = None
-      ),
-      secondaryContact = Some(
-        Contact(
+    success = SubscriptionDisplaySuccess(
+      processingDate = java.time.Instant.now().toString,
+      carfSubscriptionDetails = CarfSubscriptionDetails(
+        carfReference = carfReference,
+        tradingName = Some("CARF LTD"),
+        gbUser = true,
+        primaryContact = Contact(
           individual = Some(
             Individual(
-              firstName = "Don",
-              lastName = "Joe"
+              firstName = "Jon",
+              lastName = "Doe"
             )
           ),
           email = "GroupRep@FATCACRS.com",
-          phone = Some("01232473744"),
-          mobile = Some("07232473744"),
+          phone = Some("01232473743"),
+          mobile = Some("07232473743"),
           organisation = None
+        ),
+        secondaryContact = Some(
+          Contact(
+            individual = Some(
+              Individual(
+                firstName = "Don",
+                lastName = "Joe"
+              )
+            ),
+            email = "GroupRep@FATCACRS.com",
+            phone = Some("01232473744"),
+            mobile = Some("07232473744"),
+            organisation = None
+          )
         )
       )
     )
   )
 
   private def fullOrganisationSubscriptionDisplayResponse(carfReference: String) = SubscriptionDisplayResponse(
-    processingDate = java.time.Instant.now().toString,
-    carfSubscriptionDetails = CarfSubscriptionDetails(
-      carfReference = carfReference,
-      tradingName = Some("CARF LTD"),
-      gbUser = true,
-      primaryContact = Contact(
-        organisation = Some(
-          Organisation(
-            name = "Jon Doe"
-          )
-        ),
-        email = "GroupRep@FATCACRS.com",
-        phone = Some("01232473743"),
-        mobile = Some("07232473743"),
-        individual = None
-      ),
-      secondaryContact = Some(
-        Contact(
+    success = SubscriptionDisplaySuccess(
+      processingDate = java.time.Instant.now().toString,
+      carfSubscriptionDetails = CarfSubscriptionDetails(
+        carfReference = carfReference,
+        tradingName = Some("CARF LTD"),
+        gbUser = true,
+        primaryContact = Contact(
           organisation = Some(
             Organisation(
-              name = "Don Joe"
+              name = "Jon Doe"
             )
           ),
           email = "GroupRep@FATCACRS.com",
-          phone = Some("01232473744"),
-          mobile = Some("07232473744"),
+          phone = Some("01232473743"),
+          mobile = Some("07232473743"),
           individual = None
+        ),
+        secondaryContact = Some(
+          Contact(
+            organisation = Some(
+              Organisation(
+                name = "Don Joe"
+              )
+            ),
+            email = "GroupRep@FATCACRS.com",
+            phone = Some("01232473744"),
+            mobile = Some("07232473744"),
+            individual = None
+          )
         )
       )
     )
   )
 
   private def emptySubscriptionDisplayResponse(carfReference: String) = SubscriptionDisplayResponse(
-    processingDate = java.time.Instant.now().toString,
-    carfSubscriptionDetails = CarfSubscriptionDetails(
-      carfReference = carfReference,
-      tradingName = None,
-      gbUser = true,
-      primaryContact = Contact(
-        individual = None,
-        email = "GroupRep@FATCACRS.com",
-        phone = None,
-        mobile = None,
-        organisation = None
-      ),
-      secondaryContact = None
+    success = SubscriptionDisplaySuccess(
+      processingDate = java.time.Instant.now().toString,
+      carfSubscriptionDetails = CarfSubscriptionDetails(
+        carfReference = carfReference,
+        tradingName = None,
+        gbUser = true,
+        primaryContact = Contact(
+          individual = Some(
+            Individual(
+              firstName = "Joe",
+              lastName = "No"
+            )
+          ),
+          email = "GroupRep@FATCACRS.com",
+          phone = None,
+          mobile = None,
+          organisation = None
+        ),
+        secondaryContact = None
+      )
     )
   )
 
