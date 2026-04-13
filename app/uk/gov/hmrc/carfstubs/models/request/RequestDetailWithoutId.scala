@@ -23,8 +23,8 @@ case class RequestDetailWithoutId(
     organisation: Option[OrganisationDetailsWithoutId],
     address: AddressDetails,
     contactDetails: ContactDetails,
-    isAnAgent: Boolean,
-    isAGroup: Boolean
+    IsAnAgent: Boolean,
+    IsAGroup: Boolean
 )
 
 object RequestDetailWithoutId {
