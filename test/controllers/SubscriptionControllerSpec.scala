@@ -419,6 +419,94 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Request could not be processed"
       }
     }
+
+    "displaySubscription" - {
+
+      s"must return Ok - $OK response with full individual response for a valid CARFID" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("CCCAR0024000102").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe OK
+        val json = contentAsJson(result)
+        (json \ "success" \ "carfSubscriptionDetails" \ "carfReference").as[String] must startWith("C")
+        (json \ "success" \ "carfSubscriptionDetails" \ "primaryContact" \ "individual")
+          .asOpt[Individual]                                                      mustBe defined
+      }
+
+      s"must return Ok - $OK response with full organisation response for a valid CARFID starting with R" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("RCCAR0024000102").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe OK
+        val json = contentAsJson(result)
+        (json \ "success" \ "carfSubscriptionDetails" \ "carfReference").as[String] must startWith("R")
+        (json \ "success" \ "carfSubscriptionDetails" \ "primaryContact" \ "organisation")
+          .asOpt[Organisation]                                                    mustBe defined
+      }
+
+      s"must return Ok - $OK response with empty response for a valid CARFID starting with W" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("WCCAR0024000102").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe OK
+        val json = contentAsJson(result)
+        (json \ "success" \ "carfSubscriptionDetails" \ "carfReference").as[String]    must startWith("W")
+        (json \ "success" \ "carfSubscriptionDetails" \ "tradingName").asOpt[String] mustBe empty
+      }
+
+      s"must return Internal Server Error - $INTERNAL_SERVER_ERROR response for a valid CARFID starting with Y" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("YCCAR0024000102").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe INTERNAL_SERVER_ERROR
+      }
+
+      s"must return Not Found - $NOT_FOUND response with for a valid CARFID starting with X" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("XCCAR0024000102").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe NOT_FOUND
+      }
+
+      s"must return Bad Request - $BAD_REQUEST response for a valid CARFID starting with T" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("TCCAR0024000102").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe BAD_REQUEST
+      }
+
+      s"must return Unprocessable Entity - 422 response for a valid CARFID starting with P" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("PCCAR0024000102").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe UNPROCESSABLE_ENTITY
+      }
+
+      s"must return Ok - 200 response with no phone for a valid CARFID starting with O" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("OCCAR0024000102").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe OK
+        val json = contentAsJson(result)
+        (json \ "success" \ "carfSubscriptionDetails" \ "carfReference").as[String]                 must startWith("O")
+        (json \ "success" \ "carfSubscriptionDetails" \ "primaryContact" \ "phone").asOpt[String] mustBe empty
+      }
+
+      s"must return Service Unavailable - $SERVICE_UNAVAILABLE response for a valid CARFID starting with S" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("SCCAR0024000102").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe SERVICE_UNAVAILABLE
+      }
+
+      s"must return Bad Request - $BAD_REQUEST response for a valid CARFID starting with Q" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("QCCAR0024000102").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe BAD_REQUEST
+      }
+
+    }
   }
 
   private def createSubscriptionSecondaryContactOrgJson(firstName: String, idNumber: String, orgName: String): JsValue =
