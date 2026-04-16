@@ -468,11 +468,28 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         status(result) mustBe NOT_FOUND
       }
 
-      s"must return Unprocessable Entity - $UNPROCESSABLE_ENTITY response for a valid CARFID starting with T" in {
+      s"must return Bad Request - $BAD_REQUEST response for a valid CARFID starting with T" in {
         val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("TCCAR0024000102").url)
         val result  = route(app, request).value
 
+        status(result) mustBe BAD_REQUEST
+      }
+
+      s"must return Unprocessable Entity - 422 response for a valid CARFID starting with P" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("PCCAR0024000102").url)
+        val result  = route(app, request).value
+
         status(result) mustBe UNPROCESSABLE_ENTITY
+      }
+
+      s"must return Ok - 200 response with no phone for a valid CARFID starting with O" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("OCCAR0024000102").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe OK
+        val json = contentAsJson(result)
+        (json \ "success" \ "carfSubscriptionDetails" \ "carfReference").as[String]                 must startWith("O")
+        (json \ "success" \ "carfSubscriptionDetails" \ "primaryContact" \ "phone").asOpt[String] mustBe empty
       }
 
       s"must return Service Unavailable - $SERVICE_UNAVAILABLE response for a valid CARFID starting with S" in {
