@@ -33,10 +33,12 @@ trait SubscriptionHelper extends Logging {
       case "Y" => internalServerError500Response
       case "X" => NotFound("The match was unsuccessful")
       case "W" => Ok(Json.toJson(emptySubscriptionDisplayResponse(carfId)))
-      case "T" => alreadyRegistered400Response
+      case "T" => badRequest400Response
       case "S" => serviceUnavailable503Response
       case "R" => Ok(Json.toJson(fullOrganisationSubscriptionDisplayResponse(carfId)))
       case "Q" => badRequest400Response
+      case "P" => alreadyRegistered400Response
+      case "O" => Ok(Json.toJson(noPhoneSubscriptionDisplayResponse(carfId)))
       case _   => Ok(Json.toJson(fullIndividualSubscriptionDisplayResponse(carfId)))
     }
   }
@@ -131,6 +133,34 @@ trait SubscriptionHelper extends Logging {
           phone = None,
           mobile = None,
           organisation = None
+        ),
+        secondaryContact = None
+      )
+    )
+  )
+
+  private def noPhoneSubscriptionDisplayResponse(carfReference: String) = SubscriptionDisplayResponse(
+    success = SubscriptionDisplaySuccess(
+      processingDate = java.time.Instant.now().toString,
+      carfSubscriptionDetails = CarfSubscriptionDetails(
+        carfReference = carfReference,
+        tradingName = Some("CARF LTD"),
+        gbUser = true,
+        primaryContact = Contact(
+          individual = Some(
+            Individual(
+              firstName = "Jon",
+              lastName = "Doe"
+            )
+          ),
+          organisation = Some(
+            Organisation(
+              name = "Jon Doe Ltd"
+            )
+          ),
+          email = "GroupRep@FATCACRS.com",
+          phone = None,
+          mobile = Some("07232473743")
         ),
         secondaryContact = None
       )
