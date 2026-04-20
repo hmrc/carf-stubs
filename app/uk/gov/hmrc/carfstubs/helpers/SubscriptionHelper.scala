@@ -29,7 +29,7 @@ trait SubscriptionHelper extends Logging {
   def returnDisplayResponse(carfId: String): Result = {
     logger.info(s"Received subscription display request")
 
-    carfId.take(1) match {
+    carfId.take(1).toUpperCase match {
       case "Y" => internalServerError500Response
       case "X" => NotFound("The match was unsuccessful")
       case "W" => Ok(Json.toJson(emptySubscriptionDisplayResponse(carfId)))
@@ -37,7 +37,7 @@ trait SubscriptionHelper extends Logging {
       case "S" => serviceUnavailable503Response
       case "R" => Ok(Json.toJson(fullOrganisationSubscriptionDisplayResponse(carfId)))
       case "Q" => badRequest400Response
-      case "P" => alreadyRegistered400Response
+      case "P" => unprocessableEntity422Response
       case "O" => Ok(Json.toJson(noPhoneSubscriptionDisplayResponse(carfId)))
       case _   => Ok(Json.toJson(fullIndividualSubscriptionDisplayResponse(carfId)))
     }
@@ -177,7 +177,7 @@ trait SubscriptionHelper extends Logging {
     primaryContactNameOrOrgName match {
       case "duplicateSubmission"        => duplicateSubmission004Response
       case "duplicateAlreadyRegistered" => alreadyRegistered007Response
-      case "alreadyRegistered"          => alreadyRegistered400Response
+      case "alreadyRegistered"          => unprocessableEntity422Response
       case "invalid"                    => requestCouldNotBeProcessed003Response
       case "internalServerError"        => internalServerError500Response
       case "badRequest"                 => badRequest400Response
@@ -215,7 +215,7 @@ trait SubscriptionHelper extends Logging {
       )
     )
 
-  private def alreadyRegistered400Response: Result =
+  private def unprocessableEntity422Response: Result =
     UnprocessableEntity(
       Json.obj(
         "errorDetail" -> Json.obj(
