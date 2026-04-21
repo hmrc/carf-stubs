@@ -153,11 +153,7 @@ trait SubscriptionHelper extends Logging {
               lastName = "Doe"
             )
           ),
-          organisation = Some(
-            Organisation(
-              name = "Jon Doe Ltd"
-            )
-          ),
+          organisation = None,
           email = "GroupRep@FATCACRS.com",
           phone = None,
           mobile = Some("07232473743")
