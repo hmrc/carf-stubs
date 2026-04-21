@@ -164,8 +164,8 @@ class RegistrationControllerSpec extends SpecBase {
             "emailAddress": "john.doe@example.com",
             "phoneNumber": "01234567890"
           },
-          "isAnAgent": false,
-          "isAGroup": false
+          "IsAnAgent": false,
+          "IsAGroup": false
         }
       }
     }"""
@@ -193,8 +193,8 @@ class RegistrationControllerSpec extends SpecBase {
               "emailAddress": "john.doe@example.com",
               "phoneNumber": "01234567890"
             },
-            "isAnAgent": false,
-            "isAGroup": false
+            "IsAnAgent": false,
+            "IsAGroup": false
           }
         }
       }"""
