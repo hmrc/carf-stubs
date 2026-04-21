@@ -36,7 +36,6 @@ trait SubscriptionHelper extends Logging {
       case "T" => badRequest400Response
       case "S" => serviceUnavailable503Response
       case "R" => Ok(Json.toJson(fullOrganisationSubscriptionDisplayResponse(carfId)))
-      case "Q" => badRequest400Response
       case "P" => unprocessableEntity422Response
       case "O" => Ok(Json.toJson(noPhoneSubscriptionDisplayResponse(carfId)))
       case _   => Ok(Json.toJson(fullIndividualSubscriptionDisplayResponse(carfId)))
