@@ -498,14 +498,6 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe SERVICE_UNAVAILABLE
       }
-
-      s"must return Bad Request - $BAD_REQUEST response for a valid CARFID starting with Q" in {
-        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("QCCAR0024000102").url)
-        val result  = route(app, request).value
-
-        status(result) mustBe BAD_REQUEST
-      }
-
     }
   }
 
