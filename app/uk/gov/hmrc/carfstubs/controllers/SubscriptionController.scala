@@ -54,7 +54,8 @@ class SubscriptionController @Inject() (cc: ControllerComponents)
     logger.info(s"Subscription Retrieval Request received")
     val response: Result = returnDisplayResponse(carfId)
     logger.info(
-      s"Response Code \n-> ${response.header.status}"
+      s"Response Code \n-> ${response.header.status}" +
+        s"Response Body \n-> $response"
     )
     Future.successful(response)
   }

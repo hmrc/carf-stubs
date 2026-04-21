@@ -62,20 +62,7 @@ trait SubscriptionHelper extends Logging {
           mobile = Some("07232473743"),
           organisation = None
         ),
-        secondaryContact = Some(
-          Contact(
-            individual = Some(
-              Individual(
-                firstName = "Don",
-                lastName = "Joe"
-              )
-            ),
-            email = "GroupRep@FATCACRS.com",
-            phone = Some("01232473744"),
-            mobile = Some("07232473744"),
-            organisation = None
-          )
-        )
+        secondaryContact = None
       )
     )
   )
