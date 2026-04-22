@@ -204,14 +204,14 @@ class RegistrationControllerSpec extends SpecBase {
     "register Individual - IDNumber[NINO]" - {
       "must return a 200 OK with a full individual response for a valid NINO (starting with A) " in {
         val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(testIndividualNinoRequestModel)))
-        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+        val resultModel = contentAsJson(result).as[RegisterWithIdResponse]
 
-        status(result)                                          mustBe OK
-        resultModel.responseDetail.get.SAFEID                     must not be empty
-        resultModel.responseDetail.get.individual.get.firstName mustBe "Professor"
-        resultModel.responseDetail.get.individual.get.lastName  mustBe "Oak"
-        resultModel.responseDetail.get.address.addressLine1     mustBe "2 High Street"
-        resultModel.responseDetail.get.address.addressLine2.get mustBe "Birmingham"
+        status(result)                                                                 mustBe OK
+        resultModel.registerWithIDResponse.responseDetail.get.SAFEID                     must not be empty
+        resultModel.registerWithIDResponse.responseDetail.get.individual.get.firstName mustBe "Professor"
+        resultModel.registerWithIDResponse.responseDetail.get.individual.get.lastName  mustBe "Oak"
+        resultModel.registerWithIDResponse.responseDetail.get.address.addressLine1     mustBe "2 High Street"
+        resultModel.registerWithIDResponse.responseDetail.get.address.addressLine2.get mustBe "Birmingham"
       }
 
       "must return an empty response with the fixed name when the request IDNumber[NINO] starts with a W char" in {
@@ -226,14 +226,14 @@ class RegistrationControllerSpec extends SpecBase {
             )
           )
         )
-        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+        val resultModel = contentAsJson(result).as[RegisterWithIdResponse]
 
         status(result) mustBe OK
 
-        resultModel.responseDetail.get.SAFEID                        must not be empty
-        resultModel.responseDetail.get.individual.get.firstName    mustBe "Apple"
-        resultModel.responseDetail.get.individual.get.lastName     mustBe "Pear"
-        resultModel.responseDetail.get.contactDetails.emailAddress mustBe None
+        resultModel.registerWithIDResponse.responseDetail.get.SAFEID                        must not be empty
+        resultModel.registerWithIDResponse.responseDetail.get.individual.get.firstName    mustBe "Apple"
+        resultModel.registerWithIDResponse.responseDetail.get.individual.get.lastName     mustBe "Pear"
+        resultModel.registerWithIDResponse.responseDetail.get.contactDetails.emailAddress mustBe None
       }
 
       "must return a not found response when the request IDNumber[NINO] starts with a X char" in {
@@ -307,13 +307,13 @@ class RegistrationControllerSpec extends SpecBase {
         val request = Json.toJson(testIndividualUtrRequestModel).as[JsObject]
         val result  = testController.register()(fakeRequestWithJsonBody(request))
         status(result) mustBe OK
-        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+        val resultModel = contentAsJson(result).as[RegisterWithIdResponse]
 
-        resultModel.responseDetail.get.SAFEID                     must not be empty
-        resultModel.responseDetail.get.individual.get.firstName mustBe "indiv firstName"
-        resultModel.responseDetail.get.individual.get.lastName  mustBe "indiv lastName"
-        resultModel.responseDetail.get.address.addressLine1     mustBe "2 High Street"
-        resultModel.responseDetail.get.address.addressLine2.get mustBe "Birmingham"
+        resultModel.registerWithIDResponse.responseDetail.get.SAFEID                     must not be empty
+        resultModel.registerWithIDResponse.responseDetail.get.individual.get.firstName mustBe "indiv firstName"
+        resultModel.registerWithIDResponse.responseDetail.get.individual.get.lastName  mustBe "indiv lastName"
+        resultModel.registerWithIDResponse.responseDetail.get.address.addressLine1     mustBe "2 High Street"
+        resultModel.registerWithIDResponse.responseDetail.get.address.addressLine2.get mustBe "Birmingham"
       }
 
       "must return a 200 OK with an empty response when request IDNumber[UTR] starts with '7' and returns the fixed name" in {
@@ -322,11 +322,11 @@ class RegistrationControllerSpec extends SpecBase {
 
         status(result) mustBe OK
 
-        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+        val resultModel = contentAsJson(result).as[RegisterWithIdResponse]
 
-        resultModel.responseDetail.get.SAFEID                     must not be empty
-        resultModel.responseDetail.get.individual.get.firstName mustBe "Apple"
-        resultModel.responseDetail.get.individual.get.lastName  mustBe "Pear"
+        resultModel.registerWithIDResponse.responseDetail.get.SAFEID                     must not be empty
+        resultModel.registerWithIDResponse.responseDetail.get.individual.get.firstName mustBe "Apple"
+        resultModel.registerWithIDResponse.responseDetail.get.individual.get.lastName  mustBe "Pear"
       }
 
       "must return a 200 OK with an non uk response when request IDNumber[UTR] starts with '6' and returns the fixed name" in {
@@ -335,9 +335,11 @@ class RegistrationControllerSpec extends SpecBase {
           val result  = testController.register()(fakeRequestWithJsonBody(request))
 
           status(result) mustBe OK
-          val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+          val resultModel = contentAsJson(result).as[RegisterWithIdResponse]
 
-          previousResult && nonUkCountryCodes.contains(resultModel.responseDetail.get.address.countryCode)
+          previousResult && nonUkCountryCodes.contains(
+            resultModel.registerWithIDResponse.responseDetail.get.address.countryCode
+          )
         }
 
         outcome mustBe true
@@ -412,12 +414,12 @@ class RegistrationControllerSpec extends SpecBase {
     "register Organisation" - {
       "must return a 200 OK with a full organisation response for a valid UTR" in {
         val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(testOrganisationRequestModel)))
-        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+        val resultModel = contentAsJson(result).as[RegisterWithIdResponse]
 
-        resultModel.responseDetail.get.SAFEID                                  must not be empty
-        resultModel.responseDetail.get.organisation.get.organisationName     mustBe "The Secret Lab Ltd"
-        resultModel.responseDetail.get.organisation.get.organisationType.get mustBe "0003"
-        resultModel.responseDetail.get.address.countryCode                   mustBe "GB"
+        resultModel.registerWithIDResponse.responseDetail.get.SAFEID                                  must not be empty
+        resultModel.registerWithIDResponse.responseDetail.get.organisation.get.organisationName     mustBe "The Secret Lab Ltd"
+        resultModel.registerWithIDResponse.responseDetail.get.organisation.get.organisationType.get mustBe "0003"
+        resultModel.registerWithIDResponse.responseDetail.get.address.countryCode                   mustBe "GB"
       }
 
       "must return a 200 OK with a non-UK organisation response when the UTR starts with a 6" in {
@@ -429,9 +431,11 @@ class RegistrationControllerSpec extends SpecBase {
             )
           )
           val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
-          val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+          val resultModel = contentAsJson(result).as[RegisterWithIdResponse]
 
-          previousResult && nonUkCountryCodes.contains(resultModel.responseDetail.get.address.countryCode)
+          previousResult && nonUkCountryCodes.contains(
+            resultModel.registerWithIDResponse.responseDetail.get.address.countryCode
+          )
 
         }
         outcome mustBe true
@@ -444,9 +448,9 @@ class RegistrationControllerSpec extends SpecBase {
           )
         )
         val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
-        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+        val resultModel = contentAsJson(result).as[RegisterWithIdResponse]
 
-        resultModel.responseDetail.get.address.countryCode mustEqual "ZX"
+        resultModel.registerWithIDResponse.responseDetail.get.address.countryCode mustEqual "ZX"
       }
 
       "must return a 200 OK with an empty organisation response when the UTR starts with a 7" in {
@@ -456,12 +460,12 @@ class RegistrationControllerSpec extends SpecBase {
           )
         )
         val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(request)))
-        val resultModel = contentAsJson(result).as[RegisterWithIDResponse]
+        val resultModel = contentAsJson(result).as[RegisterWithIdResponse]
 
-        status(result)                                                   mustBe OK
-        resultModel.responseDetail.get.isAnASAgent                       mustBe None
-        resultModel.responseDetail.get.organisation.get.organisationType mustBe None
-        resultModel.responseDetail.get.organisation.get.code             mustBe Some("0000")
+        status(result)                                                                          mustBe OK
+        resultModel.registerWithIDResponse.responseDetail.get.isAnASAgent                       mustBe None
+        resultModel.registerWithIDResponse.responseDetail.get.organisation.get.organisationType mustBe None
+        resultModel.registerWithIDResponse.responseDetail.get.organisation.get.code             mustBe Some("0000")
       }
 
       "must return 404 Not Found for an Organisation when the UTR starts with an 8" in {
