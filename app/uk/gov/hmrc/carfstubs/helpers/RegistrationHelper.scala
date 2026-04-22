@@ -147,32 +147,34 @@ trait RegistrationHelper extends Logging {
     }
   }
 
-  private def createFullOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
-    RegisterWithIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "OK",
-        statusText = None
-      ),
-      responseDetail = Some(
-        ResponseDetail(
-          ARN = "",
-          SAFEID = generateSafeId,
-          address = fullAddress,
-          contactDetails = ContactDetails(None, None, None, None),
-          individual = None,
-          isAnASAgent = Some(false),
-          isAnAgent = false,
-          isAnIndividual = false,
-          isEditable = false,
-          organisation = Some(
-            OrganisationResponse(
-              organisationName =
-                request.requestDetail.organisation.map(_.organisationName).getOrElse("AutoMatched Org Ltd"),
-              code = request.requestDetail.organisation.map(_.organisationType),
-              isAGroup = false,
-              organisationType = request.requestDetail.organisation.map(_.organisationType)
+  private def createFullOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIdResponse =
+    RegisterWithIdResponse(registerWithIDResponse =
+      RegisterWithIDResponseDetails(
+        responseCommon = ResponseCommon(
+          processingDate = LocalDate.now().toString,
+          returnParameters = None,
+          status = "OK",
+          statusText = None
+        ),
+        responseDetail = Some(
+          ResponseDetail(
+            ARN = "",
+            SAFEID = generateSafeId,
+            address = fullAddress,
+            contactDetails = ContactDetails(None, None, None, None),
+            individual = None,
+            isAnASAgent = Some(false),
+            isAnAgent = false,
+            isAnIndividual = false,
+            isEditable = false,
+            organisation = Some(
+              OrganisationResponse(
+                organisationName =
+                  request.requestDetail.organisation.map(_.organisationName).getOrElse("AutoMatched Org Ltd"),
+                code = request.requestDetail.organisation.map(_.organisationType),
+                isAGroup = false,
+                organisationType = request.requestDetail.organisation.map(_.organisationType)
+              )
             )
           )
         )
@@ -182,32 +184,34 @@ trait RegistrationHelper extends Logging {
   private def createEmptyOrganisationResponse(
       request: RegisterWithIDRequest,
       code: Option[String]
-  ): RegisterWithIDResponse =
-    RegisterWithIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "OK",
-        statusText = None
-      ),
-      responseDetail = Some(
-        ResponseDetail(
-          ARN = "",
-          SAFEID = generateSafeId,
-          address = emptyAddress,
-          contactDetails = ContactDetails(None, None, None, None),
-          individual = None,
-          isAnASAgent = None,
-          isAnAgent = false,
-          isAnIndividual = false,
-          isEditable = false,
-          organisation = Some(
-            OrganisationResponse(
-              organisationName = "Apples and Pears LTD",
-              // For User Entry Org this should always be populated
-              code = code,
-              isAGroup = false,
-              organisationType = None
+  ): RegisterWithIdResponse =
+    RegisterWithIdResponse(registerWithIDResponse =
+      RegisterWithIDResponseDetails(
+        responseCommon = ResponseCommon(
+          processingDate = LocalDate.now().toString,
+          returnParameters = None,
+          status = "OK",
+          statusText = None
+        ),
+        responseDetail = Some(
+          ResponseDetail(
+            ARN = "",
+            SAFEID = generateSafeId,
+            address = emptyAddress,
+            contactDetails = ContactDetails(None, None, None, None),
+            individual = None,
+            isAnASAgent = None,
+            isAnAgent = false,
+            isAnIndividual = false,
+            isEditable = false,
+            organisation = Some(
+              OrganisationResponse(
+                organisationName = "Apples and Pears LTD",
+                // For User Entry Org this should always be populated
+                code = code,
+                isAGroup = false,
+                organisationType = None
+              )
             )
           )
         )
@@ -217,31 +221,33 @@ trait RegistrationHelper extends Logging {
   private def createNonUkOrganisationResponse(
       request: RegisterWithIDRequest,
       code: Option[String]
-  ): RegisterWithIDResponse =
-    RegisterWithIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "OK",
-        statusText = None
-      ),
-      responseDetail = Some(
-        ResponseDetail(
-          ARN = "",
-          SAFEID = generateSafeId,
-          address = randomiseNonUkAddress,
-          contactDetails = ContactDetails(None, None, None, None),
-          individual = None,
-          isAnASAgent = Some(false),
-          isAnAgent = false,
-          isAnIndividual = false,
-          isEditable = false,
-          organisation = Some(
-            OrganisationResponse(
-              organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
-              code = code,
-              isAGroup = false,
-              organisationType = request.requestDetail.organisation.map(_.organisationType)
+  ): RegisterWithIdResponse =
+    RegisterWithIdResponse(registerWithIDResponse =
+      RegisterWithIDResponseDetails(
+        responseCommon = ResponseCommon(
+          processingDate = LocalDate.now().toString,
+          returnParameters = None,
+          status = "OK",
+          statusText = None
+        ),
+        responseDetail = Some(
+          ResponseDetail(
+            ARN = "",
+            SAFEID = generateSafeId,
+            address = randomiseNonUkAddress,
+            contactDetails = ContactDetails(None, None, None, None),
+            individual = None,
+            isAnASAgent = Some(false),
+            isAnAgent = false,
+            isAnIndividual = false,
+            isEditable = false,
+            organisation = Some(
+              OrganisationResponse(
+                organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
+                code = code,
+                isAGroup = false,
+                organisationType = request.requestDetail.organisation.map(_.organisationType)
+              )
             )
           )
         )
@@ -251,105 +257,111 @@ trait RegistrationHelper extends Logging {
   private def createOrgResponseWithInvalidCode(
       request: RegisterWithIDRequest,
       code: Option[String]
-  ): RegisterWithIDResponse =
-    RegisterWithIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "OK",
-        statusText = None
-      ),
-      responseDetail = Some(
-        ResponseDetail(
-          ARN = "",
-          SAFEID = generateSafeId,
-          address = addressWithInvalidCountryCode,
-          contactDetails = ContactDetails(None, None, None, None),
-          individual = None,
-          isAnASAgent = Some(false),
-          isAnAgent = false,
-          isAnIndividual = false,
-          isEditable = false,
-          organisation = Some(
-            OrganisationResponse(
-              organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
-              code = code,
-              isAGroup = false,
-              organisationType = request.requestDetail.organisation.map(_.organisationType)
+  ): RegisterWithIdResponse =
+    RegisterWithIdResponse(registerWithIDResponse =
+      RegisterWithIDResponseDetails(
+        responseCommon = ResponseCommon(
+          processingDate = LocalDate.now().toString,
+          returnParameters = None,
+          status = "OK",
+          statusText = None
+        ),
+        responseDetail = Some(
+          ResponseDetail(
+            ARN = "",
+            SAFEID = generateSafeId,
+            address = addressWithInvalidCountryCode,
+            contactDetails = ContactDetails(None, None, None, None),
+            individual = None,
+            isAnASAgent = Some(false),
+            isAnAgent = false,
+            isAnIndividual = false,
+            isEditable = false,
+            organisation = Some(
+              OrganisationResponse(
+                organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
+                code = code,
+                isAGroup = false,
+                organisationType = request.requestDetail.organisation.map(_.organisationType)
+              )
             )
           )
         )
       )
     )
 
-  private def createFullIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
-    RegisterWithIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = Some(List(ReturnParameters(paramName = "Test-ParamName", paramValue = "Test-ParamValue"))),
-        status = "OK",
-        statusText = Some("Test-StatusText")
-      ),
-      responseDetail = Some(
-        ResponseDetail(
-          ARN = "Test-ARN",
-          SAFEID = generateSafeId,
-          address = fullAddress,
-          contactDetails = ContactDetails(
-            emailAddress = Some("test@example.com"),
-            faxNumber = Some("Test-FaxNo"),
-            mobileNumber = Some("Test-MobileNo"),
-            phoneNumber = Some("TestPhoneNo")
-          ),
-          individual = Some(
-            IndividualResponse(
-              dateOfBirth = request.requestDetail.individual.flatMap(_.dateOfBirth),
-              firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind First Name"),
-              lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Last Name"),
-              middleName = Some("Bjorn")
-            )
-          ),
-          isAnASAgent = Some(false),
-          isAnAgent = request.requestDetail.isAnAgent,
-          isAnIndividual = true,
-          isEditable = false,
-          organisation = None
+  private def createFullIndividualResponse(request: RegisterWithIDRequest): RegisterWithIdResponse =
+    RegisterWithIdResponse(registerWithIDResponse =
+      RegisterWithIDResponseDetails(
+        responseCommon = ResponseCommon(
+          processingDate = LocalDate.now().toString,
+          returnParameters = Some(List(ReturnParameters(paramName = "Test-ParamName", paramValue = "Test-ParamValue"))),
+          status = "OK",
+          statusText = Some("Test-StatusText")
+        ),
+        responseDetail = Some(
+          ResponseDetail(
+            ARN = "Test-ARN",
+            SAFEID = generateSafeId,
+            address = fullAddress,
+            contactDetails = ContactDetails(
+              emailAddress = Some("test@example.com"),
+              faxNumber = Some("Test-FaxNo"),
+              mobileNumber = Some("Test-MobileNo"),
+              phoneNumber = Some("TestPhoneNo")
+            ),
+            individual = Some(
+              IndividualResponse(
+                dateOfBirth = request.requestDetail.individual.flatMap(_.dateOfBirth),
+                firstName = request.requestDetail.individual.map(_.firstName).getOrElse("Ind First Name"),
+                lastName = request.requestDetail.individual.map(_.lastName).getOrElse("Ind Last Name"),
+                middleName = Some("Bjorn")
+              )
+            ),
+            isAnASAgent = Some(false),
+            isAnAgent = request.requestDetail.isAnAgent,
+            isAnIndividual = true,
+            isEditable = false,
+            organisation = None
+          )
         )
       )
     )
 
-  private def createEmptyIndividualResponse(request: RegisterWithIDRequest): RegisterWithIDResponse =
-    RegisterWithIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "OK",
-        statusText = None
-      ),
-      responseDetail = Some(
-        ResponseDetail(
-          ARN = "Test-ARN",
-          SAFEID = generateSafeId,
-          address = emptyAddress,
-          contactDetails = ContactDetails(
-            emailAddress = None,
-            faxNumber = None,
-            mobileNumber = None,
-            phoneNumber = None
-          ),
-          individual = Some(
-            IndividualResponse(
-              dateOfBirth = None,
-              firstName = "Apple",
-              lastName = "Pear",
-              middleName = None
-            )
-          ),
-          isAnASAgent = None,
-          isAnAgent = request.requestDetail.isAnAgent,
-          isAnIndividual = true,
-          isEditable = false,
-          organisation = None
+  private def createEmptyIndividualResponse(request: RegisterWithIDRequest): RegisterWithIdResponse =
+    RegisterWithIdResponse(registerWithIDResponse =
+      RegisterWithIDResponseDetails(
+        responseCommon = ResponseCommon(
+          processingDate = LocalDate.now().toString,
+          returnParameters = None,
+          status = "OK",
+          statusText = None
+        ),
+        responseDetail = Some(
+          ResponseDetail(
+            ARN = "Test-ARN",
+            SAFEID = generateSafeId,
+            address = emptyAddress,
+            contactDetails = ContactDetails(
+              emailAddress = None,
+              faxNumber = None,
+              mobileNumber = None,
+              phoneNumber = None
+            ),
+            individual = Some(
+              IndividualResponse(
+                dateOfBirth = None,
+                firstName = "Apple",
+                lastName = "Pear",
+                middleName = None
+              )
+            ),
+            isAnASAgent = None,
+            isAnAgent = request.requestDetail.isAnAgent,
+            isAnIndividual = true,
+            isEditable = false,
+            organisation = None
+          )
         )
       )
     )
@@ -357,38 +369,40 @@ trait RegistrationHelper extends Logging {
   private def createNonUkIndividualResponse(
       request: RegisterWithIDRequest,
       code: Option[String]
-  ): RegisterWithIDResponse =
-    RegisterWithIDResponse(
-      responseCommon = ResponseCommon(
-        processingDate = LocalDate.now().toString,
-        returnParameters = None,
-        status = "OK",
-        statusText = None
-      ),
-      responseDetail = Some(
-        ResponseDetail(
-          ARN = "",
-          SAFEID = generateSafeId,
-          address = randomiseNonUkAddress,
-          contactDetails = ContactDetails(None, None, None, None),
-          individual = Some(
-            IndividualResponse(
-              dateOfBirth = request.requestDetail.individual.get.dateOfBirth,
-              firstName = request.requestDetail.individual.get.firstName,
-              lastName = request.requestDetail.individual.get.lastName,
-              middleName = None
-            )
-          ),
-          isAnASAgent = Some(false),
-          isAnAgent = false,
-          isAnIndividual = false,
-          isEditable = false,
-          organisation = Some(
-            OrganisationResponse(
-              organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
-              code = code,
-              isAGroup = false,
-              organisationType = request.requestDetail.organisation.map(_.organisationType)
+  ): RegisterWithIdResponse =
+    RegisterWithIdResponse(registerWithIDResponse =
+      RegisterWithIDResponseDetails(
+        responseCommon = ResponseCommon(
+          processingDate = LocalDate.now().toString,
+          returnParameters = None,
+          status = "OK",
+          statusText = None
+        ),
+        responseDetail = Some(
+          ResponseDetail(
+            ARN = "",
+            SAFEID = generateSafeId,
+            address = randomiseNonUkAddress,
+            contactDetails = ContactDetails(None, None, None, None),
+            individual = Some(
+              IndividualResponse(
+                dateOfBirth = request.requestDetail.individual.get.dateOfBirth,
+                firstName = request.requestDetail.individual.get.firstName,
+                lastName = request.requestDetail.individual.get.lastName,
+                middleName = None
+              )
+            ),
+            isAnASAgent = Some(false),
+            isAnAgent = false,
+            isAnIndividual = false,
+            isEditable = false,
+            organisation = Some(
+              OrganisationResponse(
+                organisationName = request.requestDetail.organisation.map(_.organisationName).getOrElse("Outside Org"),
+                code = code,
+                isAGroup = false,
+                organisationType = request.requestDetail.organisation.map(_.organisationType)
+              )
             )
           )
         )
