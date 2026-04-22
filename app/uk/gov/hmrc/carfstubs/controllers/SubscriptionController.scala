@@ -18,7 +18,7 @@ package uk.gov.hmrc.carfstubs.controllers
 
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
-import play.api.mvc.{Action, ControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.carfstubs.helpers.SubscriptionHelper
 import uk.gov.hmrc.carfstubs.models.request.Subscription
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -37,7 +37,7 @@ class SubscriptionController @Inject() (cc: ControllerComponents)
 
     request.body.validate[Subscription] match {
       case JsSuccess(payload, _) =>
-        val response: Result = returnResponse(payload)
+        val response: Result = returnCreateResponse(payload)
         logger.info(
           s"createSubscription Stub Request Body \n-> ${Json.prettyPrint(request.body)} \n " +
             s"Response Code \n-> ${response.header.status}"
@@ -48,4 +48,14 @@ class SubscriptionController @Inject() (cc: ControllerComponents)
         logger.error(s"Invalid createSubscription payload: ${errors.mkString(", ")}")
         Future.successful(BadRequest(s"Invalid createSubscription payload: ${errors.mkString(", ")}"))
     }
+  }
+
+  def displaySubscription(carfId: String): Action[AnyContent] = Action.async { implicit request =>
+    logger.info(s"Subscription Retrieval Request received")
+    val response: Result = returnDisplayResponse(carfId)
+    logger.info(
+      s"Response Code \n-> ${response.header.status}" +
+        s"Response Body \n-> $response"
+    )
+    Future.successful(response)
   }
