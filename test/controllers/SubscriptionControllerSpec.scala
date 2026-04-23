@@ -65,7 +65,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val json = contentAsJson(result)
-        (json \ "success" \ "CARFReference").as[String]       must startWith("XCARF")
+        (json \ "success" \ "carfReference").as[String]       must startWith("XCARF")
         (json \ "success" \ "processingDate").asOpt[String] mustBe defined
 
       }
@@ -92,7 +92,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val json = contentAsJson(result)
-        (json \ "success" \ "CARFReference").as[String] must startWith("XCARF")
+        (json \ "success" \ "carfReference").as[String] must startWith("XCARF")
       }
 
       s"must return Ok - $OK response with a CARFID that will return bad request for enrolment stubs" in {
@@ -102,7 +102,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val jsonResult = contentAsJson(result)
-        (jsonResult \ "success" \ "CARFReference").as[String] must startWith("WCARF")
+        (jsonResult \ "success" \ "carfReference").as[String] must startWith("WCARF")
       }
 
       s"must return Ok - $OK response with a CARFID that will return internal server error for enrolment stubs" in {
@@ -112,7 +112,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val jsonResult = contentAsJson(result)
-        (jsonResult \ "success" \ "CARFReference").as[String] must startWith("YCARF")
+        (jsonResult \ "success" \ "carfReference").as[String] must startWith("YCARF")
       }
 
       "return 400 for contact with both individual and organisation" in {
