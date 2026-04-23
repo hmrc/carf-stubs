@@ -191,7 +191,7 @@ trait SubscriptionHelper extends Logging {
     Ok(
       Json.obj(
         "success" -> Json.obj(
-          "CARFReference"  -> carfReference,
+          "carfReference"  -> carfReference,
           "processingDate" -> java.time.Instant.now().toString
         )
       )
