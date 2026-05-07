@@ -455,7 +455,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
           .asOpt[Organisation]                                                    mustBe defined
 
         (json \ "success" \ "carfSubscriptionDetails" \ "phone")
-          .asOpt[Organisation] mustBe empty
+          .asOpt[String] mustBe empty
       }
 
       s"must return Ok - $OK response with empty response for a valid CARFID starting with W" in {
