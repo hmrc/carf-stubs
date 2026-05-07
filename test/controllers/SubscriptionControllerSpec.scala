@@ -444,6 +444,20 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
           .asOpt[Organisation]                                                    mustBe defined
       }
 
+      s"must return Ok - $OK response with optional fields not present in organisation response for a valid CARFID starting with Q" in {
+        val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("QCCAR0024000102").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe OK
+        val json = contentAsJson(result)
+        (json \ "success" \ "carfSubscriptionDetails" \ "carfReference").as[String] must startWith("Q")
+        (json \ "success" \ "carfSubscriptionDetails" \ "primaryContact" \ "organisation")
+          .asOpt[Organisation]                                                    mustBe defined
+
+        (json \ "success" \ "carfSubscriptionDetails" \ "phone")
+          .asOpt[Organisation] mustBe empty
+      }
+
       s"must return Ok - $OK response with empty response for a valid CARFID starting with W" in {
         val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("WCCAR0024000102").url)
         val result  = route(app, request).value
