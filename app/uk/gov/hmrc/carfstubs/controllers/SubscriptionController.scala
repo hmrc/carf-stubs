@@ -18,7 +18,7 @@ package uk.gov.hmrc.carfstubs.controllers
 
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.carfstubs.helpers.SubscriptionHelper
 import uk.gov.hmrc.carfstubs.models.request.Subscription
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -32,22 +32,7 @@ class SubscriptionController @Inject() (cc: ControllerComponents)
     with SubscriptionHelper:
 
   def createSubscription: Action[JsValue] = Action.async(parse.json) { implicit request =>
-
-    logger.info(s"Subscription Request received \n ${request.body} \n")
-
-    request.body.validate[Subscription] match {
-      case JsSuccess(payload, _) =>
-        val response: Result = returnCreateResponse(payload)
-        logger.info(
-          s"createSubscription Stub Request Body \n-> ${Json.prettyPrint(request.body)} \n " +
-            s"Response Code \n-> ${response.header.status}"
-        )
-        Future.successful(response)
-
-      case JsError(errors) =>
-        logger.error(s"Invalid createSubscription payload: ${errors.mkString(", ")}")
-        Future.successful(BadRequest(s"Invalid createSubscription payload: ${errors.mkString(", ")}"))
-    }
+    processSubscription(false)(returnCreateResponse)
   }
 
   def displaySubscription(carfId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -58,4 +43,32 @@ class SubscriptionController @Inject() (cc: ControllerComponents)
         s"Response Body \n-> $response"
     )
     Future.successful(response)
+  }
+
+  def updateSubscription(): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    processSubscription(true)(returnUpdateResponse)
+  }
+
+  private def processSubscription(
+      isUpdate: Boolean
+  )(f: Subscription => Result)(implicit request: Request[JsValue]): Future[Result] = {
+
+    val requestType     = if isUpdate then "Update" else "Create"
+    val requestFunction = if isUpdate then "updateSubscription" else "createSubscription"
+
+    logger.info(s"Subscription $requestType Request received: \n -> ${Json.prettyPrint(request.body)}")
+
+    request.body.validate[Subscription] match {
+      case JsSuccess(payload, _) =>
+        logger.debug("Json validation success")
+        val response: Result = f(payload)
+        logger.info(
+          s"$requestFunction Stub returned Response Code \n-> ${response.header.status}"
+        )
+        Future.successful(response)
+
+      case JsError(errors) =>
+        logger.error(s"Invalid $requestFunction payload: ${errors.mkString(", ")}")
+        Future.successful(BadRequest(s"Invalid $requestFunction payload: ${errors.mkString(", ")}"))
+    }
   }

@@ -149,11 +149,31 @@ trait SubscriptionHelper extends Logging {
     )
   )
 
+  private def getOrganisationName(request: Subscription)                                      = request.primaryContact.organisation.map(_.name).getOrElse("")
+  private def getSecondaryContactOrgName(request: Subscription)                               =
+    request.secondaryContact.flatMap(_.organisation.map(_.name))
+  private def getPrimaryContactNameOrOrgName(request: Subscription, organisationName: String) =
+    request.primaryContact.individual.map(_.lastName).getOrElse(organisationName)
+
+  def returnUpdateResponse(request: Subscription): Result = {
+    val organisationName            = getOrganisationName(request)
+    val secondaryContactOrgName     = getSecondaryContactOrgName(request)
+    val primaryContactNameOrOrgName = getPrimaryContactNameOrOrgName(request, organisationName)
+
+    secondaryContactOrgName.getOrElse(primaryContactNameOrOrgName).takeRight(2) match {
+      case "UU" => unprocessableEntity422Response
+      case "VV" => forbiddenResponse
+      case "WW" => notAllowedResponse
+      case "XX" => badRequest400Response
+      case "YY" => internalServerError500Response
+      case "ZZ" => serviceUnavailable503Response
+      case _    => successfulSubscriptionResponse("XCARF000000001")
+    }
+  }
+
   def returnCreateResponse(request: Subscription): Result = {
 
-    logger.info(s" Received subscription request: \n -> ${Json.prettyPrint(Json.toJson(request))}")
-
-    val organisationName            = request.primaryContact.organisation.map(_.name).getOrElse("")
+    val organisationName            = getOrganisationName(request)
     val primaryContactNameOrOrgName = request.primaryContact.individual.map(_.firstName).getOrElse(organisationName)
 
     primaryContactNameOrOrgName match {
@@ -167,8 +187,8 @@ trait SubscriptionHelper extends Logging {
       case "noBusinessPartner"          => noBusinessPartner008Response
       case "invalidType"                => invalidIdType015Response
       case _                            =>
-        val secondaryContactOrgName     = request.secondaryContact.flatMap(_.organisation.map(_.name))
-        val primaryContactNameOrOrgName = request.primaryContact.individual.map(_.lastName).getOrElse(organisationName)
+        val secondaryContactOrgName     = getSecondaryContactOrgName(request)
+        val primaryContactNameOrOrgName = getPrimaryContactNameOrOrgName(request, organisationName)
 
         secondaryContactOrgName.getOrElse(primaryContactNameOrOrgName).takeRight(2) match {
           case "XX" => createSubResponseWithEnrolBadRequest(request)
@@ -179,15 +199,15 @@ trait SubscriptionHelper extends Logging {
   }
 
   private def createSubscriptionResponse(request: Subscription) =
-    createSuccessfulSubResponse(s"XCARF${request.idNumber.slice(2, 10)}")
+    successfulSubscriptionResponse(s"XCARF${request.idNumber.slice(2, 10)}")
 
   private def createSubResponseWithEnrolBadRequest(request: Subscription) =
-    createSuccessfulSubResponse(s"WCARF${request.idNumber.slice(2, 10)}")
+    successfulSubscriptionResponse(s"WCARF${request.idNumber.slice(2, 10)}")
 
   private def createSubResponseWithEnrolInternalError(request: Subscription) =
-    createSuccessfulSubResponse(s"YCARF${request.idNumber.slice(2, 10)}")
+    successfulSubscriptionResponse(s"YCARF${request.idNumber.slice(2, 10)}")
 
-  private def createSuccessfulSubResponse(carfReference: String) =
+  private def successfulSubscriptionResponse(carfReference: String) =
     Ok(
       Json.obj(
         "success" -> Json.obj(
@@ -247,98 +267,81 @@ trait SubscriptionHelper extends Logging {
 
   private def invalidIdType015Response: Result =
     UnprocessableEntity(
-      Json.obj(
-        "errorDetail" -> Json.obj(
-          "correlationId"     -> "f058ebd6-02f7-4d3f-942e-904344e8cde5",
-          "errorCode"         -> "015",
-          "errorMessage"      -> "Invalid ID type",
-          "source"            -> "Backend",
-          "sourceFaultDetail" -> Json.obj(
-            "detail" -> Json.arr("015 - Invalid ID type")
-          ),
-          "timestamp"         -> java.time.Instant.now().toString
-        )
+      errorDetailJson(
+        "015",
+        "Invalid ID type",
+        "015 - Invalid ID type"
       )
     )
 
   private def requestCouldNotBeProcessed003Response: Result =
     InternalServerError(
-      Json.obj(
-        "errorDetail" -> Json.obj(
-          "correlationId"     -> "f058ebd6-02f7-4d3f-942e-904344e8cde5",
-          "errorCode"         -> "003",
-          "errorMessage"      -> "Request could not be processed",
-          "source"            -> "Backend",
-          "sourceFaultDetail" -> Json.obj(
-            "detail" -> Json.arr("003 - Request could not be processed")
-          ),
-          "timestamp"         -> java.time.Instant.now().toString
-        )
+      errorDetailJson(
+        "003",
+        "Request could not be processed",
+        "003 - Request could not be processed"
       )
     )
 
   private def alreadyRegistered007Response: Result =
     UnprocessableEntity(
-      Json.obj(
-        "errorDetail" -> Json.obj(
-          "correlationId"     -> "f058ebd6-02f7-4d3f-942e-904344e8cde5",
-          "errorCode"         -> "007",
-          "errorMessage"      -> "Business Partner already has a Subscription for this regime ",
-          "source"            -> "Backend",
-          "sourceFaultDetail" -> Json.obj(
-            "detail" -> Json.arr("007 - Business Partner already has a Subscription for this regime ")
-          ),
-          "timestamp"         -> java.time.Instant.now().toString
-        )
+      errorDetailJson(
+        "007",
+        "Business Partner already has a Subscription for this regime ",
+        "007 - Business Partner already has a Subscription for this regime "
       )
     )
 
   private def badRequest400Response: Result =
-    BadRequest(
-      Json.obj(
-        "errorDetail" -> Json.obj(
-          "correlationId"     -> "d60de98c-f499-47f5-b2d6-e80966e8d19e",
-          "errorCode"         -> "400",
-          "errorMessage"      -> "Bad Request",
-          "source"            -> "carf-stubs",
-          "sourceFaultDetail" -> Json.obj(
-            "detail" -> Json.arr("400 - Simulated bad request from stubs")
-          ),
-          "timestamp"         -> java.time.Instant.now().toString
-        )
-      )
-    )
+    BadRequest(errorDetailJson("400", "Bad Request", "400 - Simulated bad request from stubs"))
 
   private def internalServerError500Response: Result =
     InternalServerError(
-      Json.obj(
-        "errorDetail" -> Json.obj(
-          "correlationId"     -> "d60de98c-f499-47f5-b2d6-e80966e8d19e",
-          "errorCode"         -> "500",
-          "errorMessage"      -> "Internal Server Error",
-          "source"            -> "carf-stubs",
-          "sourceFaultDetail" -> Json.obj(
-            "detail" -> Json.arr("500 - Simulated internal server error from stubs")
-          ),
-          "timestamp"         -> java.time.Instant.now().toString
-        )
+      errorDetailJson(
+        "500",
+        "Internal Server Error",
+        "500 - Simulated internal server error from stubs"
       )
     )
 
   private def serviceUnavailable503Response: Result =
     ServiceUnavailable(
-      Json.obj(
-        "errorDetail" -> Json.obj(
-          "correlationId"     -> "d60de98c-f499-47f5-b2d6-e80966e8d19e",
-          "errorCode"         -> "503",
-          "errorMessage"      -> "Service Unavailable",
-          "source"            -> "carf-stubs",
-          "sourceFaultDetail" -> Json.obj(
-            "detail" -> Json.arr("503 - Simulated service unavailable from stubs")
-          ),
-          "timestamp"         -> java.time.Instant.now().toString
-        )
+      errorDetailJson(
+        "503",
+        "Service Unavailable",
+        "503 - Simulated service unavailable from stubs"
       )
     )
 
+  private def notAllowedResponse: Result =
+    MethodNotAllowed(
+      errorDetailJson(
+        "405",
+        "Method Not Allowed",
+        "405 - Simulated method not allowed from stubs"
+      )
+    )
+
+  private def forbiddenResponse: Result =
+    Forbidden(
+      errorDetailJson(
+        "403",
+        "Forbidden",
+        "403 - Simulated Forbidden from stubs"
+      )
+    )
+
+  private def errorDetailJson(errorCode: String, errorMessage: String, sourceFaultDetailMessage: String) =
+    Json.obj(
+      "errorDetail" -> Json.obj(
+        "correlationId"     -> "d60de98c-f499-47f5-b2d6-e80966e8d19e",
+        "errorCode"         -> errorCode,
+        "errorMessage"      -> errorMessage,
+        "source"            -> "carf-stubs",
+        "sourceFaultDetail" -> Json.obj(
+          "detail" -> Json.arr(sourceFaultDetailMessage)
+        ),
+        "timestamp"         -> java.time.Instant.now().toString
+      )
+    )
 }
