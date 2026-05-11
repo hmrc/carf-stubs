@@ -36,6 +36,7 @@ trait SubscriptionHelper extends Logging {
       case "T" => badRequest400Response
       case "S" => serviceUnavailable503Response
       case "R" => Ok(Json.toJson(fullOrganisationSubscriptionDisplayResponse(carfId)))
+      case "Q" => Ok(Json.toJson(noOptionalSubscriptionResponse(carfId)))
       case "P" => unprocessableEntity422Response
       case "O" => Ok(Json.toJson(noPhoneSubscriptionDisplayResponse(carfId)))
       case _   => Ok(Json.toJson(fullIndividualSubscriptionDisplayResponse(carfId)))
@@ -97,6 +98,29 @@ trait SubscriptionHelper extends Logging {
             individual = None
           )
         )
+      )
+    )
+  )
+
+  private def noOptionalSubscriptionResponse(carfReference: String) = SubscriptionDisplayResponse(
+    success = SubscriptionDisplaySuccess(
+      processingDate = java.time.Instant.now().toString,
+      carfSubscriptionDetails = CarfSubscriptionDetails(
+        carfReference = carfReference,
+        tradingName = Some("CARF LTD"),
+        gbUser = true,
+        primaryContact = Contact(
+          organisation = Some(
+            Organisation(
+              name = "Jon Doe"
+            )
+          ),
+          email = "GroupRep@FATCACRS.com",
+          phone = None,
+          mobile = Some("07232473743"),
+          individual = None
+        ),
+        secondaryContact = None
       )
     )
   )
