@@ -9,7 +9,7 @@ POST        /dac6/dprs0101/v1                                      uk.gov.hmrc.c
 GET         /dac6/ViewCarfSubscription/v1/:carfId                  uk.gov.hmrc.carfstubs.controllers.SubscriptionController.displaySubscription(carfId: String)
 
 POST        /dac6/createsubscriptiondata/carf/v1                   uk.gov.hmrc.carfstubs.controllers.SubscriptionController.createSubscription()
-POST        /dac6/updatesubscriptiondata/carf/v1                   uk.gov.hmrc.carfstubs.controllers.SubscriptionController.updateSubscription()
+PUT         /dac6/updatesubscriptiondata/carf/v1                   uk.gov.hmrc.carfstubs.controllers.SubscriptionController.updateSubscription()
 
 PUT         /tax-enrolments/service/HMRC-CARF-ORG/enrolment        uk.gov.hmrc.carfstubs.controllers.EnrolmentController.upsertEnrolment
 

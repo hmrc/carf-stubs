@@ -149,18 +149,14 @@ trait SubscriptionHelper extends Logging {
     )
   )
 
-  private def getOrganisationName(request: Subscription)                                      = request.primaryContact.organisation.map(_.name).getOrElse("")
-  private def getSecondaryContactOrgName(request: Subscription)                               =
+  private def getSecondaryContactOrgName(request: Subscription) =
     request.secondaryContact.flatMap(_.organisation.map(_.name))
-  private def getPrimaryContactNameOrOrgName(request: Subscription, organisationName: String) =
-    request.primaryContact.individual.map(_.lastName).getOrElse(organisationName)
 
   def returnUpdateResponse(request: Subscription): Result = {
-    val organisationName            = getOrganisationName(request)
-    val secondaryContactOrgName     = getSecondaryContactOrgName(request)
-    val primaryContactNameOrOrgName = getPrimaryContactNameOrOrgName(request, organisationName)
+    val secondaryContactOrgName = getSecondaryContactOrgName(request)
+    val individualEmail         = request.primaryContact.email
 
-    secondaryContactOrgName.getOrElse(primaryContactNameOrOrgName).takeRight(2) match {
+    secondaryContactOrgName.getOrElse(individualEmail).take(2).toUpperCase match {
       case "UU" => unprocessableEntity422Response
       case "VV" => forbiddenResponse
       case "WW" => notAllowedResponse
@@ -173,7 +169,7 @@ trait SubscriptionHelper extends Logging {
 
   def returnCreateResponse(request: Subscription): Result = {
 
-    val organisationName            = getOrganisationName(request)
+    val organisationName            = request.primaryContact.organisation.map(_.name).getOrElse("")
     val primaryContactNameOrOrgName = request.primaryContact.individual.map(_.firstName).getOrElse(organisationName)
 
     primaryContactNameOrOrgName match {
@@ -188,7 +184,7 @@ trait SubscriptionHelper extends Logging {
       case "invalidType"                => invalidIdType015Response
       case _                            =>
         val secondaryContactOrgName     = getSecondaryContactOrgName(request)
-        val primaryContactNameOrOrgName = getPrimaryContactNameOrOrgName(request, organisationName)
+        val primaryContactNameOrOrgName = request.primaryContact.individual.map(_.lastName).getOrElse(organisationName)
 
         secondaryContactOrgName.getOrElse(primaryContactNameOrOrgName).takeRight(2) match {
           case "XX" => createSubResponseWithEnrolBadRequest(request)
