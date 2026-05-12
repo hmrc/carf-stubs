@@ -31,7 +31,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
     "createSubscription" - {
 
       s"must return Ok - $OK response for a valid json with secondary contact organisation" in {
-        val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792", "Tools for Traders")
+        val json: JsValue = buildSubscriptionOrgJson("Tools for Traders")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
@@ -39,7 +39,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
       }
 
       s"must return Ok - $OK response for a valid json with secondary contact individual" in {
-        val json: JsValue = createSubscriptionSecondaryContactIndJson("Walker", "XE000123456799")
+        val json: JsValue = buildSubscriptionIndividualJson("mj@gmailqqq.com", "XE000123456799")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
@@ -96,7 +96,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
       }
 
       s"must return Ok - $OK response with a CARFID that will return bad request for enrolment stubs" in {
-        val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792", "Tools for TraderXX")
+        val json: JsValue = buildSubscriptionOrgJson("Tools for TraderXX")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
@@ -106,7 +106,7 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
       }
 
       s"must return Ok - $OK response with a CARFID that will return internal server error for enrolment stubs" in {
-        val json: JsValue = createSubscriptionSecondaryContactOrgJson("John", "XE000123456792", "Tools for TraderYY")
+        val json: JsValue = buildSubscriptionOrgJson("Tools for TraderYY")
         val request       = FakeRequest(POST, routes.SubscriptionController.createSubscription().url).withBody(json)
         val result        = route(app, request).value
 
@@ -420,6 +420,328 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
       }
     }
 
+    "updateSubscription" - {
+      "organisation" - {
+        s"must return Ok - $OK response for a valid json with secondary contact" in {
+          val json: JsValue = buildSubscriptionOrgJson("Tools for Traders")
+          val request       = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url).withBody(json)
+          val result        = route(app, request).value
+
+          status(result) mustBe OK
+        }
+
+        "return 200 with success response for valid organisation subscription from model" in {
+          val organisation   = Organisation("Test Org Ltd")
+          val primaryContact =
+            Contact("primary@example.com", None, Some(organisation), Some("1234567890"), Some("1234567890"))
+
+          val secondaryContact = Contact("secondary@example.com", None, Some(organisation), None, None)
+          val subscription     = Subscription(
+            gbUser = false,
+            idNumber = "XCARF000000001",
+            idType = "SAFE",
+            primaryContact = primaryContact,
+            secondaryContact = Some(secondaryContact),
+            tradingName = Some("Trading Name")
+          )
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withJsonBody(Json.toJson(subscription))
+
+          val result = route(app, request).value
+
+          status(result) mustBe OK
+          val json = contentAsJson(result)
+          (json \ "success" \ "carfReference").as[String] must startWith("XCARF")
+        }
+
+        s"return $UNPROCESSABLE_ENTITY with error code 422 when secondary contact starts in UU" in {
+          val requestJson = buildSubscriptionOrgJson("UUTools for Traders")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withBody(requestJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe UNPROCESSABLE_ENTITY
+
+          val json = contentAsJson(result)
+          (json \ "errorDetail" \ "errorCode").as[String]    mustBe "422"
+          (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Business Error (from backend)"
+        }
+
+        s"return $FORBIDDEN with error code 403 when secondary contact starts in VV" in {
+          val requestJson = buildSubscriptionOrgJson("VVTools for Traders")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withBody(requestJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe FORBIDDEN
+
+          val json = contentAsJson(result)
+          (json \ "errorDetail" \ "errorCode").as[String]    mustBe "403"
+          (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Forbidden"
+        }
+
+        s"return $METHOD_NOT_ALLOWED with error code 405 when secondary contact starts in WW" in {
+          val requestJson = buildSubscriptionOrgJson("WWTools for Traders")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withBody(requestJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe METHOD_NOT_ALLOWED
+
+          val json = contentAsJson(result)
+          (json \ "errorDetail" \ "errorCode").as[String]    mustBe "405"
+          (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Method Not Allowed"
+        }
+
+        s"return $BAD_REQUEST with error code 400 when secondary contact starts in XX" in {
+          val requestJson = buildSubscriptionOrgJson("XXTools for Traders")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withBody(requestJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe BAD_REQUEST
+
+          val json = contentAsJson(result)
+          (json \ "errorDetail" \ "errorCode").as[String]    mustBe "400"
+          (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Bad Request"
+        }
+
+        s"return $INTERNAL_SERVER_ERROR with error code 500 when secondary contact starts in YY" in {
+          val requestJson = buildSubscriptionOrgJson("YYTools for Traders")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withBody(requestJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe INTERNAL_SERVER_ERROR
+
+          val json = contentAsJson(result)
+          (json \ "errorDetail" \ "errorCode").as[String]    mustBe "500"
+          (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Internal Server Error"
+        }
+
+        s"return $SERVICE_UNAVAILABLE with error code 503 when secondary contact starts in ZZ" in {
+          val requestJson = buildSubscriptionOrgJson("ZZTools for Traders")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withBody(requestJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe SERVICE_UNAVAILABLE
+
+          val json = contentAsJson(result)
+          (json \ "errorDetail" \ "errorCode").as[String]    mustBe "503"
+          (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Service Unavailable"
+        }
+      }
+
+      "individual" - {
+        s"must return Ok - $OK response for a valid json with secondary contact individual" in {
+          val json: JsValue = buildSubscriptionIndividualJson("mj@gmailqqq.com", "XE000123456799")
+          val request       = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url).withBody(json)
+          val result        = route(app, request).value
+
+          status(result) mustBe OK
+        }
+
+        "must return 200 with success response for valid individual subscription from model" in {
+          val individual   = Individual("John", "Doe")
+          val contact      = Contact("test@example.com", Some(individual), None, Some("1234567890"), Some("1234567890"))
+          val subscription = Subscription(
+            gbUser = true,
+            idNumber = "XWG456789",
+            idType = "SAFE",
+            primaryContact = contact,
+            secondaryContact = None,
+            tradingName = None
+          )
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withJsonBody(Json.toJson(subscription))
+
+          val result = route(app, request).value
+
+          status(result) mustBe OK
+          val json = contentAsJson(result)
+          (json \ "success" \ "carfReference").as[String]       must startWith("XCARF")
+          (json \ "success" \ "processingDate").asOpt[String] mustBe defined
+
+        }
+
+        s"return $UNPROCESSABLE_ENTITY with error code 422 when email starts in UU" in {
+          val requestJson = buildSubscriptionIndividualJson("UUmj@gmailqqq.com", "XE000123456799")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withBody(requestJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe UNPROCESSABLE_ENTITY
+
+          val json = contentAsJson(result)
+          (json \ "errorDetail" \ "errorCode").as[String]    mustBe "422"
+          (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Business Error (from backend)"
+        }
+
+        s"return $FORBIDDEN with error code 403 when email starts in VV" in {
+          val requestJson = buildSubscriptionIndividualJson("VVmj@gmailqqq.com", "XE000123456799")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withBody(requestJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe FORBIDDEN
+
+          val json = contentAsJson(result)
+          (json \ "errorDetail" \ "errorCode").as[String]    mustBe "403"
+          (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Forbidden"
+        }
+
+        s"return $METHOD_NOT_ALLOWED with error code 405 when email starts in WW" in {
+          val requestJson = buildSubscriptionIndividualJson("wwmj@gmailqqq.com", "XE000123456799")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withBody(requestJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe METHOD_NOT_ALLOWED
+
+          val json = contentAsJson(result)
+          (json \ "errorDetail" \ "errorCode").as[String]    mustBe "405"
+          (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Method Not Allowed"
+        }
+
+        s"return $BAD_REQUEST with error code 400 when email starts in XX" in {
+          val requestJson = buildSubscriptionIndividualJson("XXmj@gmailqqq.com", "XE000123456799")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withBody(requestJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe BAD_REQUEST
+
+          val json = contentAsJson(result)
+          (json \ "errorDetail" \ "errorCode").as[String]    mustBe "400"
+          (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Bad Request"
+        }
+
+        s"return $INTERNAL_SERVER_ERROR with error code 500 when email starts in YY" in {
+          val requestJson = buildSubscriptionIndividualJson("YYmj@gmailqqq.com", "XE000123456799")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withBody(requestJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe INTERNAL_SERVER_ERROR
+
+          val json = contentAsJson(result)
+          (json \ "errorDetail" \ "errorCode").as[String]    mustBe "500"
+          (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Internal Server Error"
+        }
+
+        s"return $SERVICE_UNAVAILABLE with error code 503 when email starts in ZZ" in {
+          val requestJson = buildSubscriptionIndividualJson("ZZmj@gmailqqq.com", "XE000123456799")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withBody(requestJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe SERVICE_UNAVAILABLE
+
+          val json = contentAsJson(result)
+          (json \ "errorDetail" \ "errorCode").as[String]    mustBe "503"
+          (json \ "errorDetail" \ "errorMessage").as[String] mustBe "Service Unavailable"
+        }
+      }
+
+      "other" - {
+        "return 400 for contact with both individual and organisation" in {
+          val invalidJson: JsValue = Json.parse("""{
+                        "gbUser": true,
+                        "idNumber": "SAFE123456",
+                        "idType": "SAFE",
+                        "primaryContact": {
+                          "email": "test@example.com",
+                          "individual": {"firstName": "John", "lastName": "Doe"},
+                          "organisation": {"name": "Test Org"},
+                          "phone": "1234567890"
+                        },
+                        "secondaryContact": null,
+                        "tradingName": null
+                      }""")
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withJsonBody(invalidJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe BAD_REQUEST
+        }
+
+        "return 400 for contact with neither individual nor organisation" in {
+          val invalidJson: JsValue = Json.parse("""
+                      {
+                        "gbUser": true,
+                        "idNumber": "SAFE123456",
+                        "idType": "SAFE",
+                        "primaryContact": {
+                          "email": "test@example.com",
+                          "phone": "1234567890"
+                        }
+                      }
+                      """)
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withJsonBody(invalidJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe BAD_REQUEST
+        }
+
+        "return 400 for invalid JSON" in {
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withJsonBody(Json.obj("invalid" -> "data"))
+
+          val result = route(app, request).value
+
+          status(result) mustBe BAD_REQUEST
+        }
+
+        "return 400 for missing required fields" in {
+          val invalidJson: JsValue = Json.parse("""
+                      {
+                        "gbUser": true,
+                        "idType": "SAFE"
+                      }
+                    """)
+
+          val request = FakeRequest(PUT, routes.SubscriptionController.updateSubscription().url)
+            .withJsonBody(invalidJson)
+
+          val result = route(app, request).value
+
+          status(result) mustBe BAD_REQUEST
+        }
+      }
+    }
+
     "displaySubscription" - {
 
       s"must return Ok - $OK response with full individual response for a valid CARFID" in {
@@ -515,44 +837,43 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
     }
   }
 
-  private def createSubscriptionSecondaryContactOrgJson(firstName: String, idNumber: String, orgName: String): JsValue =
+  private def buildSubscriptionOrgJson(orgName: String): JsValue =
     Json.parse(
       s"""
-       |{
-       | "idType": "SAFE",
-       | "idNumber": "$idNumber",
-       | "tradingName": "Tools for Traders Limited",
-       | "gbUser": true,
-       | "primaryContact": {
-       |    "individual": {
-       |      "firstName": "$firstName",
-       |      "lastName": "Smith"
-       |    },
-       |    "email": "john@toolsfortraders.com",
-       |    "phone": "0188899999",
-       |    "mobile": "07321012345"
-       | },
-       | "secondaryContact": {
-       |    "organisation": {
-       |      "name": "$orgName"
-       |    },
-       |    "email": "contact@toolsfortraders.com",
-       |    "phone": "+44 020 39898980"
-       | }
-       |}
-       |""".stripMargin
+         |{
+         | "idType": "SAFE",
+         | "idNumber": "XCARF000000001",
+         | "tradingName": "Tools for Traders Limited",
+         | "gbUser": true,
+         | "primaryContact": {
+         |    "organisation": {
+         |      "name": "$orgName"
+         |    },
+         |    "email": "john@toolsfortraders.com",
+         |    "phone": "0188899999",
+         |    "mobile": "07321012345"
+         | },
+         | "secondaryContact": {
+         |    "organisation": {
+         |      "name": "$orgName"
+         |    },
+         |    "email": "contact@toolsfortraders.com",
+         |    "phone": "+44 020 39898980"
+         | }
+         |}
+         |""".stripMargin
     )
 
-  private def createSubscriptionSecondaryContactIndJson(firstName: String, idNumber: String): JsValue = Json.parse(
+  private def buildSubscriptionIndividualJson(email: String, idNumber: String): JsValue = Json.parse(
     s"""
        |{
        |  "gbUser": false,
        |  "idNumber": "$idNumber",
        |  "idType": "SAFE",
        |  "primaryContact": {
-       |    "email": "mj@gmailqqq.com",
+       |    "email": "$email",
        |    "individual": {
-       |      "firstName": "$firstName",
+       |      "firstName": "Walker",
        |      "lastName": "Lname1",
        |      "middleName": "lxtt"
        |    },
