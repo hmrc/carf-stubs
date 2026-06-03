@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.carfstubs.models.response
 
-import play.api.libs.json
-import play.api.libs.json.{JsResult, JsSuccess, JsValue, Json, OFormat, OWrites, Reads}
+import play.api.libs.json.*
 
 case class TinDetails(TINType: String, TIN: String, IssuedBy: String)
 
@@ -31,24 +30,41 @@ object RcaspContact {
   implicit val format: OFormat[RcaspContact] = Json.format[RcaspContact]
 }
 
+case class RcaspAddress(
+    AddressLine1: String,
+    AddressLine2: Option[String],
+    AddressLine3: Option[String],
+    AddressLine4: Option[String],
+    PostalCode: String,
+    CountryCode: String
+)
+
+object RcaspAddress {
+  implicit val format: OFormat[RcaspAddress] = Json.format[RcaspAddress]
+}
+
 sealed trait RcaspDetails {
   val SubscriptionID: String
   val RCASPID: String
   val IsRCASPUser: Boolean
   val PartyType: String
   val TINDetails: Option[List[TinDetails]]
-  val AddressDetails: AddressResponse
-  val PrimaryContactDetails: Option[RcaspContact] = None
+  val AddressDetails: RcaspAddress
+  val PrimaryContactDetails: Option[RcaspContact]
 }
 
 object RcaspDetails {
-  implicit val writes: OWrites[RcaspDetails] = {
-    case i: IndividualRcaspDetails   => IndividualRcaspDetails.writes.writes(i)
-    case o: OrganisationRcaspDetails => OrganisationRcaspDetails.writes.writes(o)
+
+  implicit val reads: Reads[RcaspDetails] = Reads { json =>
+    (json \ "TradingName").validateOpt[String].flatMap {
+      case Some(_) => json.validate[OrganisationRcaspDetails]
+      case None    => json.validate[IndividualRcaspDetails]
+    }
   }
-  implicit val reads: Reads[RcaspDetails]    = {
-    case i: IndividualRcaspDetails   => IndividualRcaspDetails.reads.reads(i)
-    case o: OrganisationRcaspDetails => OrganisationRcaspDetails.reads.reads(o)
+
+  implicit val writes: Writes[RcaspDetails] = {
+    case i: IndividualRcaspDetails   => IndividualRcaspDetails.format.writes(i)
+    case o: OrganisationRcaspDetails => OrganisationRcaspDetails.format.writes(o)
   }
 }
 
@@ -60,13 +76,12 @@ case class IndividualRcaspDetails(
     FirstName: String,
     LastName: String,
     TINDetails: Option[List[TinDetails]],
-    AddressDetails: AddressResponse,
-    override val PrimaryContactDetails: Option[RcaspContact] = None
+    AddressDetails: RcaspAddress,
+    PrimaryContactDetails: Option[RcaspContact]
 ) extends RcaspDetails
 
 object IndividualRcaspDetails {
-  implicit val writes: OWrites[IndividualRcaspDetails] = Json.writes[IndividualRcaspDetails]
-  implicit val reads: Reads[IndividualRcaspDetails]    = Json.reads[IndividualRcaspDetails]
+  implicit val format: OFormat[IndividualRcaspDetails] = Json.format[IndividualRcaspDetails]
 }
 
 case class OrganisationRcaspDetails(
@@ -74,16 +89,16 @@ case class OrganisationRcaspDetails(
     RCASPID: String,
     IsRCASPUser: Boolean,
     PartyType: String,
+    RCASPName: String,
     TradingName: String,
     TINDetails: Option[List[TinDetails]],
-    AddressDetails: AddressResponse,
-    override val PrimaryContactDetails: Option[RcaspContact] = None,
+    AddressDetails: RcaspAddress,
+    PrimaryContactDetails: Option[RcaspContact],
     SecondaryContactDetails: Option[RcaspContact]
 ) extends RcaspDetails
 
 object OrganisationRcaspDetails {
-  implicit val writes: OWrites[OrganisationRcaspDetails] = Json.writes[OrganisationRcaspDetails]
-  implicit val reads: Reads[OrganisationRcaspDetails]    = Json.reads[OrganisationRcaspDetails]
+  implicit val format: OFormat[OrganisationRcaspDetails] = Json.format[OrganisationRcaspDetails]
 }
 
 case class RcaspResponseDetails(RCASPList: List[RcaspDetails])

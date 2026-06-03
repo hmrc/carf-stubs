@@ -130,6 +130,7 @@ trait RcaspHelper extends Logging {
     RCASPID = rcaspId,
     IsRCASPUser = true,
     PartyType = "Organisation",
+    RCASPName = "Mesagoza",
     TradingName = "Uva Academy",
     TINDetails = Some(
       List(
@@ -162,6 +163,7 @@ trait RcaspHelper extends Logging {
     RCASPID = rcaspId,
     IsRCASPUser = false,
     PartyType = "Organisation",
+    RCASPName = "Mesagoza",
     TradingName = "Uva Academy",
     TINDetails = None,
     AddressDetails = fullAddress,
@@ -177,13 +179,13 @@ trait RcaspHelper extends Logging {
     ResponseParameters = None
   )
 
-  private def fullAddress = AddressResponse(
-    addressLine1 = "2 High Street",
-    addressLine2 = Some("Birmingham"),
-    addressLine3 = Some("Nowhereshire"),
-    addressLine4 = Some("Down the road"),
-    postalCode = Some("B23 2AZ"),
-    countryCode = "GB"
+  private def fullAddress = RcaspAddress(
+    AddressLine1 = "2 High Street",
+    AddressLine2 = Some("Birmingham"),
+    AddressLine3 = Some("Nowhereshire"),
+    AddressLine4 = Some("Down the road"),
+    PostalCode = "B23 2AZ",
+    CountryCode = "GB"
   )
 
   private def badRequest400Response: Result =
