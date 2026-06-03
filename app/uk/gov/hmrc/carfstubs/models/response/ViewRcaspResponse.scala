@@ -25,7 +25,7 @@ object TinDetails {
   implicit val format: OFormat[TinDetails] = Json.format[TinDetails]
 }
 
-case class RcaspContact(ContactName: String, EmailAddress: String, PhoneNumber: String)
+case class RcaspContact(ContactName: String, EmailAddress: String, PhoneNumber: Option[String])
 
 object RcaspContact {
   implicit val format: OFormat[RcaspContact] = Json.format[RcaspContact]

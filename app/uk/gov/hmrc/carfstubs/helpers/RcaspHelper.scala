@@ -85,7 +85,7 @@ trait RcaspHelper extends Logging {
       RcaspContact(
         ContactName = "Penny Cassiopeia",
         EmailAddress = "penny.cassiopeia@uva.edu.org",
-        PhoneNumber = "07123412345"
+        PhoneNumber = Some("07123412345")
       )
     )
   )
@@ -145,14 +145,14 @@ trait RcaspHelper extends Logging {
       RcaspContact(
         ContactName = "Clavell",
         EmailAddress = "clavell@uva.edu.org",
-        PhoneNumber = "07123412344"
+        PhoneNumber = Some("07123412344")
       )
     ),
     SecondaryContactDetails = Some(
       RcaspContact(
         ContactName = "Jacq",
         EmailAddress = "jacq@uva.edu.org",
-        PhoneNumber = "07123412345"
+        PhoneNumber = Some("07123412345")
       )
     )
   )
