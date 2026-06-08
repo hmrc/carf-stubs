@@ -21,7 +21,7 @@ import org.scalatest.OptionValues
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.carfstubs.controllers.routes
-import uk.gov.hmrc.carfstubs.models.response.{IndividualRcaspDetails, OrganisationRcaspDetails}
+import uk.gov.hmrc.carfstubs.models.response.{IndividualRcaspDetails, OrganisationRcaspDetails, RcaspDetails}
 
 class RcaspControllerSpec extends SpecBase with OptionValues {
 
@@ -104,6 +104,16 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
         (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
           .as[List[OrganisationRcaspDetails]]
           .length      mustBe 2
+      }
+
+      s"must return Ok - $OK response with no RCASP items in response for a valid CARFID starting with KK" in {
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("KKCAR0024000102", "683373339").url)
+        val result  = route(app, request).value
+
+        status(result) mustBe OK
+        (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
+          .as[List[RcaspDetails]]
+          .length      mustBe 0
       }
 
       s"must return Internal Server Error - $INTERNAL_SERVER_ERROR response for a valid CARFID starting with YY" in {
