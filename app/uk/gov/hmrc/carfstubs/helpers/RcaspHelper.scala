@@ -27,17 +27,17 @@ trait RcaspHelper extends Logging {
   def returnRcaspResponse(carfId: String, rcaspId: String): Result = {
     logger.info(s"Received view RCASP request")
 
-    carfId.take(1).toUpperCase match {
-      case "Y" => internalServerError500Response
-      case "T" => badRequest400Response
-      case "S" => serviceUnavailable503Response
-      case "R" => Ok(Json.toJson(fullOrganisationRcaspResponse(carfId, rcaspId)))
-      case "P" => unprocessableEntity422Response
-      case "O" => Ok(Json.toJson(emptyOptionalsOrganisationRcaspResponse(carfId, rcaspId)))
-      case "N" => Ok(Json.toJson(multipleOrganisationRcaspResponse(carfId, rcaspId)))
-      case "M" => Ok(Json.toJson(emptyOptionalsIndividualRcaspResponse(carfId, rcaspId)))
-      case "L" => Ok(Json.toJson(multipleIndividualRcaspResponse(carfId, rcaspId)))
-      case _   => Ok(Json.toJson(fullIndividualRcaspResponse(carfId, rcaspId)))
+    carfId.take(2).toUpperCase match {
+      case "YY" => internalServerError500Response
+      case "TT" => badRequest400Response
+      case "SS" => serviceUnavailable503Response
+      case "RR" => Ok(Json.toJson(fullOrganisationRcaspResponse(carfId, rcaspId)))
+      case "PP" => unprocessableEntity422Response
+      case "OO" => Ok(Json.toJson(emptyOptionalsOrganisationRcaspResponse(carfId, rcaspId)))
+      case "NN" => Ok(Json.toJson(multipleOrganisationRcaspResponse(carfId, rcaspId)))
+      case "MM" => Ok(Json.toJson(emptyOptionalsIndividualRcaspResponse(carfId, rcaspId)))
+      case "LL" => Ok(Json.toJson(multipleIndividualRcaspResponse(carfId, rcaspId)))
+      case _    => Ok(Json.toJson(fullIndividualRcaspResponse(carfId, rcaspId)))
     }
   }
 
