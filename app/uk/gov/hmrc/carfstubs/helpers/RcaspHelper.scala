@@ -37,6 +37,7 @@ trait RcaspHelper extends Logging {
       case "NN" => Ok(Json.toJson(multipleOrganisationRcaspResponse(carfId, rcaspId)))
       case "MM" => Ok(Json.toJson(emptyOptionalsIndividualRcaspResponse(carfId, rcaspId)))
       case "LL" => Ok(Json.toJson(multipleIndividualRcaspResponse(carfId, rcaspId)))
+      case "KK" => Ok(Json.toJson(noRcaspsResponse))
       case _    => Ok(Json.toJson(fullIndividualRcaspResponse(carfId, rcaspId)))
     }
   }
@@ -61,6 +62,13 @@ trait RcaspHelper extends Logging {
       ResponseDetails = RcaspResponseDetails(RCASPList =
         List(fullIndividualRcaspDetails(carfId, rcaspId), emptyOptionalsIndividualRcaspDetails(carfId, rcaspId))
       )
+    )
+  )
+
+  private def noRcaspsResponse = ViewRcaspResponse(
+    ViewRCASP = ViewRcasp(
+      ResponseCommon = rcaspResponseCommon,
+      ResponseDetails = RcaspResponseDetails(RCASPList = List.empty)
     )
   )
 
