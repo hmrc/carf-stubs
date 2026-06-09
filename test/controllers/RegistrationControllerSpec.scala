@@ -411,7 +411,7 @@ class RegistrationControllerSpec extends SpecBase {
 
     }
 
-    "register Organisation" - {
+    "register Organisation with ID" - {
       "must return a 200 OK with a full organisation response for a valid UTR" in {
         val result      = testController.register()(fakeRequestWithJsonBody(Json.toJson(testOrganisationRequestModel)))
         val resultModel = contentAsJson(result).as[RegisterWithIdResponse]
@@ -420,6 +420,26 @@ class RegistrationControllerSpec extends SpecBase {
         resultModel.registerWithIDResponse.responseDetail.get.organisation.get.organisationName     mustBe "The Secret Lab Ltd"
         resultModel.registerWithIDResponse.responseDetail.get.organisation.get.organisationType.get mustBe "0003"
         resultModel.registerWithIDResponse.responseDetail.get.address.countryCode                   mustBe "GB"
+      }
+
+      "must return a 200 OK with a full crown dependency auto matched organisation response for a valid UTR" in {
+
+        val requestDetail = testOrganisationRequestModel.registerWithIDRequest.requestDetail
+          .copy(IDNumber = "3234567890", organisation = None)
+
+        val registerWithIDRequest =
+          testOrganisationRequestModel.registerWithIDRequest.copy(requestDetail = requestDetail)
+
+        val testOrganisationRequestModelWithCrown =
+          testOrganisationRequestModel.copy(registerWithIDRequest = registerWithIDRequest)
+
+        val result      =
+          testController.register()(fakeRequestWithJsonBody(Json.toJson(testOrganisationRequestModelWithCrown)))
+        val resultModel = contentAsJson(result).as[RegisterWithIdResponse]
+
+        resultModel.registerWithIDResponse.responseDetail.get.SAFEID                              must not be empty
+        resultModel.registerWithIDResponse.responseDetail.get.organisation.get.organisationName mustBe "AutoMatched Org Ltd"
+        resultModel.registerWithIDResponse.responseDetail.get.address.countryCode               mustBe "IM"
       }
 
       "must return a 200 OK with a non-UK organisation response when the UTR starts with a 6" in {
