@@ -55,16 +55,16 @@ trait RegistrationHelper extends Logging {
       case ("8" | "X", _) => NotFound("The match was unsuccessful")
 
       case ("7", UserEntryOrg | AutoMatchOrg)                              =>
-        Ok(Json.toJson(createEmptyOrganisationResponse(request, getCodeFromOrgType(journeyType))))
+        Ok(Json.toJson(createEmptyOrganisationResponse(getCodeFromOrgType(journeyType))))
       case ("7", IndWithUtr) | ("W", IndWithNino)                          => Ok(Json.toJson(createEmptyIndividualResponse(request)))
       case ("6", UserEntryOrg | AutoMatchOrg) if idNumber.startsWith("68") =>
         Ok(Json.toJson(createOrgResponseWithInvalidCode(request, getCodeFromOrgType(journeyType))))
       case ("6", UserEntryOrg | AutoMatchOrg)                              =>
         Ok(Json.toJson(createNonUkOrganisationResponse(request, getCodeFromOrgType(journeyType))))
-      case ("6", IndWithUtr)                                               =>
-        Ok(Json.toJson(createNonUkIndividualResponse(request, getCodeFromOrgType(journeyType))))
+      case ("6", IndWithUtr)                                               => Ok(Json.toJson(createNonUkIndividualResponse(request, getCodeFromOrgType(journeyType))))
       case ("5" | "T", _)                                                  => UnprocessableEntity(Json.toJson(errorDetail422Response))
       case ("4" | "S", _)                                                  => ServiceUnavailable(Json.toJson(errorDetail503Response))
+      case ("3", AutoMatchOrg)                                             => Ok(Json.toJson(createFullOrganisationCrownResponse(request)))
       case (_, UserEntryOrg | AutoMatchOrg)                                => Ok(Json.toJson(createFullOrganisationResponse(request)))
       // TODO: in future, split out IndWithUtr and IndWithNino to remove getOrElse in createFullIndividualResponse
       case (_, IndWithUtr | IndWithNino)                                   => Ok(Json.toJson(createFullIndividualResponse(request)))
@@ -147,7 +147,7 @@ trait RegistrationHelper extends Logging {
     }
   }
 
-  private def createFullOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIdResponse =
+  private def baseFullOrganisationResponse(request: RegisterWithIDRequest, useCrownPostcode: Boolean) =
     RegisterWithIdResponse(registerWithIDResponse =
       RegisterWithIDResponseDetails(
         responseCommon = ResponseCommon(
@@ -160,7 +160,7 @@ trait RegistrationHelper extends Logging {
           ResponseDetail(
             ARN = "",
             SAFEID = generateSafeId,
-            address = fullAddress,
+            address = if useCrownPostcode then fullCrownDependencyAddress else fullAddress,
             contactDetails = ContactDetails(None, None, None, None),
             individual = None,
             isAnASAgent = Some(false),
@@ -180,11 +180,13 @@ trait RegistrationHelper extends Logging {
         )
       )
     )
+  private def createFullOrganisationResponse(request: RegisterWithIDRequest): RegisterWithIdResponse  =
+    baseFullOrganisationResponse(request, false)
 
-  private def createEmptyOrganisationResponse(
-      request: RegisterWithIDRequest,
-      code: Option[String]
-  ): RegisterWithIdResponse =
+  private def createFullOrganisationCrownResponse(request: RegisterWithIDRequest): RegisterWithIdResponse =
+    baseFullOrganisationResponse(request, true)
+
+  private def createEmptyOrganisationResponse(code: Option[String]): RegisterWithIdResponse =
     RegisterWithIdResponse(registerWithIDResponse =
       RegisterWithIDResponseDetails(
         responseCommon = ResponseCommon(
@@ -431,6 +433,15 @@ trait RegistrationHelper extends Logging {
     addressLine4 = Some("Down the road"),
     postalCode = Some("B23 2AZ"),
     countryCode = "GB"
+  )
+
+  private def fullCrownDependencyAddress = AddressResponse(
+    addressLine1 = "12 example Street",
+    addressLine2 = Some("Ramsey"),
+    addressLine3 = Some("Islehimshite"),
+    addressLine4 = Some("Down the road"),
+    postalCode = Some("IM1 3AB"),
+    countryCode = "IM"
   )
 
   private def emptyAddress = AddressResponse(
