@@ -17,8 +17,10 @@
 package uk.gov.hmrc.carfstubs.controllers
 
 import play.api.Logging
+import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.carfstubs.helpers.RcaspHelper
+import uk.gov.hmrc.carfstubs.models.request.CreateRCASPRequest
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -35,3 +37,22 @@ class RcaspController @Inject() (cc: ControllerComponents) extends BackendContro
     )
     Future.successful(response)
   }
+
+  def createRcasp: Action[JsValue] =
+    Action.async(parse.json) { implicit request =>
+      logger.info(s"Management Create Request received: \n -> ${Json.prettyPrint(request.body)}")
+
+      request.body.validate[CreateRCASPRequest] match {
+        case JsSuccess(payload, _) =>
+          logger.debug("Json validation success")
+          val response: Result = returnCreateResponse(payload)
+          logger.info(
+            s"Create Management Stub returned Response Code \n-> ${response.header.status}"
+          )
+          Future.successful(response)
+
+        case JsError(errors) =>
+          logger.error(s"Invalid Create Management request payload: ${errors.mkString(", ")}")
+          Future.successful(BadRequest(s"Invalid Create Management payload: ${errors.mkString(", ")}"))
+      }
+    }
