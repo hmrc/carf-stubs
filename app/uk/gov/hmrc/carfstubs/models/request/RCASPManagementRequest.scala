@@ -14,50 +14,43 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.carfstubs.models.response
+package uk.gov.hmrc.carfstubs.models.request
 
-import play.api.libs.json.*
+import play.api.libs.json.{Json, OFormat, Reads, Writes}
 import uk.gov.hmrc.carfstubs.models.{RcaspAddress, RcaspContactDetails, TinDetails}
 
-case class RcaspResponseDetails(RCASPList: List[RcaspDetails])
+case class CreateRCASPRequest(RCASPManagement: RCASPManagementRequest)
 
-object RcaspResponseDetails {
-  implicit val format: OFormat[RcaspResponseDetails] = Json.format[RcaspResponseDetails]
+object CreateRCASPRequest {
+  implicit val format: OFormat[CreateRCASPRequest] = Json.format[CreateRCASPRequest]
 }
 
-case class RcaspResponseParameters(ParamName: String, ParamValue: String)
+case class RCASPManagementRequest(RequestCommon: RcaspCreateRequestCommon, RequestDetails: RcaspDetails)
 
-object RcaspResponseParameters {
-  implicit val format: OFormat[RcaspResponseParameters] = Json.format[RcaspResponseParameters]
+object RCASPManagementRequest {
+  implicit val format: OFormat[RCASPManagementRequest] = Json.format[RCASPManagementRequest]
 }
 
-case class RcaspResponseCommon(
+case class RcaspCreateRequestCommon(
     OriginatingSystem: String,
     TransmittingSystem: String,
     RequestType: String,
     Regime: String,
-    ResponseParameters: Option[List[RcaspResponseParameters]]
+    RequestParameters: List[RequestParameter]
 )
 
-object RcaspResponseCommon {
-  implicit val format: OFormat[RcaspResponseCommon] = Json.format[RcaspResponseCommon]
+object RcaspCreateRequestCommon {
+  implicit val format: OFormat[RcaspCreateRequestCommon] = Json.format[RcaspCreateRequestCommon]
 }
 
-case class ViewRcasp(ResponseCommon: RcaspResponseCommon, ResponseDetails: RcaspResponseDetails)
+case class RequestParameter(ParamName: String, ParamValue: String)
 
-object ViewRcasp {
-  implicit val format: OFormat[ViewRcasp] = Json.format[ViewRcasp]
-}
-
-case class ViewRcaspResponse(ViewRCASP: ViewRcasp)
-
-object ViewRcaspResponse {
-  implicit val format: OFormat[ViewRcaspResponse] = Json.format[ViewRcaspResponse]
+object RequestParameter {
+  implicit val format: OFormat[RequestParameter] = Json.format[RequestParameter]
 }
 
 sealed trait RcaspDetails {
   val SubscriptionID: String
-  val RCASPID: String
   val IsRCASPUser: Boolean
   val PartyType: String
   val TINDetails: Option[List[TinDetails]]
@@ -67,7 +60,6 @@ sealed trait RcaspDetails {
 
 case class IndividualRcaspDetails(
     SubscriptionID: String,
-    RCASPID: String,
     IsRCASPUser: Boolean,
     PartyType: String,
     FirstName: String,
@@ -79,7 +71,6 @@ case class IndividualRcaspDetails(
 
 case class OrganisationRcaspDetails(
     SubscriptionID: String,
-    RCASPID: String,
     IsRCASPUser: Boolean,
     PartyType: String,
     RCASPName: String,

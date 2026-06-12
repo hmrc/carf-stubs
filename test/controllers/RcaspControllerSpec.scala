@@ -18,10 +18,15 @@ package controllers
 
 import base.SpecBase
 import org.scalatest.OptionValues
+import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, METHOD_NOT_ALLOWED, SERVICE_UNAVAILABLE}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.Results.BadRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.carfstubs.controllers.routes
-import uk.gov.hmrc.carfstubs.models.response.{IndividualRcaspDetails, OrganisationRcaspDetails, RcaspDetails}
+import uk.gov.hmrc.carfstubs.models.request.{CreateRCASPRequest, RCASPManagementRequest, RcaspCreateRequestCommon, RequestParameter}
+import uk.gov.hmrc.carfstubs.models.*
+import uk.gov.hmrc.carfstubs.models.response.RcaspDetails
 
 class RcaspControllerSpec extends SpecBase with OptionValues {
 
@@ -34,7 +39,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val rcaspDetails = (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[IndividualRcaspDetails]]
+          .as[List[response.IndividualRcaspDetails]]
           .head
         rcaspDetails.SubscriptionID          must startWith("C")
         rcaspDetails.RCASPID                 must startWith("6")
@@ -48,7 +53,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val rcaspDetails = (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[OrganisationRcaspDetails]]
+          .as[List[response.OrganisationRcaspDetails]]
           .head
         rcaspDetails.SubscriptionID            must startWith("R")
         rcaspDetails.RCASPID                   must startWith("6")
@@ -63,7 +68,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val rcaspDetails = (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[IndividualRcaspDetails]]
+          .as[List[response.IndividualRcaspDetails]]
           .head
         rcaspDetails.SubscriptionID          must startWith("M")
         rcaspDetails.RCASPID                 must startWith("6")
@@ -77,7 +82,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val rcaspDetails = (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[OrganisationRcaspDetails]]
+          .as[List[response.OrganisationRcaspDetails]]
           .head
         rcaspDetails.SubscriptionID            must startWith("O")
         rcaspDetails.RCASPID                   must startWith("6")
@@ -92,7 +97,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[IndividualRcaspDetails]]
+          .as[List[response.IndividualRcaspDetails]]
           .length      mustBe 2
       }
 
@@ -102,7 +107,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[OrganisationRcaspDetails]]
+          .as[List[response.OrganisationRcaspDetails]]
           .length      mustBe 2
       }
 
@@ -144,5 +149,305 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
         status(result) mustBe SERVICE_UNAVAILABLE
       }
     }
+
+    "createRcasp" - {
+      s"must return Ok - $OK response for a valid json with organisation in request" in {
+        val json: JsValue = buildCreateOrgRcaspJson("contact@toolsfortraders.com")
+        val request       = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val result        = route(app, request).value
+
+        status(result) mustBe OK
+      }
+
+      s"must return Ok - $OK response for a valid json with individual in request" in {
+        val json: JsValue = buildCreateIndvRcaspJson("jdoe@example.com")
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val result        = route(app, fakeRequest).value
+
+        status(result) mustBe OK
+      }
+
+      s"must return Ok - $OK response for a valid json from model" in {
+        val json: JsValue = Json.toJson(
+          CreateRCASPRequest(
+            RCASPManagementRequest(
+              RcaspCreateRequestCommon(
+                OriginatingSystem = "CADX",
+                TransmittingSystem = "EIS",
+                RequestType = "VIEW",
+                Regime = "CARF",
+                RequestParameters = List(RequestParameter("key", "value"))
+              ),
+              request.IndividualRcaspDetails(
+                SubscriptionID = "XCARF000000001",
+                IsRCASPUser = true,
+                PartyType = "Individual",
+                FirstName = "Penny",
+                LastName = "Cassiopeia",
+                TINDetails = Some(
+                  List(
+                    TinDetails(
+                      TINType = "UTR",
+                      TIN = "6893649",
+                      IssuedBy = "GB"
+                    )
+                  )
+                ),
+                AddressDetails = RcaspAddress(
+                  AddressLine1 = "2 High Street",
+                  AddressLine2 = Some("Birmingham"),
+                  AddressLine3 = Some("Nowhereshire"),
+                  AddressLine4 = Some("Down the road"),
+                  PostalCode = "B23 2AZ",
+                  CountryCode = "GB"
+                ),
+                PrimaryContactDetails = Some(
+                  RcaspContactDetails(
+                    ContactName = "Penny Cassiopeia",
+                    EmailAddress = "penny.cassiopeia@uva.edu.org",
+                    PhoneNumber = Some("07123412345")
+                  )
+                )
+              )
+            )
+          )
+        )
+
+        val fakeRequest = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val result      = route(app, fakeRequest).value
+
+        status(result) mustBe OK
+      }
+
+      s"must return BadRequest - $BadRequest response for a json missing primary contact information" in {
+        val json: JsValue = Json.parse(
+          s"""
+             |{
+             |  "RCASPManagement": {
+             |    "RequestCommon": {
+             |      "OriginatingSystem": "MDTP",
+             |      "TransmittingSystem": "EIS",
+             |      "RequestType": "UPDATE",
+             |      "Regime": "CARF",
+             |      "RequestParameters": [
+             |        {
+             |          "ParamName": "Test",
+             |          "ParamValue": "Test"
+             |        }
+             |      ]
+             |    },
+             |    "RequestDetails": {
+             |      "RCASPID": "683373339",
+             |      "FirstName": "John",
+             |      "LastName": "Smith",
+             |      "IsRCASPUser": false,
+             |      "SubscriptionID": "345567808",
+             |      "PartyType": "Individual",
+             |      "TINDetails": [
+             |        {
+             |          "TINType": "OTHER",
+             |          "TIN": "68936493",
+             |          "IssuedBy": "GB"
+             |        }
+             |      ],
+             |      "AddressDetails": {
+             |        "AddressLine1": "22",
+             |        "AddressLine2": "High Street",
+             |        "AddressLine3": "Dawley",
+             |        "AddressLine4": "Dawley",
+             |        "CountryCode": "GB",
+             |        "PostalCode": "TF22 2RE"
+             |      }
+             |    }
+             |  }
+             |}
+             |
+             |""".stripMargin
+        )
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val result        = route(app, fakeRequest).value
+
+        status(result) mustBe BAD_REQUEST
+      }
+
+      s"must return BadRequest - $BAD_REQUEST response for an invalid json" in {
+        val json: JsValue = buildCreateIndvRcaspJson("XX@example.com")
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val result        = route(app, fakeRequest).value
+
+        status(result) mustBe BAD_REQUEST
+      }
+
+      s"must return UnprocessableEntity - $UNPROCESSABLE_ENTITY response for an invalid json" in {
+        val json: JsValue = buildCreateIndvRcaspJson("UU@example.com")
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val result        = route(app, fakeRequest).value
+
+        status(result) mustBe UNPROCESSABLE_ENTITY
+      }
+
+      s"must return Forbidden - $FORBIDDEN response for an invalid json" in {
+        val json: JsValue = buildCreateIndvRcaspJson("VV@example.com")
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val result        = route(app, fakeRequest).value
+
+        status(result) mustBe FORBIDDEN
+      }
+
+      s"must return MethodNotAllowed - $METHOD_NOT_ALLOWED response for an invalid json" in {
+        val json: JsValue = buildCreateIndvRcaspJson("WW@example.com")
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val result        = route(app, fakeRequest).value
+
+        status(result) mustBe METHOD_NOT_ALLOWED
+      }
+
+      s"must return InternalServerError - $INTERNAL_SERVER_ERROR response for an invalid json" in {
+        val json: JsValue = buildCreateIndvRcaspJson("YY@example.com")
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val result        = route(app, fakeRequest).value
+
+        status(result) mustBe INTERNAL_SERVER_ERROR
+      }
+
+      s"must return ServiceUnavailable - $SERVICE_UNAVAILABLE response for an invalid json" in {
+        val json: JsValue = buildCreateIndvRcaspJson("ZZ@example.com")
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val result        = route(app, fakeRequest).value
+
+        status(result) mustBe SERVICE_UNAVAILABLE
+      }
+
+      "return 400 BAD_REQUEST for invalid JSON" in {
+        val fakeRequest = FakeRequest(POST, routes.RcaspController.createRcasp.url)
+          .withJsonBody(Json.obj("invalid" -> "data"))
+
+        val result = route(app, fakeRequest).value
+
+        status(result) mustBe BAD_REQUEST
+      }
+
+      "return 400 BAD_REQUEST for missing required fields" in {
+        val invalidJson: JsValue = Json.parse("""
+              {
+                "gbUser": true,
+                "idType": "SAFE"
+              }
+            """)
+
+        val fakeRequest = FakeRequest(POST, routes.RcaspController.createRcasp.url)
+          .withJsonBody(invalidJson)
+
+        val result = route(app, fakeRequest).value
+
+        status(result) mustBe BAD_REQUEST
+      }
+    }
   }
+
+  private def buildCreateOrgRcaspJson(email: String): JsValue =
+    Json.parse(
+      s"""
+         |{
+         |  "RCASPManagement": {
+         |    "RequestCommon": {
+         |      "OriginatingSystem": "MDTP",
+         |      "TransmittingSystem": "EIS",
+         |      "RequestType": "CREATE",
+         |      "Regime": "CARF",
+         |      "RequestParameters": [
+         |        {
+         |          "ParamName": "Test",
+         |          "ParamValue": "Test"
+         |        }
+         |      ]
+         |    },
+         |    "RequestDetails": {
+         |      "RCASPName": "Amazon UK",
+         |      "IsRCASPUser": false,
+         |      "SubscriptionID": "345567808",
+         |      "PartyType": "Organisation",
+         |      "TradingName": "Tools for Traders Limited",
+         |      "TINDetails": [
+         |        {
+         |          "TINType": "UTR",
+         |          "TIN": "68936493",
+         |          "IssuedBy": "GB"
+         |        }
+         |      ],
+         |      "AddressDetails": {
+         |        "AddressLine1": "22",
+         |        "AddressLine2": "High Street",
+         |        "AddressLine3": "Dawley",
+         |        "AddressLine4": "Dawley",
+         |        "CountryCode": "GB",
+         |        "PostalCode": "TF22 2RE"
+         |      },
+         |      "PrimaryContactDetails": {
+         |        "ContactName": "John Smith",
+         |        "EmailAddress": "$email",
+         |        "PhoneNumber": "0789876568"
+         |      },
+         |      "SecondaryContactDetails": {
+         |        "ContactName": "John Smith",
+         |        "EmailAddress": "jdoe@example.com",
+         |        "PhoneNumber": "0789876568"
+         |      }
+         |    }
+         |  }
+         |}
+         |
+         |""".stripMargin
+    )
+
+  private def buildCreateIndvRcaspJson(email: String): JsValue =
+    Json.parse(
+      s"""
+         |{
+         |  "RCASPManagement": {
+         |    "RequestCommon": {
+         |      "OriginatingSystem": "MDTP",
+         |      "TransmittingSystem": "EIS",
+         |      "RequestType": "UPDATE",
+         |      "Regime": "CARF",
+         |      "RequestParameters": [
+         |        {
+         |          "ParamName": "Test",
+         |          "ParamValue": "Test"
+         |        }
+         |      ]
+         |    },
+         |    "RequestDetails": {
+         |      "RCASPID": "683373339",
+         |      "FirstName": "John",
+         |      "LastName": "Smith",
+         |      "IsRCASPUser": false,
+         |      "SubscriptionID": "345567808",
+         |      "PartyType": "Individual",
+         |      "TINDetails": [
+         |        {
+         |          "TINType": "OTHER",
+         |          "TIN": "68936493",
+         |          "IssuedBy": "GB"
+         |        }
+         |      ],
+         |      "AddressDetails": {
+         |        "AddressLine1": "22",
+         |        "AddressLine2": "High Street",
+         |        "AddressLine3": "Dawley",
+         |        "AddressLine4": "Dawley",
+         |        "CountryCode": "GB",
+         |        "PostalCode": "TF22 2RE"
+         |      },
+         |      "PrimaryContactDetails": {
+         |        "ContactName": "John Smith",
+         |        "EmailAddress": "$email",
+         |        "PhoneNumber": "0789876568"
+         |      }
+         |    }
+         |  }
+         |}
+         |
+         |""".stripMargin
+    )
 }

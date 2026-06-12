@@ -23,6 +23,7 @@ import play.api.mvc.Results.*
 import uk.gov.hmrc.carfstubs.models.{Individual, Organisation}
 import uk.gov.hmrc.carfstubs.models.request.{Contact, Subscription}
 import uk.gov.hmrc.carfstubs.models.response.{CarfSubscriptionDetails, SubscriptionDisplayResponse, SubscriptionDisplaySuccess}
+import uk.gov.hmrc.carfstubs.utils.HelperUtil.errorDetailJson
 
 trait SubscriptionHelper extends Logging {
 
@@ -348,20 +349,6 @@ trait SubscriptionHelper extends Logging {
         "403",
         "Forbidden",
         "403 - Simulated Forbidden from stubs"
-      )
-    )
-
-  private def errorDetailJson(errorCode: String, errorMessage: String, sourceFaultDetailMessage: String) =
-    Json.obj(
-      "errorDetail" -> Json.obj(
-        "correlationId"     -> "d60de98c-f499-47f5-b2d6-e80966e8d19e",
-        "errorCode"         -> errorCode,
-        "errorMessage"      -> errorMessage,
-        "source"            -> "carf-stubs",
-        "sourceFaultDetail" -> Json.obj(
-          "detail" -> Json.arr(sourceFaultDetailMessage)
-        ),
-        "timestamp"         -> java.time.Instant.now().toString
       )
     )
 }
