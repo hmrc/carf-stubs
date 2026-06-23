@@ -18,14 +18,13 @@ package controllers
 
 import base.SpecBase
 import org.scalatest.OptionValues
-import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, METHOD_NOT_ALLOWED, SERVICE_UNAVAILABLE}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Results.BadRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.carfstubs.controllers.routes
-import uk.gov.hmrc.carfstubs.models.request.{CreateRCASPRequest, RCASPManagementRequest, RcaspCreateRequestCommon, RequestParameter}
 import uk.gov.hmrc.carfstubs.models.*
+import uk.gov.hmrc.carfstubs.models.request.{CreateRCASPRequest, RCASPManagementRequest, RcaspCreateRequestCommon, RequestParameter}
 import uk.gov.hmrc.carfstubs.models.response.RcaspDetails
 
 class RcaspControllerSpec extends SpecBase with OptionValues {
@@ -34,7 +33,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
     "viewRcasp" - {
 
       s"must return Ok - $OK response with full individual response for a valid CARFID" in {
-        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("CCCAR0024000102", "683373339").url)
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("CCCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe OK
@@ -42,13 +41,13 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
           .as[List[response.IndividualRcaspDetails]]
           .head
         rcaspDetails.SubscriptionID          must startWith("C")
-        rcaspDetails.RCASPID                 must startWith("6")
+        rcaspDetails.RCASPID               mustBe "RCASP56789"
         rcaspDetails.PartyType             mustBe "Individual"
         rcaspDetails.PrimaryContactDetails mustBe defined
       }
 
       s"must return Ok - $OK response with full organisation response for a valid CARFID starting with RR" in {
-        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("RRCAR0024000102", "683373339").url)
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("RRCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe OK
@@ -56,14 +55,14 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
           .as[List[response.OrganisationRcaspDetails]]
           .head
         rcaspDetails.SubscriptionID            must startWith("R")
-        rcaspDetails.RCASPID                   must startWith("6")
+        rcaspDetails.RCASPID                 mustBe "RCASP12345"
         rcaspDetails.PartyType               mustBe "Organisation"
         rcaspDetails.PrimaryContactDetails   mustBe defined
         rcaspDetails.SecondaryContactDetails mustBe defined
       }
 
       s"must return Ok - $OK response with empty optional fields in individual response for a valid CARFID starting with MM" in {
-        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("MMCAR0024000102", "683373339").url)
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("MMCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe OK
@@ -71,13 +70,13 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
           .as[List[response.IndividualRcaspDetails]]
           .head
         rcaspDetails.SubscriptionID          must startWith("M")
-        rcaspDetails.RCASPID                 must startWith("6")
+        rcaspDetails.RCASPID               mustBe "RCASP45678"
         rcaspDetails.PartyType             mustBe "Individual"
         rcaspDetails.PrimaryContactDetails mustBe empty
       }
 
       s"must return Ok - $OK response with empty optional fields in organisation response for a valid CARFID starting with OO" in {
-        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("OOCAR0024000102", "683373339").url)
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("OOCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe OK
@@ -85,14 +84,14 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
           .as[List[response.OrganisationRcaspDetails]]
           .head
         rcaspDetails.SubscriptionID            must startWith("O")
-        rcaspDetails.RCASPID                   must startWith("6")
+        rcaspDetails.RCASPID                 mustBe "RCASP23456"
         rcaspDetails.PartyType               mustBe "Organisation"
         rcaspDetails.PrimaryContactDetails   mustBe empty
         rcaspDetails.SecondaryContactDetails mustBe empty
       }
 
       s"must return Ok - $OK response with multiple RCASP items in individual response for a valid CARFID starting with LL" in {
-        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("LLCAR0024000102", "683373339").url)
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("LLCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe OK
@@ -102,7 +101,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
       }
 
       s"must return Ok - $OK response with multiple RCASP items in organisation response for a valid CARFID starting with NN" in {
-        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("NNCAR0024000102", "683373339").url)
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("NNCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe OK
@@ -112,7 +111,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
       }
 
       s"must return Ok - $OK response with no RCASP items in response for a valid CARFID starting with KK" in {
-        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("KKCAR0024000102", "683373339").url)
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("KKCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe OK
@@ -122,28 +121,28 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
       }
 
       s"must return Internal Server Error - $INTERNAL_SERVER_ERROR response for a valid CARFID starting with YY" in {
-        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("YYCAR0024000102", "683373339").url)
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("YYCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
 
       s"must return Bad Request - $BAD_REQUEST response for a valid CARFID starting with TT" in {
-        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("TTCAR0024000102", "683373339").url)
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("TTCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe BAD_REQUEST
       }
 
       s"must return Unprocessable Entity - 422 response for a valid CARFID starting with PP" in {
-        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("PPCAR0024000102", "683373339").url)
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("PPCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe UNPROCESSABLE_ENTITY
       }
 
       s"must return Service Unavailable - $SERVICE_UNAVAILABLE response for a valid CARFID starting with SS" in {
-        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("SSCAR0024000102", "683373339").url)
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("SSCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe SERVICE_UNAVAILABLE
