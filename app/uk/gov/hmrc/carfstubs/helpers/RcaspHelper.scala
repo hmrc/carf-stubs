@@ -69,16 +69,34 @@ trait RcaspHelper extends Logging {
   private def fullIndividualRcaspResponse(carfId: String) = ViewRcaspResponse(
     ViewRCASP = ViewRcasp(
       ResponseCommon = rcaspResponseCommon,
-      ResponseDetails =
-        RcaspResponseDetails(RCASPList = List(fullIndividualRcaspDetails(carfId, rcaspId = "RCASP56789")))
+      ResponseDetails = RcaspResponseDetails(RCASPList =
+        List(
+          fullIndividualRcaspDetails(
+            carfId,
+            rcaspId = "RCASP56789",
+            isRCaspUser = true,
+            firstName = "Penny",
+            lastName = "Cassiopeia"
+          )
+        )
+      )
     )
   )
 
   private def emptyOptionalsIndividualRcaspResponse(carfId: String) = ViewRcaspResponse(
     ViewRCASP = ViewRcasp(
       ResponseCommon = rcaspResponseCommon,
-      ResponseDetails =
-        RcaspResponseDetails(RCASPList = List(emptyOptionalsIndividualRcaspDetails(carfId, rcaspId = "RCASP45678")))
+      ResponseDetails = RcaspResponseDetails(RCASPList =
+        List(
+          emptyOptionalsIndividualRcaspDetails(
+            carfId,
+            rcaspId = "RCASP45678",
+            isRCaspUser = false,
+            firstName = "Nemona",
+            lastName = "Champion"
+          )
+        )
+      )
     )
   )
 
@@ -87,8 +105,41 @@ trait RcaspHelper extends Logging {
       ResponseCommon = rcaspResponseCommon,
       ResponseDetails = RcaspResponseDetails(RCASPList =
         List(
-          fullIndividualRcaspDetails(carfId, rcaspId = "RCASP56789"),
-          emptyOptionalsIndividualRcaspDetails(carfId, rcaspId = "RCASP45678")
+          fullIndividualRcaspDetails(
+            carfId,
+            rcaspId = "RCASP1",
+            isRCaspUser = false,
+            firstName = "Penny",
+            lastName = "Smith"
+          ),
+          emptyOptionalsIndividualRcaspDetails(
+            carfId,
+            rcaspId = "RCASP2",
+            isRCaspUser = false,
+            firstName = "Penny",
+            lastName = "Cassiopeia"
+          ),
+          emptyOptionalsIndividualRcaspDetails(
+            carfId,
+            rcaspId = "RCASP3",
+            isRCaspUser = true,
+            firstName = "Nemona",
+            lastName = "Champion"
+          ),
+          fullIndividualRcaspDetails(
+            carfId,
+            rcaspId = "RCASP4",
+            isRCaspUser = false,
+            firstName = "Bob",
+            lastName = "Smith"
+          ),
+          fullIndividualRcaspDetails(
+            carfId,
+            rcaspId = "RCASP5",
+            isRCaspUser = false,
+            firstName = "John",
+            lastName = "Doe"
+          )
         )
       )
     )
@@ -101,57 +152,82 @@ trait RcaspHelper extends Logging {
     )
   )
 
-  private def fullIndividualRcaspDetails(carfId: String, rcaspId: String) = IndividualRcaspDetails(
-    SubscriptionID = carfId,
-    RCASPID = rcaspId,
-    IsRCASPUser = true,
-    PartyType = "Individual",
-    FirstName = "Penny",
-    LastName = "Cassiopeia",
-    TINDetails = Some(
-      List(
-        TinDetails(
-          TINType = "UTR",
-          TIN = "6893649",
-          IssuedBy = "GB"
+  private def fullIndividualRcaspDetails(
+      carfId: String,
+      rcaspId: String,
+      isRCaspUser: Boolean,
+      firstName: String,
+      lastName: String
+  ) =
+    IndividualRcaspDetails(
+      SubscriptionID = carfId,
+      RCASPID = rcaspId,
+      IsRCASPUser = isRCaspUser,
+      PartyType = "Individual",
+      FirstName = firstName,
+      LastName = lastName,
+      TINDetails = Some(
+        List(
+          TinDetails(
+            TINType = "UTR",
+            TIN = "6893649",
+            IssuedBy = "GB"
+          )
+        )
+      ),
+      AddressDetails = fullAddress,
+      PrimaryContactDetails = Some(
+        RcaspContactDetails(
+          ContactName = s"$firstName $lastName",
+          EmailAddress = "penny.cassiopeia@uva.edu.org",
+          PhoneNumber = Some("07123412345")
         )
       )
-    ),
-    AddressDetails = fullAddress,
-    PrimaryContactDetails = Some(
-      RcaspContactDetails(
-        ContactName = "Penny Cassiopeia",
-        EmailAddress = "penny.cassiopeia@uva.edu.org",
-        PhoneNumber = Some("07123412345")
-      )
     )
-  )
 
-  private def emptyOptionalsIndividualRcaspDetails(carfId: String, rcaspId: String) = IndividualRcaspDetails(
-    SubscriptionID = carfId,
-    RCASPID = rcaspId,
-    IsRCASPUser = false,
-    PartyType = "Individual",
-    FirstName = "Nemona",
-    LastName = "Champion",
-    TINDetails = None,
-    AddressDetails = fullAddress,
-    PrimaryContactDetails = None
-  )
+  private def emptyOptionalsIndividualRcaspDetails(
+      carfId: String,
+      rcaspId: String,
+      isRCaspUser: Boolean,
+      firstName: String,
+      lastName: String
+  ) =
+    IndividualRcaspDetails(
+      SubscriptionID = carfId,
+      RCASPID = rcaspId,
+      IsRCASPUser = isRCaspUser,
+      PartyType = "Individual",
+      FirstName = firstName,
+      LastName = lastName,
+      TINDetails = None,
+      AddressDetails = fullAddress,
+      PrimaryContactDetails = None
+    )
 
   private def fullOrganisationRcaspResponse(carfId: String) = ViewRcaspResponse(
     ViewRCASP = ViewRcasp(
       ResponseCommon = rcaspResponseCommon,
-      ResponseDetails =
-        RcaspResponseDetails(RCASPList = List(fullOrganisationRcaspDetails(carfId, rcaspId = "RCASP12345")))
+      ResponseDetails = RcaspResponseDetails(RCASPList =
+        List(
+          fullOrganisationRcaspDetails(carfId, rcaspId = "RCASP12345", isRCaspUser = true, rcaspName = "Mesagoza")
+        )
+      )
     )
   )
 
   private def emptyOptionalsOrganisationRcaspResponse(carfId: String) = ViewRcaspResponse(
     ViewRCASP = ViewRcasp(
       ResponseCommon = rcaspResponseCommon,
-      ResponseDetails =
-        RcaspResponseDetails(RCASPList = List(emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "RCASP23456")))
+      ResponseDetails = RcaspResponseDetails(RCASPList =
+        List(
+          emptyOptionalsOrganisationRcaspDetails(
+            carfId,
+            rcaspId = "RCASP23456",
+            isRCaspUser = false,
+            rcaspName = "Amazon UK"
+          )
+        )
+      )
     )
   )
 
@@ -160,58 +236,78 @@ trait RcaspHelper extends Logging {
       ResponseCommon = rcaspResponseCommon,
       ResponseDetails = RcaspResponseDetails(RCASPList =
         List(
-          fullOrganisationRcaspDetails(carfId, rcaspId = "RCASP12345"),
-          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "RCASP23456")
+          fullOrganisationRcaspDetails(carfId, rcaspId = "RCASP1", isRCaspUser = false, rcaspName = "Timmy's Turtles"),
+          fullOrganisationRcaspDetails(carfId, rcaspId = "RCASP2", isRCaspUser = false, rcaspName = "Apple"),
+          fullOrganisationRcaspDetails(carfId, rcaspId = "RCASP3", isRCaspUser = true, rcaspName = "Mesagoza"),
+          emptyOptionalsOrganisationRcaspDetails(
+            carfId,
+            rcaspId = "RCASP4",
+            isRCaspUser = false,
+            rcaspName = "Amazon UK"
+          ),
+          emptyOptionalsOrganisationRcaspDetails(
+            carfId,
+            rcaspId = "RCASP5",
+            isRCaspUser = false,
+            rcaspName = "Name Name"
+          )
         )
       )
     )
   )
 
-  private def fullOrganisationRcaspDetails(carfId: String, rcaspId: String) = OrganisationRcaspDetails(
-    SubscriptionID = carfId,
-    RCASPID = rcaspId,
-    IsRCASPUser = true,
-    PartyType = "Organisation",
-    RCASPName = "Mesagoza",
-    TradingName = "Uva Academy",
-    TINDetails = Some(
-      List(
-        TinDetails(
-          TINType = "UTR",
-          TIN = "6893649",
-          IssuedBy = "GB"
+  private def fullOrganisationRcaspDetails(carfId: String, rcaspId: String, isRCaspUser: Boolean, rcaspName: String) =
+    OrganisationRcaspDetails(
+      SubscriptionID = carfId,
+      RCASPID = rcaspId,
+      IsRCASPUser = isRCaspUser,
+      PartyType = "Organisation",
+      RCASPName = rcaspName,
+      TradingName = "Uva Academy",
+      TINDetails = Some(
+        List(
+          TinDetails(
+            TINType = "UTR",
+            TIN = "6893649",
+            IssuedBy = "GB"
+          )
+        )
+      ),
+      AddressDetails = fullAddress,
+      PrimaryContactDetails = Some(
+        RcaspContactDetails(
+          ContactName = "Clavell",
+          EmailAddress = "clavell@uva.edu.org",
+          PhoneNumber = Some("07123412344")
+        )
+      ),
+      SecondaryContactDetails = Some(
+        RcaspContactDetails(
+          ContactName = "Jacq",
+          EmailAddress = "jacq@uva.edu.org",
+          PhoneNumber = Some("07123412345")
         )
       )
-    ),
-    AddressDetails = fullAddress,
-    PrimaryContactDetails = Some(
-      RcaspContactDetails(
-        ContactName = "Clavell",
-        EmailAddress = "clavell@uva.edu.org",
-        PhoneNumber = Some("07123412344")
-      )
-    ),
-    SecondaryContactDetails = Some(
-      RcaspContactDetails(
-        ContactName = "Jacq",
-        EmailAddress = "jacq@uva.edu.org",
-        PhoneNumber = Some("07123412345")
-      )
     )
-  )
 
-  private def emptyOptionalsOrganisationRcaspDetails(carfId: String, rcaspId: String) = OrganisationRcaspDetails(
-    SubscriptionID = carfId,
-    RCASPID = rcaspId,
-    IsRCASPUser = false,
-    PartyType = "Organisation",
-    RCASPName = "Amazon UK",
-    TradingName = "Tools for Traders Limited",
-    TINDetails = None,
-    AddressDetails = fullAddress,
-    PrimaryContactDetails = None,
-    SecondaryContactDetails = None
-  )
+  private def emptyOptionalsOrganisationRcaspDetails(
+      carfId: String,
+      rcaspId: String,
+      isRCaspUser: Boolean,
+      rcaspName: String
+  ) =
+    OrganisationRcaspDetails(
+      SubscriptionID = carfId,
+      RCASPID = rcaspId,
+      IsRCASPUser = isRCaspUser,
+      PartyType = "Organisation",
+      RCASPName = rcaspName,
+      TradingName = "Tools for Traders Limited",
+      TINDetails = None,
+      AddressDetails = fullAddress,
+      PrimaryContactDetails = None,
+      SecondaryContactDetails = None
+    )
 
   private def rcaspResponseCommon = RcaspResponseCommon(
     OriginatingSystem = "CADX",

@@ -97,7 +97,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
         status(result) mustBe OK
         (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
           .as[List[response.IndividualRcaspDetails]]
-          .length      mustBe 2
+          .length      mustBe 5
       }
 
       s"must return Ok - $OK response with multiple RCASP items in organisation response for a valid CARFID starting with NN" in {
@@ -107,7 +107,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
         status(result) mustBe OK
         (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
           .as[List[response.OrganisationRcaspDetails]]
-          .length      mustBe 2
+          .length      mustBe 5
       }
 
       s"must return Ok - $OK response with no RCASP items in response for a valid CARFID starting with KK" in {
