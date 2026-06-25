@@ -29,11 +29,11 @@ import scala.concurrent.Future
 class RcaspController @Inject() (cc: ControllerComponents) extends BackendController(cc) with Logging with RcaspHelper:
 
   def viewRcasp(carfId: String, rcaspId: String): Action[AnyContent] = Action.async { implicit request =>
-    logger.info(s"View RCASP Request received")
-    val response: Result = returnRcaspResponse(carfId, rcaspId)
+    logger.info(s"View RCASP Request received with carfID: $carfId, rcaspId: $rcaspId")
+    val response: Result = returnRcaspResponse(carfId)
     logger.info(
       s"Response Code \n-> ${response.header.status}" +
-        s"Response Body \n-> $response"
+        s"\nResponse Body \n-> $response"
     )
     Future.successful(response)
   }
