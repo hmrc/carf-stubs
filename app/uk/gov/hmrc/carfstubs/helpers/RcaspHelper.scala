@@ -43,16 +43,14 @@ trait RcaspHelper extends Logging {
     }
 
   def returnCreateResponse(request: CreateRCASPRequest): Result =
-    request.RCASPManagement.RequestDetails.PrimaryContactDetails.fold(badRequest400Response) { contactDetails =>
-      contactDetails.EmailAddress.take(2) match {
-        case "UU" => unprocessableEntity422Response
-        case "VV" => forbiddenResponse
-        case "WW" => notAllowedResponse
-        case "XX" => badRequest400Response
-        case "YY" => internalServerError500Response
-        case "ZZ" => serviceUnavailable503Response
-        case _    => successfulCreateResponse
-      }
+    request.RCASPManagement.RequestDetails.SubscriptionID.takeRight(1) match {
+      case "9" => unprocessableEntity422Response
+      case "8" => forbiddenResponse
+      case "7" => notAllowedResponse
+      case "6" => badRequest400Response
+      case "5" => internalServerError500Response
+      case "4" => serviceUnavailable503Response
+      case _   => successfulCreateResponse
     }
 
   private def successfulCreateResponse: Result =
@@ -60,7 +58,7 @@ trait RcaspHelper extends Logging {
       Json.toJson(
         SubmitRcaspResponse(
           SubmitResponseDetails(
-            SubmitReturnParameters("RCASPID", "RCASP12345")
+            SubmitReturnParameters("RCASPID", "ZMCAR0123456789")
           )
         )
       )
@@ -73,7 +71,7 @@ trait RcaspHelper extends Logging {
         List(
           fullIndividualRcaspDetails(
             carfId,
-            rcaspId = "RCASP56789",
+            rcaspId = "ZMCAR0123456780",
             isRCaspUser = true,
             firstName = "Penny",
             lastName = "Cassiopeia"
@@ -90,7 +88,7 @@ trait RcaspHelper extends Logging {
         List(
           emptyOptionalsIndividualRcaspDetails(
             carfId,
-            rcaspId = "RCASP45678",
+            rcaspId = "ZMCAR0123456781",
             isRCaspUser = false,
             firstName = "Nemona",
             lastName = "Champion"
@@ -107,35 +105,35 @@ trait RcaspHelper extends Logging {
         List(
           fullIndividualRcaspDetails(
             carfId,
-            rcaspId = "RCASP1",
+            rcaspId = "ZMCAR0123456780",
             isRCaspUser = false,
             firstName = "Penny",
             lastName = "Smith"
           ),
           emptyOptionalsIndividualRcaspDetails(
             carfId,
-            rcaspId = "RCASP2",
+            rcaspId = "ZMCAR0123456781",
             isRCaspUser = false,
             firstName = "Penny",
             lastName = "Cassiopeia"
           ),
           emptyOptionalsIndividualRcaspDetails(
             carfId,
-            rcaspId = "RCASP3",
+            rcaspId = "ZMCAR0123456782",
             isRCaspUser = true,
             firstName = "Nemona",
             lastName = "Champion"
           ),
           fullIndividualRcaspDetails(
             carfId,
-            rcaspId = "RCASP4",
+            rcaspId = "ZMCAR0123456783",
             isRCaspUser = false,
             firstName = "Bob",
             lastName = "Smith"
           ),
           fullIndividualRcaspDetails(
             carfId,
-            rcaspId = "RCASP5",
+            rcaspId = "ZMCAR0123456784",
             isRCaspUser = false,
             firstName = "John",
             lastName = "Doe"
@@ -209,7 +207,7 @@ trait RcaspHelper extends Logging {
       ResponseCommon = rcaspResponseCommon,
       ResponseDetails = RcaspResponseDetails(RCASPList =
         List(
-          fullOrganisationRcaspDetails(carfId, rcaspId = "RCASP12345", isRCaspUser = true, rcaspName = "Mesagoza")
+          fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456785", isRCaspUser = true, rcaspName = "Mesagoza")
         )
       )
     )
@@ -222,7 +220,7 @@ trait RcaspHelper extends Logging {
         List(
           emptyOptionalsOrganisationRcaspDetails(
             carfId,
-            rcaspId = "RCASP23456",
+            rcaspId = "ZMCAR0123456786",
             isRCaspUser = false,
             rcaspName = "Amazon UK"
           )
@@ -236,18 +234,23 @@ trait RcaspHelper extends Logging {
       ResponseCommon = rcaspResponseCommon,
       ResponseDetails = RcaspResponseDetails(RCASPList =
         List(
-          fullOrganisationRcaspDetails(carfId, rcaspId = "RCASP1", isRCaspUser = false, rcaspName = "Timmy's Turtles"),
-          fullOrganisationRcaspDetails(carfId, rcaspId = "RCASP2", isRCaspUser = false, rcaspName = "Apple"),
-          fullOrganisationRcaspDetails(carfId, rcaspId = "RCASP3", isRCaspUser = true, rcaspName = "Mesagoza"),
+          fullOrganisationRcaspDetails(
+            carfId,
+            rcaspId = "ZMCAR0123456785",
+            isRCaspUser = false,
+            rcaspName = "Timmy's Turtles"
+          ),
+          fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456786", isRCaspUser = false, rcaspName = "Apple"),
+          fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456787", isRCaspUser = true, rcaspName = "Mesagoza"),
           emptyOptionalsOrganisationRcaspDetails(
             carfId,
-            rcaspId = "RCASP4",
+            rcaspId = "ZMCAR0123456788",
             isRCaspUser = false,
             rcaspName = "Amazon UK"
           ),
           emptyOptionalsOrganisationRcaspDetails(
             carfId,
-            rcaspId = "RCASP5",
+            rcaspId = "ZMCAR0123456789",
             isRCaspUser = false,
             rcaspName = "Name Name"
           )
