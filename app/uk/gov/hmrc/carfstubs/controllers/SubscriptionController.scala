@@ -36,11 +36,11 @@ class SubscriptionController @Inject() (cc: ControllerComponents)
   }
 
   def displaySubscription(carfId: String): Action[AnyContent] = Action.async { implicit request =>
-    logger.info(s"Subscription Retrieval Request received")
+    logger.info(s"Subscription Retrieval Request received for carfId $carfId")
     val response: Result = returnDisplayResponse(carfId)
     logger.info(
       s"Response Code \n-> ${response.header.status}" +
-        s"Response Body \n-> $response"
+        s"\nResponse Body \n-> $response"
     )
     Future.successful(response)
   }

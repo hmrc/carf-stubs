@@ -27,9 +27,7 @@ import uk.gov.hmrc.carfstubs.utils.HelperUtil.errorDetailJson
 
 trait SubscriptionHelper extends Logging {
 
-  def returnDisplayResponse(carfId: String): Result = {
-    logger.info(s"Received subscription display request")
-
+  def returnDisplayResponse(carfId: String): Result =
     carfId.take(1).toUpperCase match {
       case "Y" => internalServerError500Response
       case "X" => NotFound("The match was unsuccessful")
@@ -37,12 +35,11 @@ trait SubscriptionHelper extends Logging {
       case "T" => badRequest400Response
       case "S" => serviceUnavailable503Response
       case "R" => Ok(Json.toJson(fullOrganisationSubscriptionDisplayResponse(carfId)))
-      case "Q" => Ok(Json.toJson(noOptionalSubscriptionResponse(carfId)))
+      case "Q" => Ok(Json.toJson(noOptionalOrganisationSubscriptionResponse(carfId)))
       case "P" => unprocessableEntity422Response
       case "O" => Ok(Json.toJson(noPhoneSubscriptionDisplayResponse(carfId)))
       case _   => Ok(Json.toJson(fullIndividualSubscriptionDisplayResponse(carfId)))
     }
-  }
 
   private def fullIndividualSubscriptionDisplayResponse(carfReference: String) = SubscriptionDisplayResponse(
     success = SubscriptionDisplaySuccess(
@@ -103,12 +100,12 @@ trait SubscriptionHelper extends Logging {
     )
   )
 
-  private def noOptionalSubscriptionResponse(carfReference: String) = SubscriptionDisplayResponse(
+  private def noOptionalOrganisationSubscriptionResponse(carfReference: String) = SubscriptionDisplayResponse(
     success = SubscriptionDisplaySuccess(
       processingDate = java.time.Instant.now().toString,
       carfSubscriptionDetails = CarfSubscriptionDetails(
         carfReference = carfReference,
-        tradingName = Some("CARF LTD"),
+        tradingName = None,
         gbUser = true,
         primaryContact = Contact(
           organisation = Some(

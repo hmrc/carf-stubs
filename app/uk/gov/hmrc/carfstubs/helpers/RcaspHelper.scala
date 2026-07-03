@@ -28,18 +28,18 @@ import uk.gov.hmrc.carfstubs.utils.HelperUtil.errorDetailJson
 trait RcaspHelper extends Logging {
 
   def returnRcaspResponse(carfId: String): Result =
-    carfId.take(2).toUpperCase match {
-      case "YY" => internalServerError500Response
-      case "TT" => badRequest400Response
-      case "SS" => serviceUnavailable503Response
-      case "RR" => Ok(Json.toJson(fullOrganisationRcaspResponse(carfId)))
-      case "PP" => unprocessableEntity422Response
-      case "OO" => Ok(Json.toJson(emptyOptionalsOrganisationRcaspResponse(carfId)))
-      case "NN" => Ok(Json.toJson(multipleOrganisationRcaspResponse(carfId)))
-      case "MM" => Ok(Json.toJson(emptyOptionalsIndividualRcaspResponse(carfId)))
-      case "LL" => Ok(Json.toJson(multipleIndividualRcaspResponse(carfId)))
-      case "KK" => Ok(Json.toJson(noRcaspsResponse))
-      case _    => Ok(Json.toJson(fullIndividualRcaspResponse(carfId)))
+    carfId.slice(1, 2).toUpperCase match {
+      case "Y" => internalServerError500Response
+      case "T" => badRequest400Response
+      case "S" => serviceUnavailable503Response
+      case "R" => Ok(Json.toJson(fullOrganisationRcaspResponse(carfId)))
+      case "P" => unprocessableEntity422Response
+      case "O" => Ok(Json.toJson(emptyOptionalsOrganisationRcaspResponse(carfId)))
+      case "N" => Ok(Json.toJson(multipleOrganisationRcaspResponse(carfId)))
+      case "M" => Ok(Json.toJson(emptyOptionalsIndividualRcaspResponse(carfId)))
+      case "L" => Ok(Json.toJson(multipleIndividualRcaspResponse(carfId)))
+      case "K" => Ok(Json.toJson(noRcaspsResponse))
+      case _   => Ok(Json.toJson(fullIndividualRcaspResponse(carfId)))
     }
 
   def returnCreateResponse(request: CreateRCASPRequest): Result =

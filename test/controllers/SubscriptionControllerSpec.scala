@@ -17,7 +17,6 @@
 package controllers
 
 import base.SpecBase
-import org.scalatest.OptionValues
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -25,7 +24,7 @@ import uk.gov.hmrc.carfstubs.controllers.routes
 import uk.gov.hmrc.carfstubs.models.request.{Contact, Subscription}
 import uk.gov.hmrc.carfstubs.models.{Individual, Organisation}
 
-class SubscriptionControllerSpec extends SpecBase with OptionValues {
+class SubscriptionControllerSpec extends SpecBase {
 
   "SubscriptionController" - {
     "createSubscription" - {
@@ -772,12 +771,11 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val json = contentAsJson(result)
-        (json \ "success" \ "carfSubscriptionDetails" \ "carfReference").as[String] must startWith("Q")
+        (json \ "success" \ "carfSubscriptionDetails" \ "carfReference").as[String]    must startWith("Q")
         (json \ "success" \ "carfSubscriptionDetails" \ "primaryContact" \ "organisation")
-          .asOpt[Organisation]                                                    mustBe defined
-
-        (json \ "success" \ "carfSubscriptionDetails" \ "phone")
-          .asOpt[String] mustBe empty
+          .asOpt[Organisation]                                                       mustBe defined
+        (json \ "success" \ "carfSubscriptionDetails" \ "tradingName").asOpt[String] mustBe empty
+        (json \ "success" \ "carfSubscriptionDetails" \ "phone").asOpt[String]       mustBe empty
       }
 
       s"must return Ok - $OK response with empty response for a valid CARFID starting with W" in {
@@ -787,7 +785,10 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         status(result) mustBe OK
         val json = contentAsJson(result)
         (json \ "success" \ "carfSubscriptionDetails" \ "carfReference").as[String]    must startWith("W")
+        (json \ "success" \ "carfSubscriptionDetails" \ "primaryContact" \ "individual")
+          .asOpt[Individual]                                                         mustBe defined
         (json \ "success" \ "carfSubscriptionDetails" \ "tradingName").asOpt[String] mustBe empty
+        (json \ "success" \ "carfSubscriptionDetails" \ "phone").asOpt[String]       mustBe empty
       }
 
       s"must return Internal Server Error - $INTERNAL_SERVER_ERROR response for a valid CARFID starting with Y" in {
@@ -811,14 +812,14 @@ class SubscriptionControllerSpec extends SpecBase with OptionValues {
         status(result) mustBe BAD_REQUEST
       }
 
-      s"must return Unprocessable Entity - 422 response for a valid CARFID starting with P" in {
+      s"must return Unprocessable Entity - $UNPROCESSABLE_ENTITY response for a valid CARFID starting with P" in {
         val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("PCCAR0024000102").url)
         val result  = route(app, request).value
 
         status(result) mustBe UNPROCESSABLE_ENTITY
       }
 
-      s"must return Ok - 200 response with no phone for a valid CARFID starting with O" in {
+      s"must return Ok - $OK response with no phone for a valid CARFID starting with O" in {
         val request = FakeRequest(GET, routes.SubscriptionController.displaySubscription("OCCAR0024000102").url)
         val result  = route(app, request).value
 
