@@ -23,7 +23,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.carfstubs.controllers.routes
 import uk.gov.hmrc.carfstubs.models.*
-import uk.gov.hmrc.carfstubs.models.request.{CreateRCASPRequest, RCASPManagementRequest, RcaspCreateRequestCommon, RequestParameter}
+import uk.gov.hmrc.carfstubs.models.request.{CreateRCASPRequest, RCASPManagementRequest, RcaspCreateRequestCommon}
 import uk.gov.hmrc.carfstubs.models.response.{RcaspDetails, SubmitRcaspResponse, SubmitResponseDetails, SubmitReturnParameters}
 
 class RcaspControllerSpec extends SpecBase with OptionValues {
@@ -198,7 +198,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
                   TransmittingSystem = "EIS",
                   RequestType = "CREATE",
                   Regime = "CARF",
-                  RequestParameters = List(RequestParameter("key", "value"))
+                  RequestParameters = None
                 ),
                 request.IndividualRcaspDetails(
                   SubscriptionID = s"XCARF00000000$digit",
@@ -327,13 +327,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
          |      "OriginatingSystem": "MDTP",
          |      "TransmittingSystem": "EIS",
          |      "RequestType": "CREATE",
-         |      "Regime": "CARF",
-         |      "RequestParameters": [
-         |        {
-         |          "ParamName": "Test",
-         |          "ParamValue": "Test"
-         |        }
-         |      ]
+         |      "Regime": "CARF"
          |    },
          |    "RequestDetails": {
          |      "RCASPName": "Amazon UK",
@@ -372,13 +366,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
          |      "OriginatingSystem": "MDTP",
          |      "TransmittingSystem": "EIS",
          |      "RequestType": "CREATE",
-         |      "Regime": "CARF",
-         |      "RequestParameters": [
-         |        {
-         |          "ParamName": "Test",
-         |          "ParamValue": "Test"
-         |        }
-         |      ]
+         |      "Regime": "CARF"
          |    },
          |    "RequestDetails": {
          |      "RCASPName": "Amazon UK",
@@ -427,13 +415,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
          |      "OriginatingSystem": "MDTP",
          |      "TransmittingSystem": "EIS",
          |      "RequestType": "CREATE",
-         |      "Regime": "CARF",
-         |      "RequestParameters": [
-         |        {
-         |          "ParamName": "Test",
-         |          "ParamValue": "Test"
-         |        }
-         |      ]
+         |      "Regime": "CARF"
          |    },
          |    "RequestDetails": {
          |      "RCASPID": "683373339",
