@@ -196,7 +196,7 @@ class RcaspControllerSpec extends SpecBase {
                |    "RequestCommon": {
                |      "OriginatingSystem": "MDTP",
                |      "TransmittingSystem": "EIS",
-               |      "RequestType": "CREATE",
+               |      "RequestType": "UPDATE",
                |      "Regime": "CARF",
                |      "RequestParameters": [
                |        {
@@ -279,59 +279,12 @@ class RcaspControllerSpec extends SpecBase {
           status(result) mustBe OK
         }
 
-        s"must return Ok - $OK response for a valid json from model when the carfId ends with $digit" in {
-          val json: JsValue = Json.toJson(
-            createRcasp.RcaspRequest(
-              createRcasp.RcaspManagementRequest(
-                RcaspRequestCommon(
-                  OriginatingSystem = "MDTP",
-                  TransmittingSystem = "EIS",
-                  RequestType = "CREATE",
-                  Regime = "CARF",
-                  RequestParameters = None
-                ),
-                createRcasp.IndividualRcaspDetails(
-                  SubscriptionID = s"XCARF00000000$digit",
-                  IsRCASPUser = true,
-                  PartyType = "Individual",
-                  FirstName = "Penny",
-                  LastName = "Cassiopeia",
-                  TINDetails = Some(
-                    List(
-                      TinDetails(
-                        TINType = "OTHER",
-                        TIN = "6893649",
-                        IssuedBy = "GB"
-                      )
-                    )
-                  ),
-                  AddressDetails = RcaspAddress(
-                    AddressLine1 = "2 High Street",
-                    AddressLine2 = Some("Birmingham"),
-                    AddressLine3 = Some("Nowhereshire"),
-                    AddressLine4 = Some("Down the road"),
-                    PostalCode = "B23 2AZ",
-                    CountryCode = "GB"
-                  ),
-                  PrimaryContactDetails = Some(
-                    RcaspContactDetails(
-                      ContactName = "Penny Cassiopeia",
-                      EmailAddress = "penny.cassiopeia@uva.edu.org",
-                      PhoneNumber = Some("07123412345")
-                    )
-                  )
-                )
-              )
-            )
-          )
-        }
-
         s"must return Ok - $OK response for a valid create json from model with $digit" in {
           val json: JsValue = Json.toJson(
             createRcasp.RcaspRequest(
               createRcasp.RcaspManagementRequest(
                 RcaspRequestCommon(
-                  OriginatingSystem = "CADX",
+                  OriginatingSystem = "MDTP",
                   TransmittingSystem = "EIS",
                   RequestType = "CREATE",
                   Regime = "CARF",
@@ -383,9 +336,9 @@ class RcaspControllerSpec extends SpecBase {
             updateRcasp.RcaspRequest(
               updateRcasp.RcaspManagementRequest(
                 RcaspRequestCommon(
-                  OriginatingSystem = "CADX",
+                  OriginatingSystem = "MDTP",
                   TransmittingSystem = "EIS",
-                  RequestType = "CREATE",
+                  RequestType = "UPDATE",
                   Regime = "CARF",
                   RequestParameters = Option(List(RequestParameter("key", "value")))
                 ),
@@ -437,7 +390,7 @@ class RcaspControllerSpec extends SpecBase {
             deleteRcasp.RcaspRequest(
               deleteRcasp.RcaspManagementRequest(
                 RcaspRequestCommon(
-                  OriginatingSystem = "CADX",
+                  OriginatingSystem = "MDTP",
                   TransmittingSystem = "EIS",
                   RequestType = "DELETE",
                   Regime = "CARF",
