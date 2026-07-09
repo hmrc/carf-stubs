@@ -20,6 +20,7 @@ import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.carfstubs.helpers.SubscriptionHelper
+import uk.gov.hmrc.carfstubs.models.{Create, RequestType, Update}
 import uk.gov.hmrc.carfstubs.models.request.Subscription
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -32,7 +33,7 @@ class SubscriptionController @Inject() (cc: ControllerComponents)
     with SubscriptionHelper:
 
   def createSubscription: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    processSubscription(false)(returnCreateResponse)
+    processSubscription(Create("Subscription"))(returnCreateResponse)
   }
 
   def displaySubscription(carfId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -46,29 +47,26 @@ class SubscriptionController @Inject() (cc: ControllerComponents)
   }
 
   def updateSubscription(): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    processSubscription(true)(returnUpdateResponse)
+    processSubscription(Update("Subscription"))(returnUpdateResponse)
   }
 
   private def processSubscription(
-      isUpdate: Boolean
+      requestType: RequestType
   )(f: Subscription => Result)(implicit request: Request[JsValue]): Future[Result] = {
 
-    val requestType     = if isUpdate then "Update" else "Create"
-    val requestFunction = if isUpdate then "updateSubscription" else "createSubscription"
-
-    logger.info(s"Subscription $requestType Request received: \n -> ${Json.prettyPrint(request.body)}")
+    logger.info(s"Subscription ${requestType.name} Request received: \n -> ${Json.prettyPrint(request.body)}")
 
     request.body.validate[Subscription] match {
       case JsSuccess(payload, _) =>
         logger.debug("Json validation success")
         val response: Result = f(payload)
         logger.info(
-          s"$requestFunction Stub returned Response Code \n-> ${response.header.status}"
+          s"${requestType.printFunctionName} Stub returned Response Code \n-> ${response.header.status}"
         )
         Future.successful(response)
 
       case JsError(errors) =>
-        logger.error(s"Invalid $requestFunction payload: ${errors.mkString(", ")}")
-        Future.successful(BadRequest(s"Invalid $requestFunction payload: ${errors.mkString(", ")}"))
+        logger.error(s"Invalid ${requestType.printFunctionName} payload: ${errors.mkString(", ")}")
+        Future.successful(BadRequest(s"Invalid ${requestType.printFunctionName}payload: ${errors.mkString(", ")}"))
     }
   }

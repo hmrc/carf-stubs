@@ -17,27 +17,26 @@
 package controllers
 
 import base.SpecBase
-import org.scalatest.OptionValues
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.carfstubs.controllers.routes
 import uk.gov.hmrc.carfstubs.models.*
-import uk.gov.hmrc.carfstubs.models.request.{CreateRCASPRequest, RCASPManagementRequest, RcaspCreateRequestCommon}
-import uk.gov.hmrc.carfstubs.models.response.{RcaspDetails, SubmitRcaspResponse, SubmitResponseDetails, SubmitReturnParameters}
+import uk.gov.hmrc.carfstubs.models.request.createRcasp.RcaspRequest
+import uk.gov.hmrc.carfstubs.models.request.{createRcasp, deleteRcasp, updateRcasp, RcaspRequestCommon, RequestParameter}
+import uk.gov.hmrc.carfstubs.models.response.{SubmitRcaspResponse, SubmitResponseDetails, SubmitReturnParameters}
 
-class RcaspControllerSpec extends SpecBase with OptionValues {
+class RcaspControllerSpec extends SpecBase {
 
   "RcaspController" - {
     "viewRcasp" - {
-
       s"must return Ok - $OK response with full individual response for a valid CARFID" in {
         val request = FakeRequest(GET, routes.RcaspController.viewRcasp("XCCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe OK
         val rcaspDetails = (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[response.IndividualRcaspDetails]]
+          .as[List[viewAndUpdateRcasp.IndividualRcaspDetails]]
           .head
         rcaspDetails.SubscriptionID        mustBe "XCCAR0024000102"
         rcaspDetails.RCASPID               mustBe "ZMCAR0123456780"
@@ -51,7 +50,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val rcaspDetails = (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[response.OrganisationRcaspDetails]]
+          .as[List[viewAndUpdateRcasp.OrganisationRcaspDetails]]
           .head
         rcaspDetails.SubscriptionID          mustBe "XRCAR0024000102"
         rcaspDetails.RCASPID                 mustBe "ZMCAR0123456785"
@@ -66,7 +65,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val rcaspDetails = (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[response.IndividualRcaspDetails]]
+          .as[List[viewAndUpdateRcasp.IndividualRcaspDetails]]
           .head
 
         rcaspDetails.SubscriptionID mustBe "XMCAR0024000102"
@@ -83,7 +82,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         val rcaspDetails = (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[response.OrganisationRcaspDetails]]
+          .as[List[viewAndUpdateRcasp.OrganisationRcaspDetails]]
           .head
 
         rcaspDetails.SubscriptionID mustBe "XOCAR0024000102"
@@ -101,7 +100,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[response.IndividualRcaspDetails]]
+          .as[List[viewAndUpdateRcasp.IndividualRcaspDetails]]
           .length      mustBe 5
       }
 
@@ -111,7 +110,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[response.OrganisationRcaspDetails]]
+          .as[List[viewAndUpdateRcasp.OrganisationRcaspDetails]]
           .length      mustBe 5
       }
 
@@ -121,7 +120,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         status(result) mustBe OK
         (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[RcaspDetails]]
+          .as[List[viewAndUpdateRcasp.RcaspDetails]]
           .length      mustBe 0
       }
 
@@ -154,7 +153,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
       }
     }
 
-    "createRcasp" - {
+    "createUpdateOrDeleteRcasp" - {
       val submitRcaspResponse = SubmitRcaspResponse(
         SubmitResponseDetails(
           SubmitReturnParameters("RCASPID", "ZMCAR0123456789")
@@ -163,8 +162,8 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
       Seq("0", "1", "2", "3").foreach { digit =>
         s"must return Ok - $OK response for a valid json with organisation in request (registered business) when the carfId ends with $digit" in {
-          val json: JsValue = buildCreateOrgRegisteredBusinessRcaspJson(s"XCARF00000000$digit")
-          val request       = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+          val json: JsValue = buildCreateRegisteredBusinessRcaspJson(s"XCARF00000000$digit")
+          val request       = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
           val result        = route(app, request).value
 
           status(result)        mustBe OK
@@ -173,7 +172,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         s"must return Ok - $OK response for a valid json with organisation in request (not registered business) when the carfId ends with $digit" in {
           val json: JsValue = buildCreateOrgRcaspJson(s"XCARF00000000$digit")
-          val request       = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+          val request       = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
           val result        = route(app, request).value
 
           status(result)        mustBe OK
@@ -182,25 +181,116 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
         s"must return Ok - $OK response for a valid json with individual in request when the carfId ends with $digit" in {
           val json: JsValue = buildCreateIndvRcaspJson(s"XCARF00000000$digit")
-          val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+          val fakeRequest   = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
           val result        = route(app, fakeRequest).value
 
           status(result)        mustBe OK
           contentAsJson(result) mustBe Json.toJson(submitRcaspResponse)
         }
 
-        s"must return Ok - $OK response for a valid json from model when the carfId ends with $digit" in {
+        s"must return Ok - $OK response for a valid update json with individual in request with $digit" in {
+          val json: JsValue = Json.parse(
+            s"""
+               |{
+               |  "RCASPManagement": {
+               |    "RequestCommon": {
+               |      "OriginatingSystem": "MDTP",
+               |      "TransmittingSystem": "EIS",
+               |      "RequestType": "UPDATE",
+               |      "Regime": "CARF",
+               |      "RequestParameters": [
+               |        {
+               |          "ParamName": "Test",
+               |          "ParamValue": "Test"
+               |        }
+               |      ]
+               |    },
+               |    "RequestDetails": {
+               |      "RCASPName": "Amazon UK",
+               |      "IsRCASPUser": false,
+               |      "RCASPID": "ZMCAR0123456780",
+               |      "SubscriptionID": "XCARF00000000$digit",
+               |      "PartyType": "Organisation",
+               |      "TradingName": "Tools for Traders Limited",
+               |      "TINDetails": [
+               |        {
+               |          "TINType": "UTR",
+               |          "TIN": "68936493",
+               |          "IssuedBy": "GB"
+               |        }
+               |      ],
+               |      "AddressDetails": {
+               |        "AddressLine1": "22",
+               |        "AddressLine2": "High Street",
+               |        "AddressLine3": "Dawley",
+               |        "AddressLine4": "Dawley",
+               |        "CountryCode": "GB",
+               |        "PostalCode": "TF22 2RE"
+               |      },
+               |      "PrimaryContactDetails": {
+               |        "ContactName": "John Smith",
+               |        "EmailAddress": "jdoe@example.com",
+               |        "PhoneNumber": "0789876568"
+               |      },
+               |      "SecondaryContactDetails": {
+               |        "ContactName": "John Smith",
+               |        "EmailAddress": "jdoe@example.com",
+               |        "PhoneNumber": "0789876568"
+               |      }
+               |    }
+               |  }
+               |}
+               |""".stripMargin
+          )
+          val fakeRequest   = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
+          val result        = route(app, fakeRequest).value
+
+          status(result) mustBe OK
+        }
+
+        s"must return Ok - $OK response for a valid delete json with individual in request with $digit" in {
+          val json: JsValue = Json.parse(
+            s"""
+               |{
+               |  "RCASPManagement": {
+               |    "RequestCommon": {
+               |      "OriginatingSystem": "MDTP",
+               |      "TransmittingSystem": "EIS",
+               |      "RequestType": "DELETE",
+               |      "Regime": "CARF",
+               |      "RequestParameters": [
+               |        {
+               |          "ParamName": "TEST",
+               |          "ParamValue": "TEST"
+               |        }
+               |      ]
+               |    },
+               |    "RequestDetails": {
+               |      "RCASPID": "683373339",
+               |      "SubscriptionID": "XCARF00000000$digit"
+               |    }
+               |  }
+               |}
+               |""".stripMargin
+          )
+          val fakeRequest   = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
+          val result        = route(app, fakeRequest).value
+
+          status(result) mustBe OK
+        }
+
+        s"must return Ok - $OK response for a valid create json from model with $digit" in {
           val json: JsValue = Json.toJson(
-            CreateRCASPRequest(
-              RCASPManagementRequest(
-                RcaspCreateRequestCommon(
+            createRcasp.RcaspRequest(
+              createRcasp.RcaspManagementRequest(
+                RcaspRequestCommon(
                   OriginatingSystem = "MDTP",
                   TransmittingSystem = "EIS",
                   RequestType = "CREATE",
                   Regime = "CARF",
-                  RequestParameters = None
+                  RequestParameters = Option(List(RequestParameter("key", "value")))
                 ),
-                request.IndividualRcaspDetails(
+                createRcasp.IndividualRcaspDetails(
                   SubscriptionID = s"XCARF00000000$digit",
                   IsRCASPUser = true,
                   PartyType = "Individual",
@@ -209,7 +299,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
                   TINDetails = Some(
                     List(
                       TinDetails(
-                        TINType = "OTHER",
+                        TINType = "UTR",
                         TIN = "6893649",
                         IssuedBy = "GB"
                       )
@@ -235,7 +325,86 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
             )
           )
 
-          val fakeRequest = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+          val fakeRequest = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
+          val result      = route(app, fakeRequest).value
+
+          status(result) mustBe OK
+        }
+
+        s"must return Ok - $OK response for a valid update json from model with $digit" in {
+          val json: JsValue = Json.toJson(
+            updateRcasp.RcaspRequest(
+              updateRcasp.RcaspManagementRequest(
+                RcaspRequestCommon(
+                  OriginatingSystem = "MDTP",
+                  TransmittingSystem = "EIS",
+                  RequestType = "UPDATE",
+                  Regime = "CARF",
+                  RequestParameters = Option(List(RequestParameter("key", "value")))
+                ),
+                viewAndUpdateRcasp.IndividualRcaspDetails(
+                  RCASPID = "ZMCAR0123456780",
+                  SubscriptionID = s"XCARF00000000$digit",
+                  IsRCASPUser = true,
+                  PartyType = "Individual",
+                  FirstName = "Penny",
+                  LastName = "Cassiopeia",
+                  TINDetails = Some(
+                    List(
+                      TinDetails(
+                        TINType = "UTR",
+                        TIN = "6893649",
+                        IssuedBy = "GB"
+                      )
+                    )
+                  ),
+                  AddressDetails = RcaspAddress(
+                    AddressLine1 = "2 High Street",
+                    AddressLine2 = Some("Birmingham"),
+                    AddressLine3 = Some("Nowhereshire"),
+                    AddressLine4 = Some("Down the road"),
+                    PostalCode = "B23 2AZ",
+                    CountryCode = "GB"
+                  ),
+                  PrimaryContactDetails = Some(
+                    RcaspContactDetails(
+                      ContactName = "Penny Cassiopeia",
+                      EmailAddress = "penny.cassiopeia@uva.edu.org",
+                      PhoneNumber = Some("07123412345")
+                    )
+                  )
+                )
+              )
+            )
+          )
+
+          val fakeRequest = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
+          val result      = route(app, fakeRequest).value
+
+          status(result)        mustBe OK
+          contentAsJson(result) mustBe Json.toJson(submitRcaspResponse)
+        }
+
+        s"must return Ok - $OK response for a valid delete json from model with $digit" in {
+          val json: JsValue = Json.toJson(
+            deleteRcasp.RcaspRequest(
+              deleteRcasp.RcaspManagementRequest(
+                RcaspRequestCommon(
+                  OriginatingSystem = "MDTP",
+                  TransmittingSystem = "EIS",
+                  RequestType = "DELETE",
+                  Regime = "CARF",
+                  RequestParameters = Option(List(RequestParameter("key", "value")))
+                ),
+                deleteRcasp.RcaspDetails(
+                  RCASPID = "ZMCAR0123456780",
+                  SubscriptionID = s"XCARF00000000$digit"
+                )
+              )
+            )
+          )
+
+          val fakeRequest = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
           val result      = route(app, fakeRequest).value
 
           status(result)        mustBe OK
@@ -245,7 +414,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
       s"must return UnprocessableEntity - $UNPROCESSABLE_ENTITY response when the carfId ends with 9" in {
         val json: JsValue = buildCreateIndvRcaspJson("XCARF000000009")
-        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
         val result        = route(app, fakeRequest).value
 
         status(result) mustBe UNPROCESSABLE_ENTITY
@@ -253,7 +422,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
       s"must return Forbidden - $FORBIDDEN response when the carfId ends with 8" in {
         val json: JsValue = buildCreateIndvRcaspJson("XCARF000000008")
-        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
         val result        = route(app, fakeRequest).value
 
         status(result) mustBe FORBIDDEN
@@ -261,7 +430,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
       s"must return MethodNotAllowed - $METHOD_NOT_ALLOWED response when the carfId ends with 7" in {
         val json: JsValue = buildCreateIndvRcaspJson("XCARF000000007")
-        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
         val result        = route(app, fakeRequest).value
 
         status(result) mustBe METHOD_NOT_ALLOWED
@@ -269,7 +438,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
       s"must return BadRequest - $BAD_REQUEST response when the carfId ends with 6" in {
         val json: JsValue = buildCreateIndvRcaspJson("XCARF000000006")
-        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
         val result        = route(app, fakeRequest).value
 
         status(result) mustBe BAD_REQUEST
@@ -277,7 +446,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
       s"must return InternalServerError - $INTERNAL_SERVER_ERROR response when the carfId ends with 5" in {
         val json: JsValue = buildCreateIndvRcaspJson("XCARF000000005")
-        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
         val result        = route(app, fakeRequest).value
 
         status(result) mustBe INTERNAL_SERVER_ERROR
@@ -285,14 +454,14 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
       s"must return ServiceUnavailable - $SERVICE_UNAVAILABLE response when the carfId ends with 4" in {
         val json: JsValue = buildCreateIndvRcaspJson("XCARF000000004")
-        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createRcasp.url).withBody(json)
+        val fakeRequest   = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
         val result        = route(app, fakeRequest).value
 
         status(result) mustBe SERVICE_UNAVAILABLE
       }
 
       "return 400 BAD_REQUEST for invalid JSON" in {
-        val fakeRequest = FakeRequest(POST, routes.RcaspController.createRcasp.url)
+        val fakeRequest = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url)
           .withJsonBody(Json.obj("invalid" -> "data"))
 
         val result = route(app, fakeRequest).value
@@ -302,13 +471,13 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
 
       "return 400 BAD_REQUEST for missing required fields" in {
         val invalidJson: JsValue = Json.parse("""
-              {
-                "gbUser": true,
-                "idType": "SAFE"
-              }
-            """)
+                    {
+                      "gbUser": true,
+                      "idType": "SAFE"
+                    }
+                  """)
 
-        val fakeRequest = FakeRequest(POST, routes.RcaspController.createRcasp.url)
+        val fakeRequest = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url)
           .withJsonBody(invalidJson)
 
         val result = route(app, fakeRequest).value
@@ -318,7 +487,7 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
     }
   }
 
-  private def buildCreateOrgRegisteredBusinessRcaspJson(carfId: String): JsValue =
+  private def buildCreateRegisteredBusinessRcaspJson(carfId: String): JsValue =
     Json.parse(
       s"""
          |{
@@ -353,7 +522,6 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
          |    }
          |  }
          |}
-         |
          |""".stripMargin
     )
 
@@ -418,7 +586,6 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
          |      "Regime": "CARF"
          |    },
          |    "RequestDetails": {
-         |      "RCASPID": "683373339",
          |      "FirstName": "John",
          |      "LastName": "Smith",
          |      "IsRCASPUser": false,
@@ -450,4 +617,5 @@ class RcaspControllerSpec extends SpecBase with OptionValues {
          |
          |""".stripMargin
     )
+
 }

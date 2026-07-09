@@ -21,8 +21,9 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.*
 import uk.gov.hmrc.carfstubs.models.*
-import uk.gov.hmrc.carfstubs.models.request.CreateRCASPRequest
-import uk.gov.hmrc.carfstubs.models.response.*
+import uk.gov.hmrc.carfstubs.models.request.{createRcasp, deleteRcasp, updateRcasp}
+import uk.gov.hmrc.carfstubs.models.response.{RcaspResponseCommon, RcaspResponseDetails, SubmitRcaspResponse, SubmitResponseDetails, SubmitReturnParameters, ViewRcasp, ViewRcaspResponse}
+import uk.gov.hmrc.carfstubs.models.viewAndUpdateRcasp.{OrganisationRcaspDetails, RcaspDetails}
 import uk.gov.hmrc.carfstubs.utils.HelperUtil.errorDetailJson
 
 trait RcaspHelper extends Logging {
@@ -42,8 +43,23 @@ trait RcaspHelper extends Logging {
       case _   => Ok(Json.toJson(fullIndividualRcaspResponse(carfId)))
     }
 
-  def returnCreateResponse(request: CreateRCASPRequest): Result =
-    request.RCASPManagement.RequestDetails.SubscriptionID.takeRight(1) match {
+  def returnCreateResponse(request: createRcasp.RcaspRequest): Result = {
+    logger.info(s"Received Create RCASP management request")
+    generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID)
+  }
+
+  def returnUpdateResponse(request: updateRcasp.RcaspRequest): Result = {
+    logger.info(s"Received Update RCASP management request")
+    generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID)
+  }
+
+  def returnDeleteResponse(request: deleteRcasp.RcaspRequest): Result = {
+    logger.info(s"Received Delete RCASP management request")
+    generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID)
+  }
+
+  private def generateResponse(subscriptionID: String) =
+    subscriptionID.takeRight(1) match {
       case "9" => unprocessableEntity422Response
       case "8" => forbiddenResponse
       case "7" => notAllowedResponse
@@ -156,10 +172,10 @@ trait RcaspHelper extends Logging {
       isRCaspUser: Boolean,
       firstName: String,
       lastName: String
-  ) =
-    IndividualRcaspDetails(
-      SubscriptionID = carfId,
+  ): viewAndUpdateRcasp.RcaspDetails =
+    viewAndUpdateRcasp.IndividualRcaspDetails(
       RCASPID = rcaspId,
+      SubscriptionID = carfId,
       IsRCASPUser = isRCaspUser,
       PartyType = "Individual",
       FirstName = firstName,
@@ -190,9 +206,9 @@ trait RcaspHelper extends Logging {
       firstName: String,
       lastName: String
   ) =
-    IndividualRcaspDetails(
-      SubscriptionID = carfId,
+    viewAndUpdateRcasp.IndividualRcaspDetails(
       RCASPID = rcaspId,
+      SubscriptionID = carfId,
       IsRCASPUser = isRCaspUser,
       PartyType = "Individual",
       FirstName = firstName,
@@ -254,7 +270,7 @@ trait RcaspHelper extends Logging {
   )
 
   private def registeredBusinessRcaspDetails(carfId: String, rcaspId: String, rcaspName: String) =
-    OrganisationRcaspDetails(
+    viewAndUpdateRcasp.OrganisationRcaspDetails(
       SubscriptionID = carfId,
       RCASPID = rcaspId,
       IsRCASPUser = true,
@@ -277,8 +293,8 @@ trait RcaspHelper extends Logging {
 
   private def fullOrganisationRcaspDetails(carfId: String, rcaspId: String, rcaspName: String) =
     OrganisationRcaspDetails(
-      SubscriptionID = carfId,
       RCASPID = rcaspId,
+      SubscriptionID = carfId,
       IsRCASPUser = false,
       PartyType = "Organisation",
       RCASPName = rcaspName,
@@ -309,10 +325,10 @@ trait RcaspHelper extends Logging {
       )
     )
 
-  private def emptyOptionalsOrganisationRcaspDetails(carfId: String, rcaspId: String, rcaspName: String) =
+  private def emptyOptionalsOrganisationRcaspDetails(carfId: String, rcaspId: String, rcaspName: String): RcaspDetails =
     OrganisationRcaspDetails(
-      SubscriptionID = carfId,
       RCASPID = rcaspId,
+      SubscriptionID = carfId,
       IsRCASPUser = false,
       PartyType = "Organisation",
       RCASPName = rcaspName,
