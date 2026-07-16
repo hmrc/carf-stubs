@@ -22,23 +22,23 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.carfstubs.controllers.routes
 import uk.gov.hmrc.carfstubs.models.*
+import uk.gov.hmrc.carfstubs.models.request.*
 import uk.gov.hmrc.carfstubs.models.request.createRcasp.RcaspRequest
-import uk.gov.hmrc.carfstubs.models.request.{createRcasp, deleteRcasp, updateRcasp, RcaspRequestCommon, RequestParameter}
 import uk.gov.hmrc.carfstubs.models.response.{SubmitRcaspResponse, SubmitResponseDetails, SubmitReturnParameters}
 
 class RcaspControllerSpec extends SpecBase {
 
   "RcaspController" - {
     "viewRcasp" - {
-      s"must return Ok - $OK response with full individual response for a valid CARFID" in {
-        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("XCCAR0024000102", "none").url)
+      s"must return Ok - $OK response with full individual response for a valid CARFID with second letter J" in {
+        val request = FakeRequest(GET, routes.RcaspController.viewRcasp("XJCAR0024000102", "none").url)
         val result  = route(app, request).value
 
         status(result) mustBe OK
         val rcaspDetails = (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
           .as[List[viewAndUpdateRcasp.IndividualRcaspDetails]]
           .head
-        rcaspDetails.SubscriptionID        mustBe "XCCAR0024000102"
+        rcaspDetails.SubscriptionID        mustBe "XJCAR0024000102"
         rcaspDetails.RCASPID               mustBe "ZMCAR0123456780"
         rcaspDetails.PartyType             mustBe "Individual"
         rcaspDetails.PrimaryContactDetails mustBe defined
@@ -102,6 +102,22 @@ class RcaspControllerSpec extends SpecBase {
         (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
           .as[List[viewAndUpdateRcasp.IndividualRcaspDetails]]
           .length      mustBe 5
+      }
+
+      s"must return Ok - $OK response with multiple RCASP items with Organisation, Individual and Organisation registered business RCASPS" - {
+        "for a valid CARFID with second letter A (any default value works well)" in {
+          val request = FakeRequest(GET, routes.RcaspController.viewRcasp("XACAR0024000102", "none").url)
+          val result  = route(app, request).value
+
+          status(result) mustBe OK
+          val rcasps = (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
+            .as[List[viewAndUpdateRcasp.RcaspDetails]]
+
+          rcasps.length                               mustBe 5
+          rcasps.count(_.IsRCASPUser)                 mustBe 1
+          rcasps.count(_.PartyType == "Individual")   mustBe 2
+          rcasps.count(_.PartyType == "Organisation") mustBe 3
+        }
       }
 
       s"must return Ok - $OK response with multiple RCASP items in organisation response for a valid CARFID with second letter N" in {

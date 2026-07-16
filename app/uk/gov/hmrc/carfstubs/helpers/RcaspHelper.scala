@@ -22,7 +22,7 @@ import play.api.mvc.Result
 import play.api.mvc.Results.*
 import uk.gov.hmrc.carfstubs.models.*
 import uk.gov.hmrc.carfstubs.models.request.{createRcasp, deleteRcasp, updateRcasp}
-import uk.gov.hmrc.carfstubs.models.response.{RcaspResponseCommon, RcaspResponseDetails, SubmitRcaspResponse, SubmitResponseDetails, SubmitReturnParameters, ViewRcasp, ViewRcaspResponse}
+import uk.gov.hmrc.carfstubs.models.response.*
 import uk.gov.hmrc.carfstubs.models.viewAndUpdateRcasp.{OrganisationRcaspDetails, RcaspDetails}
 import uk.gov.hmrc.carfstubs.utils.HelperUtil.errorDetailJson
 
@@ -40,7 +40,8 @@ trait RcaspHelper extends Logging {
       case "M" => Ok(Json.toJson(emptyOptionalsIndividualRcaspResponse(carfId)))
       case "L" => Ok(Json.toJson(multipleIndividualRcaspResponse(carfId)))
       case "K" => Ok(Json.toJson(noRcaspsResponse))
-      case _   => Ok(Json.toJson(fullIndividualRcaspResponse(carfId)))
+      case "J" => Ok(Json.toJson(fullIndividualRcaspResponse(carfId)))
+      case _   => Ok(Json.toJson(allScenarioRcaspResponse(carfId)))
     }
 
   def returnCreateResponse(request: createRcasp.RcaspRequest): Result = {
@@ -92,6 +93,33 @@ trait RcaspHelper extends Logging {
             firstName = "Penny",
             lastName = "Cassiopeia"
           )
+        )
+      )
+    )
+  )
+
+  private def allScenarioRcaspResponse(carfId: String) = ViewRcaspResponse(
+    ViewRCASP = ViewRcasp(
+      ResponseCommon = rcaspResponseCommon,
+      ResponseDetails = RcaspResponseDetails(RCASPList =
+        List(
+          fullIndividualRcaspDetails(
+            carfId,
+            rcaspId = "ZMCAR0123456780",
+            isRCaspUser = false,
+            firstName = "Penny",
+            lastName = "Cassiopeia"
+          ),
+          emptyOptionalsIndividualRcaspDetails(
+            carfId,
+            rcaspId = "ZMCAR0123456782",
+            isRCaspUser = false,
+            firstName = "Nemona",
+            lastName = "Champion"
+          ),
+          fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456786", rcaspName = "Apple"),
+          registeredBusinessRcaspDetails(carfId, rcaspId = "ZMCAR0123456787", rcaspName = "Timmy's Turtles"),
+          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456788", rcaspName = "Amazon UK")
         )
       )
     )
