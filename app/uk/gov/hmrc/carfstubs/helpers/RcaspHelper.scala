@@ -390,10 +390,10 @@ trait RcaspHelper extends Logging {
   )
 
   private def fullAddress = RcaspAddress(
-    AddressLine1 = "2 High Street",
-    AddressLine2 = Some("Birmingham"),
-    AddressLine3 = Some("Nowhereshire"),
-    AddressLine4 = Some("Down the road"),
+    AddressLine1 = "1 Test",
+    AddressLine2 = Some("Test Street"),
+    AddressLine3 = Some("Test Region"),
+    AddressLine4 = Some("Testingtown"),
     PostalCode = "B23 2AZ",
     CountryCode = "GB"
   )
