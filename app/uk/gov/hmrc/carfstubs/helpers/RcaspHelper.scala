@@ -39,23 +39,23 @@ trait RcaspHelper extends Logging {
       case "N" => Ok(Json.toJson(multipleOrganisationRcaspResponse(carfId)))
       case "M" => Ok(Json.toJson(emptyOptionalsIndividualRcaspResponse(carfId)))
       case "L" => Ok(Json.toJson(multipleIndividualRcaspResponse(carfId)))
-      case "K" => Ok(Json.toJson(noRcaspsResponse))
+      case "K" => noRcasps422Response
       case "J" => Ok(Json.toJson(fullIndividualRcaspResponse(carfId)))
       case _   => Ok(Json.toJson(allScenarioRcaspResponse(carfId)))
     }
 
   def returnCreateResponse(request: createRcasp.RcaspRequest): Result = {
-    logger.info(s"Received Create RCASP management request")
+    logger.info("Received Create RCASP management request")
     generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID)
   }
 
   def returnUpdateResponse(request: updateRcasp.RcaspRequest): Result = {
-    logger.info(s"Received Update RCASP management request")
+    logger.info("Received Update RCASP management request")
     generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID)
   }
 
   def returnDeleteResponse(request: deleteRcasp.RcaspRequest): Result = {
-    logger.info(s"Received Delete RCASP management request")
+    logger.info("Received Delete RCASP management request")
     generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID)
   }
 
@@ -184,13 +184,6 @@ trait RcaspHelper extends Logging {
           )
         )
       )
-    )
-  )
-
-  private def noRcaspsResponse = ViewRcaspResponse(
-    ViewRCASP = ViewRcasp(
-      ResponseCommon = rcaspResponseCommon,
-      ResponseDetails = RcaspResponseDetails(RCASPList = List.empty)
     )
   )
 
@@ -408,6 +401,15 @@ trait RcaspHelper extends Logging {
     )
 
   private def unprocessableEntity422Response =
+    UnprocessableEntity(
+      errorDetailJson(
+        "422",
+        "Unprocessable Entity",
+        "999 - Unprocessable Entity"
+      )
+    )
+
+  private def noRcasps422Response =
     UnprocessableEntity(
       errorDetailJson(
         "422",
