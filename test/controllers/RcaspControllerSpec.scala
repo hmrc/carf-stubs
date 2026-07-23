@@ -130,14 +130,14 @@ class RcaspControllerSpec extends SpecBase {
           .length      mustBe 5
       }
 
-      s"must return Ok - $OK response with no RCASP items in response for a valid CARFID with second letter K" in {
+      s"must return Unprocessable Entity - $UNPROCESSABLE_ENTITY response indicating no RCASPs for a valid CARFID with second letter K" in {
         val request = FakeRequest(GET, routes.RcaspController.viewRcasp("XKCAR0024000102", "none").url)
         val result  = route(app, request).value
 
-        status(result) mustBe OK
-        (contentAsJson(result) \ "ViewRCASP" \ "ResponseDetails" \ "RCASPList")
-          .as[List[viewAndUpdateRcasp.RcaspDetails]]
-          .length      mustBe 0
+        status(result) mustBe UNPROCESSABLE_ENTITY
+        (contentAsJson(result) \ "errorDetail" \ "sourceFaultDetail" \ "detail")
+          .as[List[String]]
+          .head        mustBe "001 - No matching records found for the request"
       }
 
       s"must return Internal Server Error - $INTERNAL_SERVER_ERROR response for a valid CARFID with second letter Y" in {
@@ -159,6 +159,9 @@ class RcaspControllerSpec extends SpecBase {
         val result  = route(app, request).value
 
         status(result) mustBe UNPROCESSABLE_ENTITY
+        (contentAsJson(result) \ "errorDetail" \ "sourceFaultDetail" \ "detail")
+          .as[List[String]]
+          .head        mustBe "999 - Unprocessable Entity"
       }
 
       s"must return Service Unavailable - $SERVICE_UNAVAILABLE response for a valid CARFID with second letter S" in {
