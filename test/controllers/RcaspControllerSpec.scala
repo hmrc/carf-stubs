@@ -173,11 +173,15 @@ class RcaspControllerSpec extends SpecBase {
     }
 
     "createUpdateOrDeleteRcasp" - {
-      val submitRcaspResponse = SubmitRcaspResponse(
-        SubmitResponseDetails(
-          SubmitReturnParameters("RCASPID", "ZMCAR0123456789")
+      val createRcaspResponse = SubmitRcaspResponse(
+        ResponseDetails = Some(
+          SubmitResponseDetails(
+            SubmitReturnParameters("RCASPID", "ZMCAR0123456789")
+          )
         )
       )
+
+      val updateDeleteRcaspResponse = SubmitRcaspResponse(ResponseDetails = None)
 
       Seq("0", "1", "2", "3").foreach { digit =>
         s"must return Ok - $OK response for a valid json with organisation in request (registered business) when the carfId ends with $digit" in {
@@ -186,7 +190,7 @@ class RcaspControllerSpec extends SpecBase {
           val result        = route(app, request).value
 
           status(result)        mustBe OK
-          contentAsJson(result) mustBe Json.toJson(submitRcaspResponse)
+          contentAsJson(result) mustBe Json.toJson(createRcaspResponse)
         }
 
         s"must return Ok - $OK response for a valid json with organisation in request (not registered business) when the carfId ends with $digit" in {
@@ -195,7 +199,7 @@ class RcaspControllerSpec extends SpecBase {
           val result        = route(app, request).value
 
           status(result)        mustBe OK
-          contentAsJson(result) mustBe Json.toJson(submitRcaspResponse)
+          contentAsJson(result) mustBe Json.toJson(createRcaspResponse)
         }
 
         s"must return Ok - $OK response for a valid json with individual in request when the carfId ends with $digit" in {
@@ -204,7 +208,7 @@ class RcaspControllerSpec extends SpecBase {
           val result        = route(app, fakeRequest).value
 
           status(result)        mustBe OK
-          contentAsJson(result) mustBe Json.toJson(submitRcaspResponse)
+          contentAsJson(result) mustBe Json.toJson(createRcaspResponse)
         }
 
         s"must return Ok - $OK response for a valid update json with individual in request with $digit" in {
@@ -264,7 +268,8 @@ class RcaspControllerSpec extends SpecBase {
           val fakeRequest   = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
           val result        = route(app, fakeRequest).value
 
-          status(result) mustBe OK
+          status(result)        mustBe OK
+          contentAsJson(result) mustBe Json.toJson(updateDeleteRcaspResponse)
         }
 
         s"must return Ok - $OK response for a valid delete json with individual in request with $digit" in {
@@ -295,7 +300,8 @@ class RcaspControllerSpec extends SpecBase {
           val fakeRequest   = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
           val result        = route(app, fakeRequest).value
 
-          status(result) mustBe OK
+          status(result)        mustBe OK
+          contentAsJson(result) mustBe Json.toJson(updateDeleteRcaspResponse)
         }
 
         s"must return Ok - $OK response for a valid create json from model with $digit" in {
@@ -347,7 +353,8 @@ class RcaspControllerSpec extends SpecBase {
           val fakeRequest = FakeRequest(POST, routes.RcaspController.createUpdateOrDeleteRcasp.url).withBody(json)
           val result      = route(app, fakeRequest).value
 
-          status(result) mustBe OK
+          status(result)        mustBe OK
+          contentAsJson(result) mustBe Json.toJson(createRcaspResponse)
         }
 
         s"must return Ok - $OK response for a valid update json from model with $digit" in {
@@ -401,7 +408,7 @@ class RcaspControllerSpec extends SpecBase {
           val result      = route(app, fakeRequest).value
 
           status(result)        mustBe OK
-          contentAsJson(result) mustBe Json.toJson(submitRcaspResponse)
+          contentAsJson(result) mustBe Json.toJson(updateDeleteRcaspResponse)
         }
 
         s"must return Ok - $OK response for a valid delete json from model with $digit" in {
@@ -427,7 +434,7 @@ class RcaspControllerSpec extends SpecBase {
           val result      = route(app, fakeRequest).value
 
           status(result)        mustBe OK
-          contentAsJson(result) mustBe Json.toJson(submitRcaspResponse)
+          contentAsJson(result) mustBe Json.toJson(updateDeleteRcaspResponse)
         }
       }
 

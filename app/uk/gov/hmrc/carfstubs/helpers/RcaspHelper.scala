@@ -46,20 +46,20 @@ trait RcaspHelper extends Logging {
 
   def returnCreateResponse(request: createRcasp.RcaspRequest): Result = {
     logger.info("Received Create RCASP management request")
-    generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID)
+    generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID, Create("RCASP"))
   }
 
   def returnUpdateResponse(request: updateRcasp.RcaspRequest): Result = {
     logger.info("Received Update RCASP management request")
-    generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID)
+    generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID, Update("RCASP"))
   }
 
   def returnDeleteResponse(request: deleteRcasp.RcaspRequest): Result = {
     logger.info("Received Delete RCASP management request")
-    generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID)
+    generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID, Delete("RCASP"))
   }
 
-  private def generateResponse(subscriptionID: String) =
+  private def generateResponse(subscriptionID: String, requestType: RequestType) =
     subscriptionID.takeRight(1) match {
       case "9" => unprocessableEntity422Response
       case "8" => forbiddenResponse
@@ -67,19 +67,28 @@ trait RcaspHelper extends Logging {
       case "6" => badRequest400Response
       case "5" => internalServerError500Response
       case "4" => serviceUnavailable503Response
-      case _   => successfulCreateResponse
+      case _   =>
+        requestType match {
+          case Create(_) => successfulCreateResponse
+          case _         => successfulUpdateDeleteResponse
+        }
     }
 
   private def successfulCreateResponse: Result =
     Ok(
       Json.toJson(
         SubmitRcaspResponse(
-          SubmitResponseDetails(
-            SubmitReturnParameters("RCASPID", "ZMCAR0123456789")
+          ResponseDetails = Some(
+            SubmitResponseDetails(
+              SubmitReturnParameters("RCASPID", "ZMCAR0123456789")
+            )
           )
         )
       )
     )
+
+  private def successfulUpdateDeleteResponse: Result =
+    Ok(Json.toJson(SubmitRcaspResponse(ResponseDetails = None)))
 
   private def fullIndividualRcaspResponse(carfId: String) = ViewRcaspResponse(
     ViewRCASP = ViewRcasp(
