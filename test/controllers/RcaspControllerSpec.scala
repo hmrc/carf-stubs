@@ -619,7 +619,7 @@ class RcaspControllerSpec extends SpecBase {
          |      "PartyType": "Individual",
          |      "TINDetails": [
          |        {
-         |          "TINType": "OTHER",
+         |          "TINType": "NINO",
          |          "TIN": "68936493",
          |          "IssuedBy": "GB"
          |        }
