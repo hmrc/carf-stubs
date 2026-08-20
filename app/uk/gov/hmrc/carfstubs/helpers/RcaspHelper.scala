@@ -213,7 +213,7 @@ trait RcaspHelper extends Logging {
       TINDetails = Some(
         List(
           TinDetails(
-            TINType = "OTHER",
+            TINType = "NINO",
             TIN = "AA123456C",
             IssuedBy = "GB"
           )
@@ -246,7 +246,7 @@ trait RcaspHelper extends Logging {
       TINDetails = Some(
         List(
           TinDetails(
-            TINType = "OTHER",
+            TINType = "NINO",
             TIN = "AA123456C",
             IssuedBy = "GB"
           )
