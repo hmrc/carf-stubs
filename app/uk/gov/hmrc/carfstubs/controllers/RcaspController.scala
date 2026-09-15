@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.carfstubs.controllers
 
-import play.api.Logging
 import play.api.libs.json.*
 import play.api.mvc.*
 import uk.gov.hmrc.carfstubs.helpers.RcaspHelper
@@ -24,17 +23,18 @@ import uk.gov.hmrc.carfstubs.models.request.createRcasp.RcaspRequest as CreateRc
 import uk.gov.hmrc.carfstubs.models.request.deleteRcasp.RcaspRequest as DeleteRcaspRequest
 import uk.gov.hmrc.carfstubs.models.request.updateRcasp.RcaspRequest as UpdateRcaspRequest
 import uk.gov.hmrc.carfstubs.models.{Create, Delete, RequestType, Update}
+import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class RcaspController @Inject() (cc: ControllerComponents) extends BackendController(cc) with Logging with RcaspHelper:
+class RcaspController @Inject() (cc: ControllerComponents) extends BackendController(cc) with RcaspHelper:
 
   def viewRcasp(carfId: String, rcaspId: String): Action[AnyContent] = Action.async { implicit request =>
-    logger.info(s"View RCASP Request received with carfID: $carfId, rcaspId: $rcaspId")
+    logInfo(s"View RCASP Request received with carfID: $carfId, rcaspId: $rcaspId")
     val response: Result = returnRcaspResponse(carfId)
-    logger.info(
+    logInfo(
       s"Response Code \n-> ${response.header.status}" +
         s"\nResponse Body \n-> $response"
     )
@@ -50,10 +50,10 @@ class RcaspController @Inject() (cc: ControllerComponents) extends BackendContro
         case Some("UPDATE") => updateRcasp
         case Some("DELETE") => deleteRcasp
         case Some(unknown)  =>
-          logger.warn(s"Unsupported RequestType received: $unknown")
+          logWarn(s"Unsupported RequestType received: $unknown")
           Future.successful(BadRequest(s"Unsupported RequestType: $unknown"))
         case None           =>
-          logger.warn("RequestType missing from JSON payload")
+          logWarn("RequestType missing from JSON payload")
           Future.successful(BadRequest("RequestType missing from JSON payload"))
       }
     }
@@ -84,19 +84,19 @@ class RcaspController @Inject() (cc: ControllerComponents) extends BackendContro
       jsResult: JsResult[A]
   )(f: A => Result)(implicit request: Request[JsValue]): Future[Result] = {
 
-    logger.info(s"Management RCASP ${requestType.name} Request received: \n -> ${Json.prettyPrint(request.body)}")
+    logInfo(s"Management RCASP ${requestType.name} Request received: \n -> ${Json.prettyPrint(request.body)}")
 
     jsResult match {
       case JsSuccess(payload, _) =>
-        logger.debug("Json validation success")
+        logDebug("Json validation success")
         val response: Result = f(payload)
-        logger.info(
+        logInfo(
           s"${requestType.printFunctionName} Stub returned Response Code \n-> ${response.header.status}"
         )
         Future.successful(response)
 
       case JsError(errors) =>
-        logger.error(s"Invalid ${requestType.printFunctionName} request payload: ${errors.mkString(", ")}")
+        logError(s"Invalid ${requestType.printFunctionName} request payload: ${errors.mkString(", ")}")
         Future.successful(
           BadRequest(s"Invalid ${requestType.printFunctionName} payload: ${errors.mkString(", ")}")
             .withHeaders("ERROR_TYPE" -> "JSON_ERROR")

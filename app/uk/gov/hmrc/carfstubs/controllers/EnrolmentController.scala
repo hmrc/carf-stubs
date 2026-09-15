@@ -16,28 +16,25 @@
 
 package uk.gov.hmrc.carfstubs.controllers
 
-import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
 import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.carfstubs.helpers.EnrolmentHelper
 import uk.gov.hmrc.carfstubs.models.request.Enrolment
+import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class EnrolmentController @Inject() (cc: ControllerComponents)
-    extends BackendController(cc)
-    with EnrolmentHelper
-    with Logging {
+class EnrolmentController @Inject() (cc: ControllerComponents) extends BackendController(cc) with EnrolmentHelper {
 
   def upsertEnrolment: Action[JsValue] = Action.async(parse.json) { implicit request =>
-    logger.info(s"PUT Enrolment request received \n ${request.body}")
+    logInfo(s"PUT Enrolment request received \n ${request.body}")
 
     request.body.validate[Enrolment] match {
       case JsSuccess(payload, _) => Future.successful(returnResponse(payload))
       case JsError(errors)       =>
-        logger.error(s"Invalid upsertEnrolment payload: ${errors.mkString(", ")}")
+        logError(s"Invalid upsertEnrolment payload: ${errors.mkString(", ")}")
         Future.successful(BadRequest(s"Invalid upsertEnrolment payload: ${errors.mkString(", ")}"))
     }
   }

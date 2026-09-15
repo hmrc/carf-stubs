@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.carfstubs.helpers
 
-import play.api.Logging
 import play.api.mvc.Result
 import play.api.mvc.Results.{BadRequest, InternalServerError, NoContent}
 import uk.gov.hmrc.carfstubs.models.request.Enrolment
+import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 
-trait EnrolmentHelper extends Logging {
+trait EnrolmentHelper {
   def returnResponse(request: Enrolment): Result = {
 
     val badRequestMatches          = Set("8", "w")

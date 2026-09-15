@@ -16,30 +16,27 @@
 
 package uk.gov.hmrc.carfstubs.controllers
 
-import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
+import play.api.mvc.*
 import uk.gov.hmrc.carfstubs.helpers.SubscriptionHelper
-import uk.gov.hmrc.carfstubs.models.{Create, RequestType, Update}
 import uk.gov.hmrc.carfstubs.models.request.Subscription
+import uk.gov.hmrc.carfstubs.models.{Create, RequestType, Update}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class SubscriptionController @Inject() (cc: ControllerComponents)
-    extends BackendController(cc)
-    with Logging
-    with SubscriptionHelper:
+class SubscriptionController @Inject() (cc: ControllerComponents) extends BackendController(cc) with SubscriptionHelper:
 
   def createSubscription: Action[JsValue] = Action.async(parse.json) { implicit request =>
     processSubscription(Create("Subscription"))(returnCreateResponse)
   }
 
   def displaySubscription(carfId: String): Action[AnyContent] = Action.async { implicit request =>
-    logger.info(s"Subscription Retrieval Request received for carfId $carfId")
+    logInfo(s"Subscription Retrieval Request received for carfId $carfId")
     val response: Result = returnDisplayResponse(carfId)
-    logger.info(
+    logInfo(
       s"Response Code \n-> ${response.header.status}" +
         s"\nResponse Body \n-> $response"
     )
@@ -54,19 +51,19 @@ class SubscriptionController @Inject() (cc: ControllerComponents)
       requestType: RequestType
   )(f: Subscription => Result)(implicit request: Request[JsValue]): Future[Result] = {
 
-    logger.info(s"Subscription ${requestType.name} Request received: \n -> ${Json.prettyPrint(request.body)}")
+    logInfo(s"Subscription ${requestType.name} Request received: \n -> ${Json.prettyPrint(request.body)}")
 
     request.body.validate[Subscription] match {
       case JsSuccess(payload, _) =>
-        logger.debug("Json validation success")
+        logDebug("Json validation success")
         val response: Result = f(payload)
-        logger.info(
+        logInfo(
           s"${requestType.printFunctionName} Stub returned Response Code \n-> ${response.header.status}"
         )
         Future.successful(response)
 
       case JsError(errors) =>
-        logger.error(s"Invalid ${requestType.printFunctionName} payload: ${errors.mkString(", ")}")
+        logError(s"Invalid ${requestType.printFunctionName} payload: ${errors.mkString(", ")}")
         Future.successful(BadRequest(s"Invalid ${requestType.printFunctionName}payload: ${errors.mkString(", ")}"))
     }
   }
