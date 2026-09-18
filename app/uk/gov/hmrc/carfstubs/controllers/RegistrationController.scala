@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.carfstubs.controllers
 
-import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, ControllerComponents, Result}
 import uk.gov.hmrc.carfstubs.helpers.RegistrationHelper
 import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDApiRequest, RegisterWithoutIdRequest}
 import uk.gov.hmrc.carfstubs.utils.JsonErrorUtils
+import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -30,19 +30,18 @@ import scala.concurrent.Future
 class RegistrationController @Inject() (
     cc: ControllerComponents
 ) extends BackendController(cc)
-    with Logging
     with RegistrationHelper:
 
   def register: Action[JsValue] = Action.async(parse.json) { implicit request =>
     request.body.validate[RegisterWithIDApiRequest] match {
       case JsSuccess(payload, _) =>
-        logger.info(s" Stub Request Body \n-> ${Json.prettyPrint(request.body)}")
+        logInfo(s" Stub Request Body \n-> ${Json.prettyPrint(request.body)}")
         val response = returnResponse(payload.registerWithIDRequest)
-        logger.info(s" Stub Response \n-> $response")
+        logInfo(s" Stub Response \n-> $response")
         Future.successful(response)
 
       case JsError(errors) =>
-        logger.error(s"Invalid RegisterWithIDApiRequest payload: $errors")
+        logError(s"Invalid RegisterWithIDApiRequest payload: $errors")
         Future.successful(BadRequest(s"Invalid RegisterWithIDApiRequest payload: $errors"))
     }
   }
@@ -50,14 +49,14 @@ class RegistrationController @Inject() (
   def registerWithoutId: Action[JsValue] = Action.async(parse.json) { implicit request =>
     request.body.validate[RegisterWithoutIdRequest] match {
       case JsSuccess(payload, _) =>
-        logger.info(s"Stub WithoutId Request Body \n-> ${Json.prettyPrint(request.body)}")
+        logInfo(s"Stub WithoutId Request Body \n-> ${Json.prettyPrint(request.body)}")
         val result: Result = returnResponseWithoutId(payload)
-        logger.info(s"Stub WithoutId Response \n-> $result")
+        logInfo(s"Stub WithoutId Response \n-> $result")
         Future.successful(result)
 
       case JsError(errors) =>
         val errorMsg = JsonErrorUtils.formatValidationErrors(errors)
-        logger.error(s"Invalid RegisterWithoutIDRequestWrapper payload: $errorMsg")
+        logError(s"Invalid RegisterWithoutIDRequestWrapper payload: $errorMsg")
         Future.successful(BadRequest(s"Invalid RegisterWithoutIDRequestWrapper payload: $errorMsg"))
     }
   }

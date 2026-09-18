@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.carfstubs.helpers
 
-import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.*
@@ -25,8 +24,9 @@ import uk.gov.hmrc.carfstubs.models.request.{createRcasp, deleteRcasp, updateRca
 import uk.gov.hmrc.carfstubs.models.response.*
 import uk.gov.hmrc.carfstubs.models.viewAndUpdateRcasp.{OrganisationRcaspDetails, RcaspDetails}
 import uk.gov.hmrc.carfstubs.utils.HelperUtil.errorDetailJson
+import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 
-trait RcaspHelper extends Logging {
+trait RcaspHelper {
 
   def returnRcaspResponse(carfId: String): Result =
     carfId.slice(1, 2).toUpperCase match {
@@ -45,17 +45,17 @@ trait RcaspHelper extends Logging {
     }
 
   def returnCreateResponse(request: createRcasp.RcaspRequest): Result = {
-    logger.info("Received Create RCASP management request")
+    logInfo("Received Create RCASP management request")
     generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID, Create("RCASP"))
   }
 
   def returnUpdateResponse(request: updateRcasp.RcaspRequest): Result = {
-    logger.info("Received Update RCASP management request")
+    logInfo("Received Update RCASP management request")
     generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID, Update("RCASP"))
   }
 
   def returnDeleteResponse(request: deleteRcasp.RcaspRequest): Result = {
-    logger.info("Received Delete RCASP management request")
+    logInfo("Received Delete RCASP management request")
     generateResponse(request.RCASPManagement.RequestDetails.SubscriptionID, Delete("RCASP"))
   }
 

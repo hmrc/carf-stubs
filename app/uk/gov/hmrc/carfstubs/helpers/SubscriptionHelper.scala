@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.carfstubs.helpers
 
-import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.*
@@ -24,8 +23,9 @@ import uk.gov.hmrc.carfstubs.models.{Individual, Organisation}
 import uk.gov.hmrc.carfstubs.models.request.{Contact, Subscription}
 import uk.gov.hmrc.carfstubs.models.response.{CarfSubscriptionDetails, SubscriptionDisplayResponse, SubscriptionDisplaySuccess}
 import uk.gov.hmrc.carfstubs.utils.HelperUtil.errorDetailJson
+import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 
-trait SubscriptionHelper extends Logging {
+trait SubscriptionHelper {
 
   def returnDisplayResponse(carfId: String): Result =
     carfId.take(1).toUpperCase match {

@@ -16,17 +16,17 @@
 
 package uk.gov.hmrc.carfstubs.helpers
 
-import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.Results.{BadRequest, Forbidden, InternalServerError, NotFound, Ok, ServiceUnavailable, UnprocessableEntity}
 import play.api.mvc.{Result, Results}
 import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIdRequest}
 import uk.gov.hmrc.carfstubs.models.response.*
+import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 
 import java.time.LocalDate
 import scala.util.Random
 
-trait RegistrationHelper extends Logging {
+trait RegistrationHelper {
 
   private sealed trait JourneyType
 
@@ -92,7 +92,7 @@ trait RegistrationHelper extends Logging {
             )
           )
         )
-        logger.info(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
+        logInfo(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
         InternalServerError(body)
       case "X" =>
         val body = Json.toJson(
@@ -106,7 +106,7 @@ trait RegistrationHelper extends Logging {
             )
           )
         )
-        logger.info(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
+        logInfo(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
         UnprocessableEntity(body)
       case "Z" =>
         val body = Json.toJson(
@@ -120,7 +120,7 @@ trait RegistrationHelper extends Logging {
             )
           )
         )
-        logger.info(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
+        logInfo(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
         BadRequest(body)
       case "S" =>
         val body = Json.toJson(
@@ -134,15 +134,15 @@ trait RegistrationHelper extends Logging {
             )
           )
         )
-        logger.info(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
+        logInfo(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
         ServiceUnavailable(body)
 
       case "F" =>
-        logger.info(s"Stub Response body is 'Forbidden'")
+        logInfo(s"Stub Response body is 'Forbidden'")
         Forbidden("Forbidden")
       case _   =>
         val body = Json.toJson(createFullResponseWithoutId)
-        logger.info(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
+        logInfo(s"Stub Response Body \n-> ${Json.prettyPrint(body)}")
         Ok(body)
     }
   }

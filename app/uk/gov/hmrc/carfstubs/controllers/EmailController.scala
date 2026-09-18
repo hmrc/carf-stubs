@@ -19,11 +19,11 @@ package uk.gov.hmrc.carfstubs.controllers
 import javax.inject.*
 import play.api.mvc.*
 import play.api.libs.json.*
-import play.api.Logging
 import uk.gov.hmrc.carfstubs.models.email.SendEmailRequest
+import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 
 @Singleton
-class EmailController @Inject() (cc: ControllerComponents) extends AbstractController(cc) with Logging {
+class EmailController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
 
   def send(): Action[JsValue] = Action(parse.json) { request =>
     request.body
@@ -36,23 +36,23 @@ class EmailController @Inject() (cc: ControllerComponents) extends AbstractContr
 
           email match {
             case Some("email-stub-success@gmail.com") =>
-              logger.info("[STUBS EmailController] Returning 202 (success)")
+              logInfo("[STUBS EmailController] Returning 202 (success)")
               Accepted // 202
 
             case Some("bad-request@gmail.com") =>
-              logger.info("[STUBS EmailController] Returning 400 (bad request)")
+              logInfo("[STUBS EmailController] Returning 400 (bad request)")
               BadRequest // 400
 
             case Some("no-content-header@gmail.com") =>
-              logger.info("[STUBS EmailController] Returning 415 (unsupported media type)")
+              logInfo("[STUBS EmailController] Returning 415 (unsupported media type)")
               UnsupportedMediaType(Json.obj("message" -> "Simulated unsupported media type")) // 415
 
             case Some("email-stub-failure@example.com") =>
-              logger.info("[STUBS EmailController] Returning 500 (server error)")
+              logInfo("[STUBS EmailController] Returning 500 (server error)")
               InternalServerError // 500
 
             case _ =>
-              logger.info("[STUBS EmailController] Returning 202 (default)")
+              logInfo("[STUBS EmailController] Returning 202 (default)")
               Accepted
           }
         }
