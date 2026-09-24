@@ -177,7 +177,7 @@ class SdesCallbackControllerSpec extends SpecBase {
             verify(mockSdesCallbackConnector, times(1)).callback(eqTo(sdesCallback(filename)))(any())
             verify(mockBusinessRulesCallbackConnector, times(1)).callback(
               eqTo(testConversationId),
-              eqTo("data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_150_errors.xml")
+              eqTo("data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_150errors.xml")
             )(any())
             verify(mockAppConfig, times(1)).fastCallbackTimeInSeconds
           }

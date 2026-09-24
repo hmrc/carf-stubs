@@ -32,6 +32,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
+// TODO: Remove/modify on CARF-694 - 2nd callback will use same endpoint and model as 1st callback
 class BusinessRulesCallbackConnector @Inject() (httpClient: HttpClientV2, config: AppConfig)(implicit
     ec: ExecutionContext
 ) {
@@ -68,9 +69,8 @@ class BusinessRulesCallbackConnector @Inject() (httpClient: HttpClientV2, config
   }
 
   private def headers(conversationId: String): Seq[(String, String)] = Seq(
-    HeaderNames.CONTENT_TYPE  -> "application/json",
-    "x-conversation-id"       -> conversationId,
-    HeaderNames.AUTHORIZATION -> s"Bearer ${config.bearerToken("br-response")}"
+    HeaderNames.CONTENT_TYPE -> "application/json",
+    "x-conversation-id"      -> conversationId
   )
 
 }

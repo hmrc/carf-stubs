@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.carfstubs.models.submissionCallback
+package uk.gov.hmrc.carfstubs.models.request
 
 import play.api.libs.json.*
+import uk.gov.hmrc.carfstubs.models.submissionCallback.NotificationType
 
 import java.time.format.DateTimeFormatter
 import java.time.{ZoneOffset, ZonedDateTime}
 
-case class SdesCallback(
+case class CallbackRequest(
     notification: NotificationType,
     filename: String,
     checksumAlgorithm: String,
@@ -31,7 +32,7 @@ case class SdesCallback(
     failureReason: Option[String] = None
 )
 
-object SdesCallback {
+object CallbackRequest {
 
   implicit val dateFormat: Format[ZonedDateTime] = new Format[ZonedDateTime] {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
@@ -42,5 +43,5 @@ object SdesCallback {
     override def writes(o: ZonedDateTime): JsValue = JsString(o.format(formatter))
   }
 
-  implicit val format: OFormat[SdesCallback] = Json.format[SdesCallback]
+  implicit val format: OFormat[CallbackRequest] = Json.format[CallbackRequest]
 }

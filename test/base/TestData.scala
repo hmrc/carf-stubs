@@ -18,8 +18,8 @@ package base
 
 import org.scalacheck.Gen
 import org.scalacheck.Gen.choose
+import uk.gov.hmrc.carfstubs.models.request.CallbackRequest
 import uk.gov.hmrc.carfstubs.models.submissionCallback.NotificationType.FileProcessed
-import uk.gov.hmrc.carfstubs.models.submissionCallback.SdesCallback
 
 import java.time.{Clock, Instant, ZoneId, ZoneOffset}
 import java.util.UUID
@@ -35,7 +35,7 @@ trait TestData {
   val checksumAlgorithm: String  = "SHA-256"
   val testDownloadUrl: String    = "https://bucketName.s3.eu-west-2.amazonaws.com?1235676"
 
-  def sdesCallback(filename: String) = SdesCallback(
+  def sdesCallback(filename: String) = CallbackRequest(
     notification = FileProcessed,
     filename = filename,
     checksumAlgorithm = checksumAlgorithm,

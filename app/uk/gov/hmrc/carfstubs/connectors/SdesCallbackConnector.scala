@@ -21,7 +21,7 @@ import play.api.libs.json.Json
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.carfstubs.config.AppConfig
 import uk.gov.hmrc.carfstubs.models.errors.InternalServerError
-import uk.gov.hmrc.carfstubs.models.submissionCallback.SdesCallback
+import uk.gov.hmrc.carfstubs.models.request.CallbackRequest
 import uk.gov.hmrc.carfstubs.types.ResultT
 import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
@@ -33,7 +33,7 @@ import scala.concurrent.ExecutionContext
 
 class SdesCallbackConnector @Inject() (httpClient: HttpClientV2, config: AppConfig)(implicit ec: ExecutionContext) {
 
-  def callback(sdesCallback: SdesCallback)(implicit hc: HeaderCarrier): ResultT[Unit] = {
+  def callback(sdesCallback: CallbackRequest)(implicit hc: HeaderCarrier): ResultT[Unit] = {
     val callBackUrl = url"${config.carfReportingBaseUrl}/carf-reporting/fts/callback"
 
     ResultT.fromFuture {

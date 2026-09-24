@@ -26,9 +26,8 @@ class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig
 
   val carfReportingBaseUrl: String = servicesConfig.baseUrl("carf-reporting")
 
-  val bearerToken: String => String = (serviceName: String) =>
-    config.get[String](s"microservice.services.$serviceName.bearer-token")
-
-  val fastCallbackTimeInSeconds: Int = config.get[Int]("microservice.services.br-response.fast-callback-seconds")
-  val slowCallbackTimeInSeconds: Int = config.get[Int]("microservice.services.br-response.slow-callback-seconds")
+  val fastCallbackTimeInSeconds: Int =
+    config.get[Int]("microservice.services.business-rules-response.fast-callback-seconds")
+  val slowCallbackTimeInSeconds: Int =
+    config.get[Int]("microservice.services.business-rules-response.slow-callback-seconds")
 }

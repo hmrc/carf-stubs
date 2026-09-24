@@ -22,8 +22,8 @@ import play.api.libs.json.JsValue
 import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.carfstubs.config.AppConfig
 import uk.gov.hmrc.carfstubs.connectors.{BusinessRulesCallbackConnector, SdesCallbackConnector}
+import uk.gov.hmrc.carfstubs.models.request.CallbackRequest
 import uk.gov.hmrc.carfstubs.models.submissionCallback.NotificationType.{FileProcessed, FileProcessingFailure}
-import uk.gov.hmrc.carfstubs.models.submissionCallback.SdesCallback
 import uk.gov.hmrc.carfstubs.types.ResultT
 import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 import uk.gov.hmrc.http.HeaderCarrier
@@ -45,7 +45,7 @@ class SdesCallbackController @Inject() (
 
   def callback: Action[JsValue] = Action.async(parse.json) { implicit request =>
     request.body
-      .validate[SdesCallback]
+      .validate[CallbackRequest]
       .fold(
         invalid = _ => Future.successful(BadRequest("Could not parse request body as SdesCallback")),
         valid = sdesCallback =>
@@ -68,7 +68,7 @@ class SdesCallbackController @Inject() (
       )
   }
 
-  private def updateStatusOfSdesCallback(sdesCallback: SdesCallback): SdesCallback = {
+  private def updateStatusOfSdesCallback(sdesCallback: CallbackRequest): CallbackRequest = {
     val containsVirus = sdesCallback.filename.toLowerCase.contains("virus")
     if (
       sdesCallback.notification == FileProcessed &&
@@ -91,46 +91,45 @@ class SdesCallbackController @Inject() (
       if (filename.contains("slow")) { appConfig.slowCallbackTimeInSeconds.seconds }
       else { appConfig.fastCallbackTimeInSeconds.seconds }
 
-    if (filename.contains("accepted")) {
-      businessRulesCallbackWithDelay(
-        conversationId,
-        delayTime,
-        "data/examples/aeoi/BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml"
-      )
-    } else if (filename.contains("rejected")) {
-      if (filename.contains("many")) {
+    filename match {
+      case name if name.contains("accepted")                          =>
         businessRulesCallbackWithDelay(
           conversationId,
           delayTime,
-          "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_150_errors.xml"
+          "data/examples/aeoi/BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml"
         )
-      } else {
+      case name if name.contains("rejected") && name.contains("many") =>
+        businessRulesCallbackWithDelay(
+          conversationId,
+          delayTime,
+          "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_150errors.xml"
+        )
+      case name if name.contains("rejected")                          =>
         businessRulesCallbackWithDelay(
           conversationId,
           delayTime,
           "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_errors.xml"
         )
-      }
-    } else if (filename.contains("schema-error")) {
-      businessRulesCallbackWithDelay(
-        conversationId,
-        delayTime,
-        "data/examples/aeoi/BusinessRuleCheckSampleRequest_invalidFile_schema__errors.xml"
-      )
-    } else if (filename.contains("malformed")) {
-      businessRulesCallbackWithDelay(
-        conversationId,
-        delayTime,
-        "data/examples/malformed-xml.xml"
-      )
-    } else if (filename.contains("not-found")) {
-      businessRulesCallbackWithDelay(
-        conversationId,
-        delayTime,
-        "data/examples/aeoi/unknown.xml"
-      )
-    } else {
-      ResultT.fromValue(())
+      case name if name.contains("schema-error")                      =>
+        businessRulesCallbackWithDelay(
+          conversationId,
+          delayTime,
+          "data/examples/aeoi/BusinessRuleCheckSampleRequest_invalidFile_schema__errors.xml"
+        )
+      case name if name.contains("malformed")                         =>
+        businessRulesCallbackWithDelay(
+          conversationId,
+          delayTime,
+          "data/examples/malformed-xml.xml"
+        )
+      case name if name.contains("not-found")                         =>
+        businessRulesCallbackWithDelay(
+          conversationId,
+          delayTime,
+          "data/examples/aeoi/unknown.xml"
+        )
+      case _                                                          =>
+        ResultT.fromValue(())
     }
   }
 
