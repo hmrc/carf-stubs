@@ -58,9 +58,9 @@ class BusinessRulesCallbackConnector @Inject() (httpClient: HttpClientV2, config
                 s"[SdesCallbackConnector][callback] Failed to process XML file with call to endpoint: ${businessRulesCallbackUrl.toURI}"
               )
               Left(XmlValidationError)
-            case _                    =>
+            case otherStatus          =>
               logWarn(
-                s"Unexpected response. Status code: ${httpResponse.status}, from endpoint: ${businessRulesCallbackUrl.toURI}"
+                s"Unexpected response. Status code: $otherStatus, from endpoint: ${businessRulesCallbackUrl.toURI}"
               )
               Left(InternalServerError)
           }

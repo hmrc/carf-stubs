@@ -19,8 +19,7 @@ package uk.gov.hmrc.carfstubs.models.request
 import play.api.libs.json.*
 import uk.gov.hmrc.carfstubs.models.submissionCallback.NotificationType
 
-import java.time.format.DateTimeFormatter
-import java.time.{ZoneOffset, ZonedDateTime}
+import java.time.LocalDateTime
 
 case class CallbackRequest(
     notification: NotificationType,
@@ -28,20 +27,10 @@ case class CallbackRequest(
     checksumAlgorithm: String,
     checksum: String,
     correlationID: String,
-    dateTime: Option[ZonedDateTime],
+    dateTime: Option[LocalDateTime],
     failureReason: Option[String] = None
 )
 
 object CallbackRequest {
-
-  implicit val dateFormat: Format[ZonedDateTime] = new Format[ZonedDateTime] {
-    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
-
-    override def reads(json: JsValue): JsResult[ZonedDateTime] =
-      json.validate[String].map(ZonedDateTime.parse(_, formatter).withZoneSameInstant(ZoneOffset.UTC))
-
-    override def writes(o: ZonedDateTime): JsValue = JsString(o.format(formatter))
-  }
-
   implicit val format: OFormat[CallbackRequest] = Json.format[CallbackRequest]
 }

@@ -37,9 +37,15 @@ class BusinessRulesCallbackConnectorISpec
 
     val testUrl = "/carf-reporting/validate-extract-aeoi-xml"
 
+    val testRequestBody =
+      s"""
+        |{"path": "$testDownloadUrl"}
+        |""".stripMargin
+
     "must return Unit given a 200 response" in {
       stubFor(
         post(urlPathMatching(testUrl))
+          .withRequestBody(equalToJson(testRequestBody))
           .willReturn(
             aResponse()
               .withStatus(OK)
@@ -53,6 +59,7 @@ class BusinessRulesCallbackConnectorISpec
     "must return XmlValidationError given a 422 response" in {
       stubFor(
         post(urlPathMatching(testUrl))
+          .withRequestBody(equalToJson(testRequestBody))
           .willReturn(
             aResponse()
               .withStatus(UNPROCESSABLE_ENTITY)
@@ -65,7 +72,8 @@ class BusinessRulesCallbackConnectorISpec
 
     "must return InternalServerError given a 400 response" in {
       stubFor(
-        get(urlPathMatching(baseUrl))
+        post(urlPathMatching(testUrl))
+          .withRequestBody(equalToJson(testRequestBody))
           .willReturn(
             aResponse()
               .withStatus(BAD_REQUEST)
@@ -79,7 +87,8 @@ class BusinessRulesCallbackConnectorISpec
 
     "must return InternalServerError given a 500 response" in {
       stubFor(
-        get(urlPathMatching(baseUrl))
+        post(urlPathMatching(baseUrl))
+          .withRequestBody(equalToJson(testRequestBody))
           .willReturn(
             aResponse()
               .withStatus(INTERNAL_SERVER_ERROR)

@@ -43,12 +43,12 @@ class SdesCallbackConnector @Inject() (httpClient: HttpClientV2, config: AppConf
         .execute[HttpResponse]
         .map { httpResponse =>
           httpResponse.status match {
-            case OK =>
+            case OK          =>
               logInfo(s"[SdesCallbackConnector][callback] Successful call to endpoint: ${callBackUrl.toURI}")
               Right(())
-            case _  =>
+            case otherStatus =>
               logWarn(
-                s"[SdesCallbackConnector][callback] Unexpected response. Status code: ${httpResponse.status}, from endpoint: ${callBackUrl.toURI}"
+                s"[SdesCallbackConnector][callback] Unexpected response. Status code: $otherStatus, from endpoint: ${callBackUrl.toURI}"
               )
               Left(InternalServerError)
           }

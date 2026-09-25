@@ -47,22 +47,27 @@ class SdesCallbackController @Inject() (
     request.body
       .validate[CallbackRequest]
       .fold(
-        invalid = _ => Future.successful(BadRequest("Could not parse request body as SdesCallback")),
+        invalid = invalid =>
+          logError(
+            s"[SdesCallbackController][callback] Failed to parse request body with message: ${invalid.mkString(",\n")}"
+          )
+          Future.successful(BadRequest("Could not parse request body as CallbackRequest"))
+        ,
         valid = sdesCallback =>
           logInfo(
             s"[SdesCallbackController][callback] Received SDES callback. Notification type ${sdesCallback.notification}, file: ${sdesCallback.filename}, conversationId: ${sdesCallback.correlationID}"
           )
           val sdesCallbackRequest = updateStatusOfSdesCallback(sdesCallback)
-          sdesCallbackConnector.callback(sdesCallbackRequest).value.map {
+          sdesCallbackConnector.callback(sdesCallbackRequest).value.flatMap {
             case Left(error) =>
               logWarn(s"[SdesCallbackController][callback] Error from SDES callback: $error")
-              InternalServerError("Error from SDES callback")
+              Future.successful(InternalServerError("Error from SDES callback"))
             case Right(_)    =>
               sdesCallbackRequest.notification match {
                 case FileProcessed =>
-                  sendBusinessRulesCallback(sdesCallback.correlationID, sdesCallback.filename.toLowerCase)
-                  Ok
-                case _             => Ok
+                  sendBusinessRulesCallback(sdesCallback.correlationID, sdesCallback.filename.toLowerCase).value
+                    .map(_ => Ok)
+                case _             => Future.successful(Ok)
               }
           }
       )

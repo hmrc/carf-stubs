@@ -37,9 +37,21 @@ class SdesCallbackConnectorISpec
 
     val testUrl = "/carf-reporting/fts/callback"
 
+    val testRequestBody = s"""
+       |{
+       | "notification": "FileProcessed",
+       | "filename": "filename.xml",
+       | "checksumAlgorithm": "$checksumAlgorithm",
+       | "checksum": "$testChecksum",
+       | "correlationID": "$testConversationId",
+       | "dateTime": "2024-06-11T15:07:47.838"
+       |}
+       |""".stripMargin
+
     "must return Unit given a 200 response" in {
       stubFor(
         post(urlPathMatching(testUrl))
+          .withRequestBody(equalToJson(testRequestBody))
           .willReturn(
             aResponse()
               .withStatus(OK)
@@ -52,7 +64,8 @@ class SdesCallbackConnectorISpec
 
     "must return InternalServerError given a 400 response" in {
       stubFor(
-        get(urlPathMatching(baseUrl))
+        post(urlPathMatching(testUrl))
+          .withRequestBody(equalToJson(testRequestBody))
           .willReturn(
             aResponse()
               .withStatus(BAD_REQUEST)
@@ -66,7 +79,8 @@ class SdesCallbackConnectorISpec
 
     "must return InternalServerError given a 500 response" in {
       stubFor(
-        get(urlPathMatching(baseUrl))
+        post(urlPathMatching(testUrl))
+          .withRequestBody(equalToJson(testRequestBody))
           .willReturn(
             aResponse()
               .withStatus(INTERNAL_SERVER_ERROR)

@@ -21,7 +21,7 @@ import org.scalacheck.Gen.choose
 import uk.gov.hmrc.carfstubs.models.request.CallbackRequest
 import uk.gov.hmrc.carfstubs.models.submissionCallback.NotificationType.FileProcessed
 
-import java.time.{Clock, Instant, ZoneId, ZoneOffset}
+import java.time.{Clock, Instant, LocalDateTime, ZoneId}
 import java.util.UUID
 
 trait TestData {
@@ -41,7 +41,7 @@ trait TestData {
     checksumAlgorithm = checksumAlgorithm,
     checksum = testChecksum,
     correlationID = testConversationId,
-    dateTime = Some(Instant.now(clock).atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneOffset.UTC)),
+    dateTime = Some(LocalDateTime.now(clock)),
     failureReason = None
   )
 
