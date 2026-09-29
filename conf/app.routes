@@ -15,3 +15,4 @@ GET         /dac6/viewrcaspdata/v1/:carfId/:rcaspId                uk.gov.hmrc.c
 POST        /dac6/SubmitRCASPData/v1                               uk.gov.hmrc.carfstubs.controllers.RcaspController.createUpdateOrDeleteRcasp
 
 POST        /carf-stubs/sdes/callback                              uk.gov.hmrc.carfstubs.controllers.SdesCallbackController.callback
+GET         /files-available/list/:informationType                 uk.gov.hmrc.carfstubs.controllers.FileListingController.getBusinessRulesFileListing(informationType: String)
