@@ -26,8 +26,10 @@ class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig
 
   val carfReportingBaseUrl: String = servicesConfig.baseUrl("carf-reporting")
 
-  val fastCallbackTimeInSeconds: Int =
-    config.get[Int]("microservice.services.business-rules-response.fast-callback-seconds")
-  val slowCallbackTimeInSeconds: Int =
-    config.get[Int]("microservice.services.business-rules-response.slow-callback-seconds")
+  val fastCallbackTimeInSeconds: Int = config.get[Int]("business-rules-response.fast-callback-seconds")
+  val slowCallbackTimeInSeconds: Int = config.get[Int]("business-rules-response.slow-callback-seconds")
+
+  val informationType: String = config.get[String]("business-rules-response.expected-information-type")
+  val clientId: String        = config.get[String]("business-rules-response.expected-client-id")
+  val srn: String             = config.get[String]("business-rules-response.expected-srn")
 }

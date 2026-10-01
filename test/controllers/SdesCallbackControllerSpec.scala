@@ -27,7 +27,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import play.api.{inject, Application}
 import uk.gov.hmrc.carfstubs.config.AppConfig
-import uk.gov.hmrc.carfstubs.connectors.{BusinessRulesCallbackConnector, SdesCallbackConnector}
+import uk.gov.hmrc.carfstubs.connectors.SdesCallbackConnector
 import uk.gov.hmrc.carfstubs.controllers.routes
 import uk.gov.hmrc.carfstubs.models.errors.{InternalServerError, XmlValidationError}
 import uk.gov.hmrc.carfstubs.models.submissionCallback.NotificationType
@@ -36,22 +36,20 @@ import uk.gov.hmrc.carfstubs.types.ResultT
 
 class SdesCallbackControllerSpec extends SpecBase {
 
-  val mockSdesCallbackConnector: SdesCallbackConnector                   = mock[SdesCallbackConnector]
-  val mockBusinessRulesCallbackConnector: BusinessRulesCallbackConnector = mock[BusinessRulesCallbackConnector]
-  val mockAppConfig: AppConfig                                           = mock[AppConfig]
+  val mockSdesCallbackConnector: SdesCallbackConnector = mock[SdesCallbackConnector]
+  val mockAppConfig: AppConfig                         = mock[AppConfig]
 
   private def application(): Application =
     new GuiceApplicationBuilder()
       .overrides(
         bind[SdesCallbackConnector].toInstance(mockSdesCallbackConnector),
-        bind[BusinessRulesCallbackConnector].toInstance(mockBusinessRulesCallbackConnector),
         bind[AppConfig].toInstance(mockAppConfig)
       )
       .build()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockSdesCallbackConnector, mockBusinessRulesCallbackConnector, mockAppConfig)
+    reset(mockSdesCallbackConnector, mockAppConfig)
   }
 
   "SdesCallbackController" - {
@@ -64,10 +62,9 @@ class SdesCallbackControllerSpec extends SpecBase {
         status(result) mustBe BAD_REQUEST
 
         verify(mockSdesCallbackConnector, times(0)).callback(any())(any())
-        verify(mockBusinessRulesCallbackConnector, times(0)).callback(any(), any())(any())
       }
 
-      "must call SdesCallbackConnector and not BusinessRulesCallbackConnector when notification is not FileProcessed" - {
+      "must call SdesCallbackConnector once with received notification type if not FileProcessed" - {
         val notificationTypeGen: Gen[NotificationType] = oneOf(Seq(FileReady, FileReceived, FileProcessingFailure))
 
         "when SdesCallbackConnector returns a success response" in {
@@ -84,7 +81,6 @@ class SdesCallbackControllerSpec extends SpecBase {
           verify(mockSdesCallbackConnector, times(1)).callback(
             eqTo(sdesCallback(filename).copy(notification = notificationType))
           )(any())
-          verify(mockBusinessRulesCallbackConnector, times(0)).callback(any(), any())(any())
         }
 
         "when SdesCallbackConnector returns an error" in {
@@ -101,11 +97,10 @@ class SdesCallbackControllerSpec extends SpecBase {
           verify(mockSdesCallbackConnector, times(1)).callback(
             eqTo(sdesCallback(filename).copy(notification = notificationType))
           )(any())
-          verify(mockBusinessRulesCallbackConnector, times(0)).callback(any(), any())(any())
         }
       }
 
-      "must call SdesCallbackConnector with FileProcessingFailure when notification is FileProcessed but file name contains 'virus' or 'unexpected'" - {
+      "must call SdesCallbackConnector once with FileProcessingFailure when notification is FileProcessed but file name contains 'virus' or 'unexpected'" - {
         "when file name contains 'virus'" in {
           when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
 
@@ -119,7 +114,6 @@ class SdesCallbackControllerSpec extends SpecBase {
           verify(mockSdesCallbackConnector, times(1)).callback(
             eqTo(sdesCallback(filename).copy(notification = FileProcessingFailure, failureReason = Some("virus")))
           )(any())
-          verify(mockBusinessRulesCallbackConnector, times(0)).callback(any(), any())(any())
         }
 
         "when file name contains 'unexpected'" in {
@@ -135,17 +129,15 @@ class SdesCallbackControllerSpec extends SpecBase {
           verify(mockSdesCallbackConnector, times(1)).callback(
             eqTo(sdesCallback(filename).copy(notification = FileProcessingFailure))
           )(any())
-          verify(mockBusinessRulesCallbackConnector, times(0)).callback(any(), any())(any())
         }
       }
 
-      "must call SdesCallbackConnector and BusinessRulesCallbackConnector when notification is FileProcessed" - {
+      "must call SdesCallbackConnector with FileProcessed and FileReady when notification is FileProcessed" - {
         when(mockAppConfig.fastCallbackTimeInSeconds).thenReturn(0)
         when(mockAppConfig.slowCallbackTimeInSeconds).thenReturn(1)
 
         "when file name contains 'accepted'" in {
           when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
-          when(mockBusinessRulesCallbackConnector.callback(any(), any())(any())).thenReturn(ResultT.fromValue(()))
 
           val filename      = "accepted-file.xml"
           val json: JsValue = buildSdesCallbackJson(FileProcessed, filename, None)
@@ -155,9 +147,8 @@ class SdesCallbackControllerSpec extends SpecBase {
           status(result) mustBe OK
 
           verify(mockSdesCallbackConnector, times(1)).callback(eqTo(sdesCallback(filename)))(any())
-          verify(mockBusinessRulesCallbackConnector, times(1)).callback(
-            eqTo(testConversationId),
-            eqTo("data/examples/aeoi/BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml")
+          verify(mockSdesCallbackConnector, times(1)).callback(
+            eqTo(sdesCallback("BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml").copy(notification = FileReady))
           )(any())
           verify(mockAppConfig, times(1)).fastCallbackTimeInSeconds
         }
@@ -165,7 +156,6 @@ class SdesCallbackControllerSpec extends SpecBase {
         "when file name contains 'rejected'" - {
           "and file name contains 'many'" in {
             when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
-            when(mockBusinessRulesCallbackConnector.callback(any(), any())(any())).thenReturn(ResultT.fromValue(()))
 
             val filename      = "rejected-many-errors.xml"
             val json: JsValue = buildSdesCallbackJson(FileProcessed, filename, None)
@@ -175,16 +165,17 @@ class SdesCallbackControllerSpec extends SpecBase {
             status(result) mustBe OK
 
             verify(mockSdesCallbackConnector, times(1)).callback(eqTo(sdesCallback(filename)))(any())
-            verify(mockBusinessRulesCallbackConnector, times(1)).callback(
-              eqTo(testConversationId),
-              eqTo("data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_150errors.xml")
+            verify(mockSdesCallbackConnector, times(1)).callback(
+              eqTo(
+                sdesCallback("BusinessRuleCheckSampleRequest_validFile_with_150errors.xml")
+                  .copy(notification = FileReady)
+              )
             )(any())
             verify(mockAppConfig, times(1)).fastCallbackTimeInSeconds
           }
 
           "and file name does not contain 'many'" in {
             when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
-            when(mockBusinessRulesCallbackConnector.callback(any(), any())(any())).thenReturn(ResultT.fromValue(()))
 
             val filename      = "rejected-few-errors.xml"
             val json: JsValue = buildSdesCallbackJson(FileProcessed, filename, None)
@@ -194,9 +185,10 @@ class SdesCallbackControllerSpec extends SpecBase {
             status(result) mustBe OK
 
             verify(mockSdesCallbackConnector, times(1)).callback(eqTo(sdesCallback(filename)))(any())
-            verify(mockBusinessRulesCallbackConnector, times(1)).callback(
-              eqTo(testConversationId),
-              eqTo("data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_errors.xml")
+            verify(mockSdesCallbackConnector, times(1)).callback(
+              eqTo(
+                sdesCallback("BusinessRuleCheckSampleRequest_validFile_with_errors.xml").copy(notification = FileReady)
+              )
             )(any())
             verify(mockAppConfig, times(1)).fastCallbackTimeInSeconds
           }
@@ -204,7 +196,6 @@ class SdesCallbackControllerSpec extends SpecBase {
 
         "when file name contains 'schema-error'" in {
           when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
-          when(mockBusinessRulesCallbackConnector.callback(any(), any())(any())).thenReturn(ResultT.fromValue(()))
 
           val filename      = "schema-errors.xml"
           val json: JsValue = buildSdesCallbackJson(FileProcessed, filename, None)
@@ -214,16 +205,17 @@ class SdesCallbackControllerSpec extends SpecBase {
           status(result) mustBe OK
 
           verify(mockSdesCallbackConnector, times(1)).callback(eqTo(sdesCallback(filename)))(any())
-          verify(mockBusinessRulesCallbackConnector, times(1)).callback(
-            eqTo(testConversationId),
-            eqTo("data/examples/aeoi/BusinessRuleCheckSampleRequest_invalidFile_schema__errors.xml")
+          verify(mockSdesCallbackConnector, times(1)).callback(
+            eqTo(
+              sdesCallback("BusinessRuleCheckSampleRequest_invalidFile_schema__errors.xml")
+                .copy(notification = FileReady)
+            )
           )(any())
           verify(mockAppConfig, times(1)).fastCallbackTimeInSeconds
         }
 
         "when file name contains 'malformed'" in {
           when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
-          when(mockBusinessRulesCallbackConnector.callback(any(), any())(any())).thenReturn(ResultT.fromValue(()))
 
           val filename      = "malformed-xml.xml"
           val json: JsValue = buildSdesCallbackJson(FileProcessed, filename, None)
@@ -233,16 +225,14 @@ class SdesCallbackControllerSpec extends SpecBase {
           status(result) mustBe OK
 
           verify(mockSdesCallbackConnector, times(1)).callback(eqTo(sdesCallback(filename)))(any())
-          verify(mockBusinessRulesCallbackConnector, times(1)).callback(
-            eqTo(testConversationId),
-            eqTo("data/examples/malformed-xml.xml")
+          verify(mockSdesCallbackConnector, times(1)).callback(
+            eqTo(sdesCallback("malformed-xml.xml").copy(notification = FileReady))
           )(any())
           verify(mockAppConfig, times(1)).fastCallbackTimeInSeconds
         }
 
         "when file name contains 'not-found'" in {
           when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
-          when(mockBusinessRulesCallbackConnector.callback(any(), any())(any())).thenReturn(ResultT.fromValue(()))
 
           val filename      = "file-not-found.xml"
           val json: JsValue = buildSdesCallbackJson(FileProcessed, filename, None)
@@ -252,16 +242,31 @@ class SdesCallbackControllerSpec extends SpecBase {
           status(result) mustBe OK
 
           verify(mockSdesCallbackConnector, times(1)).callback(eqTo(sdesCallback(filename)))(any())
-          verify(mockBusinessRulesCallbackConnector, times(1)).callback(
-            eqTo(testConversationId),
-            eqTo("data/examples/aeoi/unknown.xml")
+          verify(mockSdesCallbackConnector, times(1)).callback(
+            eqTo(sdesCallback("unknown.xml").copy(notification = FileReady))
           )(any())
           verify(mockAppConfig, times(1)).fastCallbackTimeInSeconds
         }
 
-        "when file name contains none of the above, does not send the 2nd callback (file remains Pending)" in {
+        "when file name contains 'unlisted'" in {
           when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
-          when(mockBusinessRulesCallbackConnector.callback(any(), any())(any())).thenReturn(ResultT.fromValue(()))
+
+          val filename      = "file-unlisted.xml"
+          val json: JsValue = buildSdesCallbackJson(FileProcessed, filename, None)
+          val request       = FakeRequest(POST, routes.SdesCallbackController.callback.url).withBody(json)
+          val result        = route(application(), request).value
+
+          status(result) mustBe OK
+
+          verify(mockSdesCallbackConnector, times(1)).callback(eqTo(sdesCallback(filename)))(any())
+          verify(mockSdesCallbackConnector, times(1)).callback(
+            eqTo(sdesCallback("unlisted.xml").copy(notification = FileReady))
+          )(any())
+          verify(mockAppConfig, times(1)).fastCallbackTimeInSeconds
+        }
+
+        "when file name contains none of the above, does not send the FileReady callback (file remains Pending)" in {
+          when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
 
           val filename      = "other.xml"
           val json: JsValue = buildSdesCallbackJson(FileProcessed, filename, None)
@@ -271,12 +276,11 @@ class SdesCallbackControllerSpec extends SpecBase {
           status(result) mustBe OK
 
           verify(mockSdesCallbackConnector, times(1)).callback(eqTo(sdesCallback(filename)))(any())
-          verify(mockBusinessRulesCallbackConnector, times(0)).callback(any(), any())(any())
+          verify(mockSdesCallbackConnector, times(1)).callback(any())(any())
         }
 
         "must use the slow callback time when file name contains 'slow'" in {
           when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
-          when(mockBusinessRulesCallbackConnector.callback(any(), any())(any())).thenReturn(ResultT.fromValue(()))
 
           val filename      = "accepted-file-slow.xml"
           val json: JsValue = buildSdesCallbackJson(FileProcessed, filename, None)
@@ -286,29 +290,32 @@ class SdesCallbackControllerSpec extends SpecBase {
           status(result) mustBe OK
 
           verify(mockSdesCallbackConnector, times(1)).callback(eqTo(sdesCallback(filename)))(any())
-          verify(mockBusinessRulesCallbackConnector, times(1)).callback(
-            eqTo(testConversationId),
-            eqTo("data/examples/aeoi/BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml")
+          verify(mockSdesCallbackConnector, times(1)).callback(
+            eqTo(sdesCallback("BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml").copy(notification = FileReady))
           )(any())
           verify(mockAppConfig, times(1)).slowCallbackTimeInSeconds
         }
 
-        "must return OK even when the 2nd callback returns an error (e.g. due to malformed XML)" in {
-          when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
-          when(mockBusinessRulesCallbackConnector.callback(any(), any())(any()))
-            .thenReturn(ResultT.fromError(XmlValidationError))
-
+        "must return OK even when the FileReady callback returns an error (e.g. due to malformed XML)" in {
           val filename      = "malformed-xml.xml"
           val json: JsValue = buildSdesCallbackJson(FileProcessed, filename, None)
-          val request       = FakeRequest(POST, routes.SdesCallbackController.callback.url).withBody(json)
-          val result        = route(application(), request).value
+
+          when(mockSdesCallbackConnector.callback(eqTo(sdesCallback(filename)))(any()))
+            .thenReturn(ResultT.fromValue(()))
+          when(
+            mockSdesCallbackConnector.callback(
+              eqTo(sdesCallback("malformed-xml.xml").copy(notification = FileReady))
+            )(any())
+          ).thenReturn(ResultT.fromError(XmlValidationError))
+
+          val request = FakeRequest(POST, routes.SdesCallbackController.callback.url).withBody(json)
+          val result  = route(application(), request).value
 
           status(result) mustBe OK
 
           verify(mockSdesCallbackConnector, times(1)).callback(eqTo(sdesCallback(filename)))(any())
-          verify(mockBusinessRulesCallbackConnector, times(1)).callback(
-            eqTo(testConversationId),
-            eqTo("data/examples/malformed-xml.xml")
+          verify(mockSdesCallbackConnector, times(1)).callback(
+            eqTo(sdesCallback("malformed-xml.xml").copy(notification = FileReady))
           )(any())
           verify(mockAppConfig, times(1)).fastCallbackTimeInSeconds
         }

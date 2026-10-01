@@ -14,12 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.carfstubs.models.submissionCallback
+package uk.gov.hmrc.carfstubs.models.response
 
 import play.api.libs.json.{Json, OFormat}
 
-case class BusinessRulesValidationRequest(path: String)
+case class FileListing(
+    filename: String,
+    fileSize: Long,
+    downloadURL: String,
+    metadata: Seq[FileListingMetadata]
+)
 
-object BusinessRulesValidationRequest {
-  implicit val format: OFormat[BusinessRulesValidationRequest] = Json.format[BusinessRulesValidationRequest]
+object FileListing {
+  implicit val format: OFormat[FileListing] = Json.format[FileListing]
+}
+
+case class FileListingMetadata(metadata: String, value: String)
+
+object FileListingMetadata {
+  implicit val format: OFormat[FileListingMetadata] = Json.format[FileListingMetadata]
 }

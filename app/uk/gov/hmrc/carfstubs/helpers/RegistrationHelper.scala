@@ -17,8 +17,8 @@
 package uk.gov.hmrc.carfstubs.helpers
 
 import play.api.libs.json.Json
+import play.api.mvc.Result
 import play.api.mvc.Results.{BadRequest, Forbidden, InternalServerError, NotFound, Ok, ServiceUnavailable, UnprocessableEntity}
-import play.api.mvc.{Result, Results}
 import uk.gov.hmrc.carfstubs.models.request.{RegisterWithIDRequest, RegisterWithoutIdRequest}
 import uk.gov.hmrc.carfstubs.models.response.*
 import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
