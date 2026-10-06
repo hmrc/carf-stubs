@@ -21,9 +21,9 @@ import org.apache.pekko.pattern
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.carfstubs.config.AppConfig
-import uk.gov.hmrc.carfstubs.connectors.{BusinessRulesCallbackConnector, SdesCallbackConnector}
+import uk.gov.hmrc.carfstubs.connectors.SdesCallbackConnector
 import uk.gov.hmrc.carfstubs.models.request.CallbackRequest
-import uk.gov.hmrc.carfstubs.models.submissionCallback.NotificationType.{FileProcessed, FileProcessingFailure}
+import uk.gov.hmrc.carfstubs.models.submissionCallback.NotificationType.{FileProcessed, FileProcessingFailure, FileReady}
 import uk.gov.hmrc.carfstubs.types.ResultT
 import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 import uk.gov.hmrc.http.HeaderCarrier
@@ -37,7 +37,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class SdesCallbackController @Inject() (
     cc: ControllerComponents,
     sdesCallbackConnector: SdesCallbackConnector,
-    businessRulesCallbackConnector: BusinessRulesCallbackConnector,
     system: ActorSystem,
     appConfig: AppConfig
 )(implicit ec: ExecutionContext)
@@ -65,7 +64,7 @@ class SdesCallbackController @Inject() (
             case Right(_)    =>
               sdesCallbackRequest.notification match {
                 case FileProcessed =>
-                  sendBusinessRulesCallback(sdesCallback.correlationID, sdesCallback.filename.toLowerCase).value
+                  sendFileReadyCallback(sdesCallbackRequest).value
                     .map(_ => Ok)
                 case _             => Future.successful(Ok)
               }
@@ -88,65 +87,43 @@ class SdesCallbackController @Inject() (
     }
   }
 
-  private def sendBusinessRulesCallback(
-      conversationId: String,
-      filename: String
-  )(implicit hc: HeaderCarrier): ResultT[Unit] = {
-    val delayTime: FiniteDuration =
-      if (filename.contains("slow")) { appConfig.slowCallbackTimeInSeconds.seconds }
-      else { appConfig.fastCallbackTimeInSeconds.seconds }
+  private def sendFileReadyCallback(sdesCallback: CallbackRequest)(implicit hc: HeaderCarrier): ResultT[Unit] = {
+    val submittedFileName = sdesCallback.filename.toLowerCase
 
-    filename match {
+    val businessRulesFileName: Option[String] = submittedFileName match {
       case name if name.contains("accepted")                          =>
-        businessRulesCallbackWithDelay(
-          conversationId,
-          delayTime,
-          "data/examples/aeoi/BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml"
-        )
+        Some("BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml")
       case name if name.contains("rejected") && name.contains("many") =>
-        businessRulesCallbackWithDelay(
-          conversationId,
-          delayTime,
-          "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_150errors.xml"
-        )
+        Some("BusinessRuleCheckSampleRequest_validFile_with_150errors.xml")
       case name if name.contains("rejected")                          =>
-        businessRulesCallbackWithDelay(
-          conversationId,
-          delayTime,
-          "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_errors.xml"
-        )
+        Some("BusinessRuleCheckSampleRequest_validFile_with_errors.xml")
       case name if name.contains("schema-error")                      =>
-        businessRulesCallbackWithDelay(
-          conversationId,
-          delayTime,
-          "data/examples/aeoi/BusinessRuleCheckSampleRequest_invalidFile_schema__errors.xml"
-        )
+        Some("BusinessRuleCheckSampleRequest_invalidFile_schema__errors.xml")
       case name if name.contains("malformed")                         =>
-        businessRulesCallbackWithDelay(
-          conversationId,
-          delayTime,
-          "data/examples/malformed-xml.xml"
-        )
+        Some("malformed-xml.xml")
       case name if name.contains("not-found")                         =>
-        businessRulesCallbackWithDelay(
-          conversationId,
-          delayTime,
-          "data/examples/aeoi/unknown.xml"
-        )
+        Some("unknown.xml")
+      case name if name.contains("unlisted")                          =>
+        Some("unlisted.xml")
       case _                                                          =>
-        ResultT.fromValue(())
+        None
     }
-  }
 
-  private def businessRulesCallbackWithDelay(
-      conversationId: String,
-      delay: FiniteDuration,
-      downloadUrl: String
-  )(implicit hc: HeaderCarrier): ResultT[Unit] =
-    ResultT.fromFuture {
-      pattern.after(delay, system.scheduler) {
-        businessRulesCallbackConnector.callback(conversationId, downloadUrl).value
+    businessRulesFileName.fold(
+      ResultT.fromValue(())
+    ) { filename =>
+      val fileReadyCallback = sdesCallback.copy(notification = FileReady, filename = filename)
+
+      val delayTime: FiniteDuration =
+        if (submittedFileName.contains("slow")) { appConfig.slowCallbackTimeInSeconds.seconds }
+        else { appConfig.fastCallbackTimeInSeconds.seconds }
+
+      ResultT.fromFuture {
+        pattern.after(delayTime, system.scheduler) {
+          sdesCallbackConnector.callback(fileReadyCallback).value
+        }
       }
     }
+  }
 
 }
