@@ -14,5 +14,7 @@ POST        /hmrc/email                                            uk.gov.hmrc.c
 GET         /dac6/viewrcaspdata/v1/:carfId/:rcaspId                uk.gov.hmrc.carfstubs.controllers.RcaspController.viewRcasp(carfId: String, rcaspId: String)
 POST        /dac6/SubmitRCASPData/v1                               uk.gov.hmrc.carfstubs.controllers.RcaspController.createUpdateOrDeleteRcasp
 
+POST        /dac6/carf/SubmissionsList/v1                          uk.gov.hmrc.carfstubs.controllers.SubmissionHistoryController.getSubmissionHistory
+
 POST        /carf-stubs/sdes/callback                              uk.gov.hmrc.carfstubs.controllers.SdesCallbackController.callback
 GET         /files-available/list/:informationType                 uk.gov.hmrc.carfstubs.controllers.FileListingController.getBusinessRulesFileListing(informationType: String)
