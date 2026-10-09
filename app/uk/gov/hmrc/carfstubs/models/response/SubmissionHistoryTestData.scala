@@ -30,7 +30,7 @@ object SubmissionHistoryTestData {
       SubmissionHistoryRecord(
         rcaspId = "ZMCAR0123456789",
         rcaspName = "Nemona Champion",
-        filename = "filename1.xml",
+        fileName = "filename1.xml",
         submissionStatus = Passed,
         uploadDateTime = now.minus(1, ChronoUnit.DAYS),
         messageRefId = "MSG-2024-0001",
@@ -41,7 +41,7 @@ object SubmissionHistoryTestData {
       SubmissionHistoryRecord(
         rcaspId = "ZMCAR0123456789",
         rcaspName = "Nemona Champion",
-        filename = "filename2.xml",
+        fileName = "filename2.xml",
         submissionStatus = Failed,
         uploadDateTime = now.minus(2, ChronoUnit.DAYS),
         messageRefId = "MSG-2024-0002",
@@ -52,7 +52,7 @@ object SubmissionHistoryTestData {
       SubmissionHistoryRecord(
         rcaspId = "ZMCAR0123456789",
         rcaspName = "Nemona Champion",
-        filename = "filename3.xml",
+        fileName = "filename3.xml",
         submissionStatus = Passed,
         uploadDateTime = now.minus(28, ChronoUnit.DAYS).minus(1, ChronoUnit.MINUTES),
         messageRefId = "MSG-2024-0003",
@@ -63,7 +63,7 @@ object SubmissionHistoryTestData {
       SubmissionHistoryRecord(
         rcaspId = "ZMCAR0123456789",
         rcaspName = "Nemona Champion",
-        filename = "filename4.xml",
+        fileName = "filename4.xml",
         submissionStatus = Passed,
         uploadDateTime = now.minus(40, ChronoUnit.DAYS),
         messageRefId = "MSG-2024-0003",
@@ -74,7 +74,7 @@ object SubmissionHistoryTestData {
       SubmissionHistoryRecord(
         rcaspId = "ZMCAR0123456780",
         rcaspName = "Other RCASP Ltd",
-        filename = "filename5.xml",
+        fileName = "filename5.xml",
         submissionStatus = Passed,
         uploadDateTime = now.minus(32, ChronoUnit.DAYS),
         messageRefId = "MSG-2024-0005",
@@ -85,7 +85,7 @@ object SubmissionHistoryTestData {
       SubmissionHistoryRecord(
         rcaspId = "ZMCAR0123456780",
         rcaspName = "Other RCASP Ltd",
-        filename = "filename6.xml",
+        fileName = "filename6.xml",
         submissionStatus = Pending,
         uploadDateTime = now.minus(33, ChronoUnit.DAYS),
         messageRefId = "MSG-2024-0006",
@@ -96,7 +96,7 @@ object SubmissionHistoryTestData {
       SubmissionHistoryRecord(
         rcaspId = "ZMCAR0123456780",
         rcaspName = "Other RCASP Ltd",
-        filename = "filename7.xml",
+        fileName = "filename7.xml",
         submissionStatus = Failed,
         uploadDateTime = now.minus(34, ChronoUnit.DAYS),
         messageRefId = "MSG-2024-0007",
@@ -111,7 +111,7 @@ object SubmissionHistoryTestData {
       SubmissionHistoryRecord(
         rcaspId = "ZMCAR0123456789",
         rcaspName = "Nemona Champion",
-        filename = "filename1.xml",
+        fileName = "filename1.xml",
         submissionStatus = Passed,
         uploadDateTime = now.minus(1, ChronoUnit.DAYS),
         messageRefId = "MSG-2024-0001",
@@ -124,7 +124,7 @@ object SubmissionHistoryTestData {
         SubmissionHistoryRecord(
           rcaspId = "ZMCAR0123456780",
           rcaspName = "Other RCASP Ltd",
-          filename = s"filename$daysAgo.xml",
+          fileName = s"filename$daysAgo.xml",
           submissionStatus = Passed,
           uploadDateTime = now.minus(daysAgo, ChronoUnit.DAYS),
           messageRefId = s"MSG-2024-00$daysAgo",
@@ -137,7 +137,7 @@ object SubmissionHistoryTestData {
         SubmissionHistoryRecord(
           rcaspId = "ZMCAR0123456780",
           rcaspName = "Other RCASP Ltd",
-          filename = s"filename$daysAgo-pending.xml",
+          fileName = s"filename$daysAgo-pending.xml",
           submissionStatus = Pending,
           uploadDateTime = now.minus(daysAgo, ChronoUnit.DAYS),
           messageRefId = s"MSG-2024-00$daysAgo",
@@ -152,7 +152,7 @@ object SubmissionHistoryTestData {
       SubmissionHistoryRecord(
         rcaspId = "ZMCAR0123456780",
         rcaspName = "Other RCASP Ltd",
-        filename = s"filename$daysAgo.xml",
+        fileName = s"filename$daysAgo.xml",
         submissionStatus = Passed,
         uploadDateTime = now.minus(daysAgo, ChronoUnit.DAYS),
         messageRefId = s"MSG-2024-$daysAgo",
