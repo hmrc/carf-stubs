@@ -91,21 +91,23 @@ class SdesCallbackController @Inject() (
     val submittedFileName = sdesCallback.filename.toLowerCase
 
     val businessRulesFileName: Option[String] = submittedFileName match {
-      case name if name.contains("accepted")                          =>
+      case name if name.contains("accepted")                             =>
         Some("BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml")
-      case name if name.contains("rejected") && name.contains("many") =>
+      case name if name.contains("rejected") && name.contains("many")    =>
         Some("BusinessRuleCheckSampleRequest_validFile_with_150errors.xml")
-      case name if name.contains("rejected")                          =>
+      case name if name.contains("rejected") && name.contains("1_to_46") =>
+        Some("BusinessRuleCheckSampleRequest_validFile_with_errors_1_to_46.xml")
+      case name if name.contains("rejected")                             =>
         Some("BusinessRuleCheckSampleRequest_validFile_with_errors.xml")
-      case name if name.contains("schema-error")                      =>
+      case name if name.contains("schema-error")                         =>
         Some("BusinessRuleCheckSampleRequest_invalidFile_schema__errors.xml")
-      case name if name.contains("malformed")                         =>
+      case name if name.contains("malformed")                            =>
         Some("malformed-xml.xml")
-      case name if name.contains("not-found")                         =>
+      case name if name.contains("not-found")                            =>
         Some("unknown.xml")
-      case name if name.contains("unlisted")                          =>
+      case name if name.contains("unlisted")                             =>
         Some("unlisted.xml")
-      case _                                                          =>
+      case _                                                             =>
         None
     }
 
