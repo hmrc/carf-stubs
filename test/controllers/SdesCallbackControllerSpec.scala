@@ -174,6 +174,26 @@ class SdesCallbackControllerSpec extends SpecBase {
             verify(mockAppConfig, times(1)).fastCallbackTimeInSeconds
           }
 
+          "and file name contains '1_to_46'" in {
+            when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
+
+            val filename      = "rejected_errors_1_to_46.xml"
+            val json: JsValue = buildSdesCallbackJson(FileProcessed, filename, None)
+            val request       = FakeRequest(POST, routes.SdesCallbackController.callback.url).withBody(json)
+            val result        = route(application(), request).value
+
+            status(result) mustBe OK
+
+            verify(mockSdesCallbackConnector, times(1)).callback(eqTo(sdesCallback(filename)))(any())
+            verify(mockSdesCallbackConnector, times(1)).callback(
+              eqTo(
+                sdesCallback("BusinessRuleCheckSampleRequest_validFile_with_errors_1_to_46.xml")
+                  .copy(notification = FileReady)
+              )
+            )(any())
+            verify(mockAppConfig, times(1)).fastCallbackTimeInSeconds
+          }
+
           "and file name does not contain 'many'" in {
             when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
 
