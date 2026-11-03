@@ -34,6 +34,12 @@ object BusinessRulesFileListing {
       metadata = Seq.empty
     ),
     FileListing(
+      filename = "BusinessRuleCheckSampleRequest_validFile_with_errors_1_to_46.xml",
+      fileSize = 10000L,
+      downloadURL = "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_errors_1_to_46.xml",
+      metadata = Seq.empty
+    ),
+    FileListing(
       filename = "BusinessRuleCheckSampleRequest_validFile_with_errors.xml",
       fileSize = 1136L,
       downloadURL = "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_errors.xml",
