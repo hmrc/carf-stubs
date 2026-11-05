@@ -16,52 +16,54 @@
 
 package uk.gov.hmrc.carfstubs.models.submissionCallback
 
-import uk.gov.hmrc.carfstubs.models.response.FileListing
+import uk.gov.hmrc.carfstubs.models.response.{FileListing, FileListingMetadata}
 
 object BusinessRulesFileListing {
+
+  val testFileListingMetadata = FileListingMetadata(metadata = "testMetadata", value = "testValue")
 
   val businessRulesFilesInBackend: Seq[FileListing] = Seq(
     FileListing(
       filename = "BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml",
       fileSize = 792L,
       downloadURL = "data/examples/aeoi/BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml",
-      metadata = Seq.empty
+      metadata = None
     ),
     FileListing(
       filename = "BusinessRuleCheckSampleRequest_validFile_with_150errors.xml",
       fileSize = 35081L,
       downloadURL = "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_150errors.xml",
-      metadata = Seq.empty
+      metadata = Some(Seq.empty)
     ),
     FileListing(
       filename = "BusinessRuleCheckSampleRequest_validFile_with_errors_1_to_46.xml",
       fileSize = 10000L,
       downloadURL = "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_errors_1_to_46.xml",
-      metadata = Seq.empty
+      metadata = Some(Seq(testFileListingMetadata))
     ),
     FileListing(
       filename = "BusinessRuleCheckSampleRequest_validFile_with_errors.xml",
       fileSize = 1136L,
       downloadURL = "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_errors.xml",
-      metadata = Seq.empty
+      metadata = Some(Seq.empty)
     ),
     FileListing(
       filename = "BusinessRuleCheckSampleRequest_invalidFile_schema__errors.xml",
       fileSize = 1036L,
       downloadURL = "data/examples/aeoi/BusinessRuleCheckSampleRequest_invalidFile_schema__errors.xml",
-      metadata = Seq.empty
+      metadata = Some(Seq.empty)
     ),
     FileListing(
       filename = "malformed-xml.xml",
       fileSize = 56L,
       downloadURL = "data/examples/malformed-xml.xml",
-      metadata = Seq.empty
+      metadata = Some(Seq.empty)
     ),
     FileListing(
       filename = "unknown.xml",
       fileSize = 100L,
       downloadURL = "data/examples/aeoi/unknown.xml",
-      metadata = Seq.empty
+      metadata = Some(Seq.empty)
     )
   )
 
