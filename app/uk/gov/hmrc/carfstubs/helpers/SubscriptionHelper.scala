@@ -74,7 +74,7 @@ trait SubscriptionHelper {
         primaryContact = Contact(
           organisation = Some(
             Organisation(
-              name = "Jon Doe Limited"
+              name = "Jon Doe"
             )
           ),
           email = "JonDoePrimaryContact@FATCACRS.com",
@@ -86,7 +86,7 @@ trait SubscriptionHelper {
           Contact(
             organisation = Some(
               Organisation(
-                name = "Don Joe Limited"
+                name = "Don Joe"
               )
             ),
             email = "DonJoeSecondaryContact@FATCACRS.com",
@@ -109,7 +109,7 @@ trait SubscriptionHelper {
         primaryContact = Contact(
           organisation = Some(
             Organisation(
-              name = "Jon Doe Limited"
+              name = "Jon Doe"
             )
           ),
           email = "JonDoePrimaryContact@FATCACRS.com",
