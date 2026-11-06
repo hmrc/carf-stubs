@@ -77,7 +77,7 @@ trait SubscriptionHelper {
               name = "Jon Doe Limited"
             )
           ),
-          email = "GroupRep@FATCACRS.com",
+          email = "JonDoePrimaryContact@FATCACRS.com",
           phone = Some("01232473743"),
           mobile = Some("07232473743"),
           individual = None
@@ -89,7 +89,7 @@ trait SubscriptionHelper {
                 name = "Don Joe Limited"
               )
             ),
-            email = "GroupRepSecondary@FATCACRS.com",
+            email = "DonJoeSecondaryContact@FATCACRS.com",
             phone = Some("01232473744"),
             mobile = Some("07232473744"),
             individual = None
@@ -112,7 +112,7 @@ trait SubscriptionHelper {
               name = "Jon Doe Limited"
             )
           ),
-          email = "GroupRep@FATCACRS.com",
+          email = "JonDoePrimaryContact@FATCACRS.com",
           phone = None,
           mobile = Some("07232473743"),
           individual = None
