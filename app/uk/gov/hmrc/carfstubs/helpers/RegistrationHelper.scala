@@ -198,7 +198,7 @@ trait RegistrationHelper {
         responseDetail = Some(
           ResponseDetail(
             ARN = "",
-            SAFEID = generateSafeId,
+            SAFEID = "TEST-SAFEID",
             address = emptyAddress,
             contactDetails = ContactDetails(None, None, None, None),
             individual = None,
