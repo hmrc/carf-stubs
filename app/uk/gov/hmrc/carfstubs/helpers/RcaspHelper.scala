@@ -33,13 +33,13 @@ trait RcaspHelper {
       case "Y" => internalServerError500Response
       case "T" => badRequest400Response
       case "S" => serviceUnavailable503Response
-      case "R" => Ok(Json.toJson(fullOrganisationRcaspResponse(carfId)))
       case "P" => unprocessableEntity422Response
+      case "K" => noRcasps422Response
+      case "R" => Ok(Json.toJson(fullOrganisationRcaspResponse(carfId)))
       case "O" => Ok(Json.toJson(emptyOptionalsOrganisationRcaspResponse(carfId)))
       case "N" => Ok(Json.toJson(multipleOrganisationRcaspResponse(carfId)))
       case "M" => Ok(Json.toJson(emptyOptionalsIndividualRcaspResponse(carfId)))
       case "L" => Ok(Json.toJson(multipleIndividualRcaspResponse(carfId)))
-      case "K" => noRcasps422Response
       case "J" => Ok(Json.toJson(fullIndividualRcaspResponse(carfId)))
       case _   => Ok(Json.toJson(allScenarioRcaspResponse(carfId)))
     }
@@ -98,7 +98,7 @@ trait RcaspHelper {
           fullIndividualRcaspDetails(
             carfId,
             rcaspId = "ZMCAR0123456780",
-            isRCaspUser = false,
+            isRcaspUser = false,
             firstName = "Penny",
             lastName = "Cassiopeia"
           )
@@ -115,7 +115,7 @@ trait RcaspHelper {
           fullIndividualRcaspDetails(
             carfId,
             rcaspId = "ZMCAR0123456780",
-            isRCaspUser = false,
+            isRcaspUser = false,
             firstName = "Penny",
             lastName = "Cassiopeia"
           ),
@@ -126,9 +126,9 @@ trait RcaspHelper {
             firstName = "Nemona",
             lastName = "Champion"
           ),
-          fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456786", rcaspName = "Apple"),
-          registeredBusinessRcaspDetails(carfId, rcaspId = "ZMCAR0123456787", rcaspName = "Timmy's Turtles"),
-          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456788", rcaspName = "Amazon UK")
+          fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456786", rcaspName = "Full Crypto Wallets Ltd"),
+          registeredBusinessRcaspDetails(carfId, rcaspId = "ZMCAR0123456787", rcaspName = "Big Crypto Registered Business PLC"),
+          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456788", rcaspName = "Empty Crypto Wallets Ltd")
         )
       )
     )
@@ -159,8 +159,8 @@ trait RcaspHelper {
           fullIndividualRcaspDetails(
             carfId,
             rcaspId = "ZMCAR0123456780",
-            isRCaspUser = false,
-            firstName = "Penny",
+            isRcaspUser = false,
+            firstName = "Camilla",
             lastName = "Smith"
           ),
           emptyOptionalsIndividualRcaspDetails(
@@ -174,22 +174,22 @@ trait RcaspHelper {
             carfId,
             rcaspId = "ZMCAR0123456782",
             isRCaspUser = true,
-            firstName = "Nemona",
+            firstName = "Cynthia",
             lastName = "Champion"
           ),
           fullIndividualRcaspDetails(
             carfId,
             rcaspId = "ZMCAR0123456783",
-            isRCaspUser = false,
-            firstName = "Bob",
-            lastName = "Smith"
+            isRcaspUser = false,
+            firstName = "Persephone",
+            lastName = "Underworld"
           ),
           fullIndividualRcaspDetails(
             carfId,
             rcaspId = "ZMCAR0123456784",
-            isRCaspUser = false,
-            firstName = "John",
-            lastName = "Doe"
+            isRcaspUser = false,
+            firstName = "Demeter",
+            lastName = "Garter"
           )
         )
       )
@@ -199,14 +199,14 @@ trait RcaspHelper {
   private def fullIndividualRcaspDetails(
       carfId: String,
       rcaspId: String,
-      isRCaspUser: Boolean,
+      isRcaspUser: Boolean,
       firstName: String,
       lastName: String
   ): viewAndUpdateRcasp.RcaspDetails =
     viewAndUpdateRcasp.IndividualRcaspDetails(
       RCASPID = rcaspId,
       SubscriptionID = carfId,
-      IsRCASPUser = isRCaspUser,
+      IsRCASPUser = isRcaspUser,
       PartyType = "Individual",
       FirstName = firstName,
       LastName = lastName,
@@ -223,7 +223,7 @@ trait RcaspHelper {
       PrimaryContactDetails = Some(
         RcaspContactDetails(
           ContactName = s"$firstName $lastName",
-          EmailAddress = "penny.cassiopeia@uva.edu.org",
+          EmailAddress = s"$firstName.$lastName@personal-gmail.com",
           PhoneNumber = Some("07123412345")
         )
       )
@@ -256,7 +256,7 @@ trait RcaspHelper {
       PrimaryContactDetails = Some(
         RcaspContactDetails(
           ContactName = s"$firstName $lastName",
-          EmailAddress = "penny.cassiopeia@uva.edu.org",
+          EmailAddress = s"$firstName.$lastName@uva.edu.org",
           PhoneNumber = None
         )
       )
@@ -267,7 +267,7 @@ trait RcaspHelper {
       ResponseCommon = rcaspResponseCommon,
       ResponseDetails = RcaspResponseDetails(RCASPList =
         List(
-          fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456785", rcaspName = "Mesagoza")
+          fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456785", rcaspName = "Pokemon Gymnopedie NFTs LLP")
         )
       )
     )
@@ -278,7 +278,7 @@ trait RcaspHelper {
       ResponseCommon = rcaspResponseCommon,
       ResponseDetails = RcaspResponseDetails(RCASPList =
         List(
-          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456786", rcaspName = "Amazon UK")
+          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456786", rcaspName = "Verity Blockchains PLC")
         )
       )
     )
@@ -289,11 +289,11 @@ trait RcaspHelper {
       ResponseCommon = rcaspResponseCommon,
       ResponseDetails = RcaspResponseDetails(RCASPList =
         List(
-          fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456785", rcaspName = "Mesagoza"),
-          fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456786", rcaspName = "Apple"),
-          registeredBusinessRcaspDetails(carfId, rcaspId = "ZMCAR0123456787", rcaspName = "Timmy's Turtles"),
-          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456788", rcaspName = "Amazon UK"),
-          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456789", rcaspName = "Name Name")
+          fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456785", rcaspName = "Verity Blockchains PLC"),
+          fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456786", rcaspName = "Pokemon Gymnopedie NFTs LLP"),
+          registeredBusinessRcaspDetails(carfId, rcaspId = "ZMCAR0123456787", rcaspName = "Carfcoins Ltd"),
+          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456788", rcaspName = "Trustworthy Ledgders LLC"),
+          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456789", rcaspName = "A Ripple in Time Ltd")
         )
       )
     )
@@ -306,7 +306,7 @@ trait RcaspHelper {
       IsRCASPUser = true,
       PartyType = "Organisation",
       RCASPName = rcaspName,
-      TradingName = "Uva Academy",
+      TradingName = s"$rcaspName Trading Co",
       TINDetails = Some(
         List(
           TinDetails(
@@ -328,7 +328,7 @@ trait RcaspHelper {
       IsRCASPUser = false,
       PartyType = "Organisation",
       RCASPName = rcaspName,
-      TradingName = "Uva Academy",
+      TradingName = s"$rcaspName Trading Co",
       TINDetails = Some(
         List(
           TinDetails(
@@ -341,14 +341,14 @@ trait RcaspHelper {
       AddressDetails = fullAddress,
       PrimaryContactDetails = Some(
         RcaspContactDetails(
-          ContactName = "Clavell",
-          EmailAddress = "clavell@uva.edu.org",
+          ContactName = "Miriam Mimosa",
+          EmailAddress = "miriam@uva.edu.org",
           PhoneNumber = Some("07123412344")
         )
       ),
       SecondaryContactDetails = Some(
         RcaspContactDetails(
-          ContactName = "Jacq",
+          ContactName = "Jacq Zinnia",
           EmailAddress = "jacq@uva.edu.org",
           PhoneNumber = Some("07123412345")
         )
@@ -375,8 +375,8 @@ trait RcaspHelper {
       AddressDetails = fullAddress,
       PrimaryContactDetails = Some(
         RcaspContactDetails(
-          ContactName = "Clavell",
-          EmailAddress = "clavell@uva.edu.org",
+          ContactName = "Harrington Inugaya",
+          EmailAddress = "harrington@uva.edu.org",
           PhoneNumber = None
         )
       ),
