@@ -132,6 +132,23 @@ class SdesCallbackControllerSpec extends SpecBase {
         }
       }
 
+      "must call SdesCallbackConnector once with notificationType FileDelayed" - {
+        "when file name contains 'delayed'" in {
+          when(mockSdesCallbackConnector.callback(any())(any())).thenReturn(ResultT.fromValue(()))
+
+          val filename      = "delayed-file.xml"
+          val json: JsValue = buildSdesCallbackJson(FileDelayed, filename, None)
+          val request       = FakeRequest(POST, routes.SdesCallbackController.callback.url).withBody(json)
+          val result        = route(application(), request).value
+
+          status(result) mustBe OK
+
+          verify(mockSdesCallbackConnector, times(1)).callback(
+            eqTo(sdesCallback(filename).copy(notification = FileDelayed, failureReason = None))
+          )(any())
+        }
+      }
+
       "must call SdesCallbackConnector with FileProcessed and FileReady when notification is FileProcessed" - {
         when(mockAppConfig.fastCallbackTimeInSeconds).thenReturn(0)
         when(mockAppConfig.slowCallbackTimeInSeconds).thenReturn(1)
