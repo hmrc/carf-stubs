@@ -23,7 +23,7 @@ import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.carfstubs.config.AppConfig
 import uk.gov.hmrc.carfstubs.connectors.SdesCallbackConnector
 import uk.gov.hmrc.carfstubs.models.request.CallbackRequest
-import uk.gov.hmrc.carfstubs.models.submissionCallback.NotificationType.{FileProcessed, FileProcessingFailure, FileReady}
+import uk.gov.hmrc.carfstubs.models.submissionCallback.NotificationType.{FileDelayed, FileProcessed, FileProcessingFailure, FileReady}
 import uk.gov.hmrc.carfstubs.types.ResultT
 import uk.gov.hmrc.carfstubs.utils.LoggerUtil.*
 import uk.gov.hmrc.http.HeaderCarrier
@@ -74,16 +74,19 @@ class SdesCallbackController @Inject() (
 
   private def updateStatusOfSdesCallback(sdesCallback: CallbackRequest): CallbackRequest = {
     val containsVirus = sdesCallback.filename.toLowerCase.contains("virus")
-    if (
-      sdesCallback.notification == FileProcessed &&
-      (containsVirus || sdesCallback.filename.toLowerCase.contains("unexpected"))
-    ) {
-      sdesCallback.copy(
-        notification = FileProcessingFailure,
-        failureReason = if containsVirus then Some("virus") else None
-      )
-    } else {
-      sdesCallback
+
+    sdesCallback.notification match {
+      case FileProcessed if containsVirus || sdesCallback.filename.toLowerCase.contains("unexpected") =>
+        sdesCallback.copy(
+          notification = FileProcessingFailure,
+          failureReason = if containsVirus then Some("virus") else None
+        )
+      case FileProcessed if sdesCallback.filename.toLowerCase.contains("delayed")                     =>
+        sdesCallback.copy(
+          notification = FileDelayed,
+          failureReason = None
+        )
+      case _                                                                                          => sdesCallback
     }
   }
 
