@@ -127,8 +127,16 @@ trait RcaspHelper {
             lastName = "Champion"
           ),
           fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456786", rcaspName = "Full Crypto Wallets Ltd"),
-          registeredBusinessRcaspDetails(carfId, rcaspId = "ZMCAR0123456787", rcaspName = "Big Crypto Registered Business PLC"),
-          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456788", rcaspName = "Empty Crypto Wallets Ltd")
+          registeredBusinessRcaspDetails(
+            carfId,
+            rcaspId = "ZMCAR0123456787",
+            rcaspName = "Big Crypto Registered Business PLC"
+          ),
+          emptyOptionalsOrganisationRcaspDetails(
+            carfId,
+            rcaspId = "ZMCAR0123456788",
+            rcaspName = "Empty Crypto Wallets Ltd"
+          )
         )
       )
     )
@@ -278,7 +286,11 @@ trait RcaspHelper {
       ResponseCommon = rcaspResponseCommon,
       ResponseDetails = RcaspResponseDetails(RCASPList =
         List(
-          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456786", rcaspName = "Verity Blockchains PLC")
+          emptyOptionalsOrganisationRcaspDetails(
+            carfId,
+            rcaspId = "ZMCAR0123456786",
+            rcaspName = "Verity Blockchains PLC"
+          )
         )
       )
     )
@@ -292,8 +304,16 @@ trait RcaspHelper {
           fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456785", rcaspName = "Verity Blockchains PLC"),
           fullOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456786", rcaspName = "Pokemon Gymnopedie NFTs LLP"),
           registeredBusinessRcaspDetails(carfId, rcaspId = "ZMCAR0123456787", rcaspName = "Carfcoins Ltd"),
-          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456788", rcaspName = "Trustworthy Ledgders LLC"),
-          emptyOptionalsOrganisationRcaspDetails(carfId, rcaspId = "ZMCAR0123456789", rcaspName = "A Ripple in Time Ltd")
+          emptyOptionalsOrganisationRcaspDetails(
+            carfId,
+            rcaspId = "ZMCAR0123456788",
+            rcaspName = "Trustworthy Ledgders LLC"
+          ),
+          emptyOptionalsOrganisationRcaspDetails(
+            carfId,
+            rcaspId = "ZMCAR0123456789",
+            rcaspName = "A Ripple in Time Ltd"
+          )
         )
       )
     )
