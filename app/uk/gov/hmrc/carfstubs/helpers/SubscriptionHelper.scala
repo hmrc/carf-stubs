@@ -45,16 +45,16 @@ trait SubscriptionHelper {
       processingDate = java.time.Instant.now().toString,
       carfSubscriptionDetails = CarfSubscriptionDetails(
         carfReference = carfReference,
-        tradingName = Some("CARF LTD"),
+        tradingName = Some("JLB Credit Sole Trader"),
         gbUser = true,
         primaryContact = Contact(
           individual = Some(
             Individual(
-              firstName = "Jon",
-              lastName = "Doe"
+              firstName = "Alan",
+              lastName = "Johnson"
             )
           ),
-          email = "GroupRep@FATCACRS.com",
+          email = "Alan@JLBCredit.com",
           phone = Some("01232473743"),
           mobile = Some("07232473743"),
           organisation = None
@@ -69,29 +69,29 @@ trait SubscriptionHelper {
       processingDate = java.time.Instant.now().toString,
       carfSubscriptionDetails = CarfSubscriptionDetails(
         carfReference = carfReference,
-        tradingName = Some("CARF LTD"),
+        tradingName = Some("Apples and Pears Ltd"),
         gbUser = true,
         primaryContact = Contact(
           organisation = Some(
             Organisation(
-              name = "Jon Doe"
+              name = "Granny Smith"
             )
           ),
-          email = "GroupRep@FATCACRS.com",
-          phone = Some("01232473743"),
-          mobile = Some("07232473743"),
+          email = "GrannySmith@ApplesAndPears.com",
+          phone = Some("01234567890"),
+          mobile = Some("01234567890"),
           individual = None
         ),
         secondaryContact = Some(
           Contact(
             organisation = Some(
               Organisation(
-                name = "Don Joe"
+                name = "Pink Lady"
               )
             ),
-            email = "GroupRep@FATCACRS.com",
-            phone = Some("01232473744"),
-            mobile = Some("07232473744"),
+            email = "PinkLady@ApplesAndPears.com",
+            phone = Some("01234567890"),
+            mobile = Some("01234567890"),
             individual = None
           )
         )
@@ -109,10 +109,10 @@ trait SubscriptionHelper {
         primaryContact = Contact(
           organisation = Some(
             Organisation(
-              name = "Jon Doe"
+              name = "Timmy Noname"
             )
           ),
-          email = "GroupRep@FATCACRS.com",
+          email = "Timmy@EmptyData.com",
           phone = None,
           mobile = Some("07232473743"),
           individual = None
@@ -132,11 +132,11 @@ trait SubscriptionHelper {
         primaryContact = Contact(
           individual = Some(
             Individual(
-              firstName = "Joe",
-              lastName = "No"
+              firstName = "Joseph",
+              lastName = "Nooptions"
             )
           ),
-          email = "GroupRep@FATCACRS.com",
+          email = "Joe@ResponseWithEmptys.com",
           phone = None,
           mobile = None,
           organisation = None
@@ -151,19 +151,19 @@ trait SubscriptionHelper {
       processingDate = java.time.Instant.now().toString,
       carfSubscriptionDetails = CarfSubscriptionDetails(
         carfReference = carfReference,
-        tradingName = Some("CARF LTD"),
+        tradingName = Some("Doofenshmirtz Evil Inc"),
         gbUser = true,
         primaryContact = Contact(
           individual = Some(
             Individual(
-              firstName = "Jon",
-              lastName = "Doe"
+              firstName = "Doctor",
+              lastName = "Doofenshmirtz"
             )
           ),
           organisation = None,
-          email = "GroupRep@FATCACRS.com",
+          email = "DocDoof@EvilInc.com",
           phone = None,
-          mobile = Some("07232473743")
+          mobile = Some("07123456789")
         ),
         secondaryContact = None
       )
