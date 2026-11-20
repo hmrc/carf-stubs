@@ -41,6 +41,8 @@ trait RcaspHelper {
       case "M" => Ok(Json.toJson(emptyOptionalsIndividualRcaspResponse(carfId)))
       case "L" => Ok(Json.toJson(multipleIndividualRcaspResponse(carfId)))
       case "J" => Ok(Json.toJson(fullIndividualRcaspResponse(carfId)))
+      case "H" => Ok(Json.toJson(individualSelfRcaspResponse(carfId, rcaspEmail = individualUserEmail)))
+      case "I" => Ok(Json.toJson(individualSelfRcaspResponse(carfId, rcaspEmail = "Alan.Johnson@personal-gmail.com")))
       case _   => Ok(Json.toJson(allScenarioRcaspResponse(carfId)))
     }
 
@@ -89,6 +91,58 @@ trait RcaspHelper {
 
   private def successfulUpdateDeleteResponse: Result =
     Ok(Json.toJson(SubmitRcaspResponse(ResponseDetails = None)))
+
+  private val individualUserEmail = "Alan@JLBCredit.com"
+
+  private def individualSelfRcaspResponse(carfId: String, rcaspEmail: String) = ViewRcaspResponse(
+    ViewRCASP = ViewRcasp(
+      ResponseCommon = rcaspResponseCommon,
+      ResponseDetails = RcaspResponseDetails(RCASPList =
+        List(
+          individualRcaspDetailsWithEmail(
+            carfId,
+            rcaspId = "ZMCAR0123456780",
+            firstName = "Alan",
+            lastName = "Johnson",
+            email = rcaspEmail
+          )
+        )
+      )
+    )
+  )
+
+  private def individualRcaspDetailsWithEmail(
+      carfId: String,
+      rcaspId: String,
+      firstName: String,
+      lastName: String,
+      email: String
+  ): viewAndUpdateRcasp.RcaspDetails =
+    viewAndUpdateRcasp.IndividualRcaspDetails(
+      RCASPID = rcaspId,
+      SubscriptionID = carfId,
+      IsRCASPUser = false,
+      PartyType = "Individual",
+      FirstName = firstName,
+      LastName = lastName,
+      TINDetails = Some(
+        List(
+          TinDetails(
+            TINType = "NINO",
+            TIN = "AA123456C",
+            IssuedBy = "GB"
+          )
+        )
+      ),
+      AddressDetails = fullAddress,
+      PrimaryContactDetails = Some(
+        RcaspContactDetails(
+          ContactName = s"$firstName $lastName",
+          EmailAddress = email,
+          PhoneNumber = None
+        )
+      )
+    )
 
   private def fullIndividualRcaspResponse(carfId: String) = ViewRcaspResponse(
     ViewRCASP = ViewRcasp(
