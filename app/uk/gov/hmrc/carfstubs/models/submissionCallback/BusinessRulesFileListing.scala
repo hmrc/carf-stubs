@@ -26,43 +26,44 @@ object BusinessRulesFileListing {
     FileListing(
       filename = "BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml",
       fileSize = 792L,
-      downloadURL = "data/examples/aeoi/BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml",
+      downloadURL = "data/businessRuleResponseExamples/BusinessRuleCheckSampleRequest_ValidFile_v0.3.xml",
       metadata = None
     ),
     FileListing(
       filename = "BusinessRuleCheckSampleRequest_validFile_with_150errors.xml",
       fileSize = 35081L,
-      downloadURL = "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_150errors.xml",
+      downloadURL = "data/businessRuleResponseExamples/BusinessRuleCheckSampleRequest_validFile_with_150errors.xml",
       metadata = Some(Seq.empty)
     ),
     FileListing(
       filename = "BusinessRuleCheckSampleRequest_validFile_with_errors_1_to_46.xml",
       fileSize = 10000L,
-      downloadURL = "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_errors_1_to_46.xml",
+      downloadURL =
+        "data/businessRuleResponseExamples/BusinessRuleCheckSampleRequest_validFile_with_errors_1_to_46.xml",
       metadata = Some(Seq(testFileListingMetadata))
     ),
     FileListing(
       filename = "BusinessRuleCheckSampleRequest_validFile_with_errors.xml",
       fileSize = 1136L,
-      downloadURL = "data/examples/aeoi/BusinessRuleCheckSampleRequest_validFile_with_errors.xml",
+      downloadURL = "data/businessRuleResponseExamples/BusinessRuleCheckSampleRequest_validFile_with_errors.xml",
       metadata = Some(Seq.empty)
     ),
     FileListing(
       filename = "BusinessRuleCheckSampleRequest_invalidFile_schema__errors.xml",
       fileSize = 1036L,
-      downloadURL = "data/examples/aeoi/BusinessRuleCheckSampleRequest_invalidFile_schema__errors.xml",
+      downloadURL = "data/businessRuleResponseExamples/BusinessRuleCheckSampleRequest_invalidFile_schema__errors.xml",
       metadata = Some(Seq.empty)
     ),
     FileListing(
-      filename = "malformed-xml.xml",
+      filename = "BusinessRuleCheckSampleRequest_malformed.xml",
       fileSize = 56L,
-      downloadURL = "data/examples/malformed-xml.xml",
+      downloadURL = "data/businessRuleResponseExamples/BusinessRuleCheckSampleRequest_malformed.xml",
       metadata = Some(Seq.empty)
     ),
     FileListing(
       filename = "unknown.xml",
       fileSize = 100L,
-      downloadURL = "data/examples/aeoi/unknown.xml",
+      downloadURL = "data/businessRuleResponseExamples/unknown.xml",
       metadata = Some(Seq.empty)
     )
   )
